@@ -1,7 +1,7 @@
 use std::{error::Error, fs, io, panic, path};
 
 use mozjpeg::Decompress;
-use rgb::{FromSlice, RGB8, RGBA8};
+use rgb::{FromSlice, RGBA8};
 
 /// Decodes an image file to a vector of RGB8 pixels, along with the image's width and height.
 ///
@@ -33,12 +33,14 @@ pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), 
 fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
     panic::catch_unwind(|| -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
         let file_content = fs::read(path)?;
+
         let d = Decompress::new_mem(&file_content)?;
-        let mut image = d.rgb()?;
+        let mut image = d.rgba()?;
+
         let width = image.width();
         let height = image.height();
-        let pixels: Vec<RGB8> = image.read_scanlines().unwrap();
-        let pixels = pixels.iter().map(|pixel| pixel.alpha(255)).collect();
+
+        let pixels: Vec<RGBA8> = image.read_scanlines().unwrap();
 
         assert!(image.finish_decompress());
         Ok((pixels, width, height))
