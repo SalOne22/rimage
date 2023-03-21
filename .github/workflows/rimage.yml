@@ -46,6 +46,7 @@ jobs:
           - target: x86_64-unknown-linux-musl
             toolchain: nightly
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v2
       - name: Install musl tools
