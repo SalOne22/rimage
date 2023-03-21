@@ -7,6 +7,13 @@
 This is CLI tool inspired by [squoosh!](https://squoosh.app/)  
 Rimage currently supports two codecs, mozjpeg and oxipng, and aims to add support for AVIF and WebP in the future.
 
+## Installation
+
+If you have cargo you can use this  
+`cargo install rimage`
+
+or from [Releases]() on GitHub
+
 ## Usage
 
 `rimage -q 0.75 *.jpg`
