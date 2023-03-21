@@ -2,7 +2,6 @@ name: Deploy
 
 on:
   push:
-    branches: [ "main" ]
     tags: [ "v*.*.*" ]
 
 env:
@@ -81,7 +80,7 @@ jobs:
       uses: Swatinem/rust-cache@v2.2.1
       
     - name: Build rimage
-      run: cargo build --release --target x86_64-pc-windows-msvc --verbose
+      run: cargo build --release --target ${{ matrix.target }} --verbose
       
     - name: Strip binary
       run: |
