@@ -24,8 +24,8 @@ Rimage currently supports two codecs, mozjpeg and oxipng, and aims to add suppor
 ## Contribute
 
 If you are interested in contributing to the development of Rimage, you can get started by cloning the repository using Git or GitHub Desktop, followed by running `cargo build`.
-Once you have created your branch, you can make a pull request.  
-Im new to GitHub so any help would be greatly appreciated! 🤘
+Once you have created your branch and it builds successfully, you can make a pull request.  
+Im new to GitHub and Rust so any help would be greatly appreciated! 🤘
 
 ## License
 
