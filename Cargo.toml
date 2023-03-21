@@ -1,8 +1,15 @@
 [package]
 name = "rimage"
-authors = ["Vladyslav Vladinov <vladdf44@gmail.com>"]
 description = "A CLI tool to convert/optimize/resize images in different formats"
-license = "MIT"
+authors = ["Vladyslav Vladinov <vladdf44@gmail.com>"]
+
+categories = ["command-line-utilities", "compression"]
+keywords = ["cli", "image", "compression"]
+
+exclude = ["test/*", "images/"]
+repository = "https://github.com/SalOne22/rimage"
+license = "MIT OR Apache-2.0"
+
 version = "0.1.0"
 edition = "2021"
 

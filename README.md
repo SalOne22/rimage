@@ -1,7 +1,18 @@
 # Rimage
 
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SalOne22/rimage/rust.yml?label=rimage)](https://github.com/SalOne22/rimage/actions?query=branch%3Amain+)
+![Version](https://img.shields.io/crates/v/rimage)
+![License](https://img.shields.io/crates/l/rimage)
+
 This is CLI tool inspired by [squoosh!](https://squoosh.app/)  
 Rimage currently supports two codecs, mozjpeg and oxipng, and aims to add support for AVIF and WebP in the future.
+
+## Usage
+
+`rimage -q 0.75 *.jpg`
+
+- Quality: `-q 0` through `-q 1`, higher is better
+- More options will be added later
 
 ## To-Do
 
