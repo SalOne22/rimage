@@ -7,7 +7,17 @@ use std::{
 use mozjpeg::Compress;
 use rgb::{ComponentBytes, FromSlice, RGBA8};
 
-/// Encodes image with pixels, width, height, quality and saves it to path
+/// Encodes an image to file at path from a vector of RGB8 pixels, width, height, output format and quality.
+///
+/// Result is
+/// - Ok(()) if no errors
+/// - Err if file cannot be created or changed
+/// - Err if file format is not supported
+///
+/// # Panics
+/// This function will panic if Error occurs in encode functions
+/// 
+/// TODO: Return error if inner functions returns error
 pub fn encode_image(
     path: &path::PathBuf,
     pixels: &[RGBA8],
