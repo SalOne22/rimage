@@ -1,5 +1,10 @@
+//! # Rimage
+//! `rimage` is CLI tool that compress multiple images at once.
+//! Also it provides lib crate with functions to decode and encode images
+
 use clap::Parser;
 
+/// Config from command line input
 #[derive(Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub struct Config {
@@ -11,6 +16,7 @@ pub struct Config {
     pub quality: f32,
 }
 
-pub mod encoders;
+/// Decoders for images
 pub mod decoders;
-
+/// Encoders for images
+pub mod encoders;

@@ -3,7 +3,17 @@ use std::{error::Error, fs, io, panic, path};
 use mozjpeg::Decompress;
 use rgb::{FromSlice, RGB8};
 
-/// Decodes image to (pixels, width, height)
+/// Decodes an image file to a vector of RGB8 pixels, along with the image's width and height.
+///
+/// Result is
+/// - Ok with tuple (pixels in RGB8, width, height)
+/// - Err if error occurs from decode functions
+/// - Err if input_format not supported
+///
+/// # Panics
+/// This function will panic if file has no extension
+///
+/// TODO: Return error if file has no extension
 pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
     let input_format = path.extension().unwrap();
     let decoded = match input_format.to_str() {
