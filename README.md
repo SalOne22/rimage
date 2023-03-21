@@ -10,12 +10,13 @@ Rimage currently supports two codecs, mozjpeg and oxipng, and aims to add suppor
 
 ## Installation
 
-If you have cargo you can use this  
+If you have cargo you can use this
+
 ```
 cargo install rimage
 ```
 
-or from [Releases]() on GitHub
+or from [Releases](https://github.com/SalOne22/rimage/releases) on GitHub
 
 ## Usage
 
@@ -24,7 +25,7 @@ rimage -q 0.75 *.jpg
 ```
 
 - Quality: `-q 0` through `-q 1`, higher is better
-- Output format:  `-o png`, now supported only jpg and png
+- Output format: `-o png`, now supported only jpg and png
 - More options will be added later
 
 ## To-Do
