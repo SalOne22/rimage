@@ -11,6 +11,5 @@ pub struct Config {
     pub quality: f32,
 }
 
-pub mod encoders;
 pub mod decoders;
-
+pub mod encoders;
