@@ -1,7 +1,7 @@
 use std::{error::Error, fs, io, panic, path};
 
 use mozjpeg::Decompress;
-use rgb::{FromSlice, RGBA8};
+use rgb::{FromSlice, RGB8, RGBA8};
 
 /// Decodes image to (pixels, width, height)
 pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
@@ -27,7 +27,8 @@ fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<d
         let mut image = d.rgb()?;
         let width = image.width();
         let height = image.height();
-        let pixels: Vec<RGBA8> = image.read_scanlines().unwrap();
+        let pixels: Vec<RGB8> = image.read_scanlines().unwrap();
+        let pixels = pixels.iter().map(|pixel| pixel.alpha(255)).collect();
 
         assert!(image.finish_decompress());
         Ok((pixels, width, height))
@@ -44,7 +45,30 @@ fn decode_png(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), io::Er
     let mut buf = vec![0; reader.output_buffer_size()];
     let info = reader.next_frame(&mut buf)?;
     let bytes = &buf[..info.buffer_size()];
-    let pixels = bytes.as_rgba().to_owned();
+    let pixels: Vec<RGBA8> = match info.color_type {
+        png::ColorType::Grayscale => bytes
+            .as_gray()
+            .iter()
+            .map(|pixel| RGBA8::new(pixel.0, pixel.0, pixel.0, 255))
+            .collect(),
+        png::ColorType::Rgb => bytes
+            .as_rgb()
+            .iter()
+            .map(|pixel| pixel.alpha(255))
+            .collect(),
+        png::ColorType::GrayscaleAlpha => bytes
+            .as_gray_alpha()
+            .iter()
+            .map(|pixel| RGBA8::new(pixel.0, pixel.0, pixel.0, pixel.1))
+            .collect(),
+        png::ColorType::Rgba => bytes.as_rgba().to_owned(),
+        png::ColorType::Indexed => {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "File ColorScheme not supported",
+            ))
+        }
+    };
     Ok((pixels, info.width as usize, info.height as usize))
 }
 

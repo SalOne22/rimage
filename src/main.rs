@@ -7,6 +7,6 @@ fn main() {
     for path in conf.input {
         let (pixels, width, height) = decoders::decode_image(&path).unwrap();
 
-        encoders::encode_image(&path, &pixels, "png", width, height, conf.quality).unwrap();
+        encoders::encode_image(&path, &pixels, "jpg", width, height, conf.quality).unwrap();
     }
 }
