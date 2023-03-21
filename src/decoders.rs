@@ -1,7 +1,7 @@
 use std::{error::Error, fs, io, panic, path};
 
 use mozjpeg::Decompress;
-use rgb::{FromSlice, RGB8};
+use rgb::{FromSlice, RGB8, RGBA8};
 
 /// Decodes an image file to a vector of RGB8 pixels, along with the image's width and height.
 ///
@@ -14,7 +14,7 @@ use rgb::{FromSlice, RGB8};
 /// This function will panic if file has no extension
 ///
 /// TODO: Return error if file has no extension
-pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
+pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
     let input_format = path.extension().unwrap();
     let decoded = match input_format.to_str() {
         Some("jpg") => decode_jpeg(path)?,
@@ -30,14 +30,15 @@ pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), B
     Ok(decoded)
 }
 
-fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
-    panic::catch_unwind(|| -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
+fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
+    panic::catch_unwind(|| -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
         let file_content = fs::read(path)?;
         let d = Decompress::new_mem(&file_content)?;
         let mut image = d.rgb()?;
         let width = image.width();
         let height = image.height();
-        let pixels = image.read_scanlines().unwrap();
+        let pixels: Vec<RGB8> = image.read_scanlines().unwrap();
+        let pixels = pixels.iter().map(|pixel| pixel.alpha(255)).collect();
 
         assert!(image.finish_decompress());
         Ok((pixels, width, height))
@@ -48,13 +49,36 @@ fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dy
     ))))
 }
 
-fn decode_png(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), io::Error> {
+fn decode_png(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), io::Error> {
     let d = png::Decoder::new(fs::File::open(path)?);
     let mut reader = d.read_info()?;
     let mut buf = vec![0; reader.output_buffer_size()];
     let info = reader.next_frame(&mut buf)?;
     let bytes = &buf[..info.buffer_size()];
-    let pixels: Vec<RGB8> = bytes.as_rgba().iter().map(|color| color.rgb()).collect();
+    let pixels: Vec<RGBA8> = match info.color_type {
+        png::ColorType::Grayscale => bytes
+            .as_gray()
+            .iter()
+            .map(|pixel| RGBA8::new(pixel.0, pixel.0, pixel.0, 255))
+            .collect(),
+        png::ColorType::Rgb => bytes
+            .as_rgb()
+            .iter()
+            .map(|pixel| pixel.alpha(255))
+            .collect(),
+        png::ColorType::GrayscaleAlpha => bytes
+            .as_gray_alpha()
+            .iter()
+            .map(|pixel| RGBA8::new(pixel.0, pixel.0, pixel.0, pixel.1))
+            .collect(),
+        png::ColorType::Rgba => bytes.as_rgba().to_owned(),
+        png::ColorType::Indexed => {
+            return Err(io::Error::new(
+                io::ErrorKind::Other,
+                "File ColorScheme not supported",
+            ))
+        }
+    };
     Ok((pixels, info.width as usize, info.height as usize))
 }
 

@@ -5,7 +5,7 @@ use std::{
 };
 
 use mozjpeg::Compress;
-use rgb::{ComponentBytes, FromSlice, RGB8};
+use rgb::{ComponentBytes, FromSlice, RGBA8};
 
 /// Encodes an image to file at path from a vector of RGB8 pixels, width, height, output format and quality.
 ///
@@ -20,7 +20,7 @@ use rgb::{ComponentBytes, FromSlice, RGB8};
 /// TODO: Return error if inner functions returns error
 pub fn encode_image(
     path: &path::PathBuf,
-    pixels: &[RGB8],
+    pixels: &[RGBA8],
     output_format: &str,
     width: usize,
     height: usize,
@@ -39,13 +39,13 @@ pub fn encode_image(
 }
 
 fn encode_jpeg(
-    pixels: &[RGB8],
+    pixels: &[RGBA8],
     width: usize,
     height: usize,
     quality: f32,
 ) -> Result<Vec<u8>, Box<dyn error::Error>> {
     panic::catch_unwind(|| -> Result<Vec<u8>, Box<dyn error::Error>> {
-        let mut comp = Compress::new(mozjpeg::ColorSpace::JCS_RGB);
+        let mut comp = Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
 
         comp.set_size(width, height);
         comp.set_quality(quality * 100.0);
@@ -65,7 +65,7 @@ fn encode_jpeg(
 }
 
 fn encode_png(
-    pixels: &[RGB8],
+    pixels: &[RGBA8],
     width: usize,
     height: usize,
 ) -> Result<Vec<u8>, Box<dyn error::Error>> {
@@ -73,10 +73,10 @@ fn encode_png(
     {
         let ref mut w = BufWriter::new(&mut buf);
         let mut encoder = png::Encoder::new(w, width as u32, height as u32);
-        encoder.set_color(png::ColorType::Rgb);
+        encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
         let mut w = encoder.write_header()?;
-        w.write_image_data(pixels.as_rgba().as_bytes())?;
+        w.write_image_data(pixels.as_bytes())?;
         w.finish()?;
     }
     let opts = oxipng::Options::from_preset(6);
@@ -106,6 +106,19 @@ mod tests {
     fn test_encode_png() {
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("test/encode_test.png")).unwrap();
+
+        let result = encode_png(&pixels, width, height);
+        println!("{result:?}");
+        assert!(result.is_ok());
+
+        let encoded_bytes = result.unwrap();
+        assert!(!encoded_bytes.is_empty());
+    }
+
+    #[test]
+    fn test_encode_transparent_png() {
+        let (pixels, width, height) =
+            decoders::decode_image(&PathBuf::from("test/test_transparent.png")).unwrap();
 
         let result = encode_png(&pixels, width, height);
         println!("{result:?}");
