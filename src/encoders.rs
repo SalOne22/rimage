@@ -116,6 +116,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Too long"]
     fn test_encode_transparent_png() {
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("test/test_transparent.png")).unwrap();

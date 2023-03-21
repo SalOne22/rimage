@@ -14,6 +14,10 @@ pub struct Config {
     /// Quality of output images from 0 to 1
     #[arg(short, long, default_value_t = 0.75)]
     pub quality: f32,
+
+    /// Format of output images
+    #[arg(short, long, default_value_t = String::from("jpg"))]
+    pub output_format: String,
 }
 
 /// Decoders for images
