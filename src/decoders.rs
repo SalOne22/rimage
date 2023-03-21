@@ -1,10 +1,10 @@
 use std::{error::Error, fs, io, panic, path};
 
 use mozjpeg::Decompress;
-use rgb::{FromSlice, RGB8};
+use rgb::{FromSlice, RGBA8};
 
 /// Decodes image to (pixels, width, height)
-pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
+pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
     let input_format = path.extension().unwrap();
     let decoded = match input_format.to_str() {
         Some("jpg") => decode_jpeg(path)?,
@@ -20,14 +20,14 @@ pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), B
     Ok(decoded)
 }
 
-fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
-    panic::catch_unwind(|| -> Result<(Vec<RGB8>, usize, usize), Box<dyn Error>> {
+fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
+    panic::catch_unwind(|| -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
         let file_content = fs::read(path)?;
         let d = Decompress::new_mem(&file_content)?;
         let mut image = d.rgb()?;
         let width = image.width();
         let height = image.height();
-        let pixels = image.read_scanlines().unwrap();
+        let pixels: Vec<RGBA8> = image.read_scanlines().unwrap();
 
         assert!(image.finish_decompress());
         Ok((pixels, width, height))
@@ -38,13 +38,13 @@ fn decode_jpeg(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), Box<dy
     ))))
 }
 
-fn decode_png(path: &path::PathBuf) -> Result<(Vec<RGB8>, usize, usize), io::Error> {
+fn decode_png(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), io::Error> {
     let d = png::Decoder::new(fs::File::open(path)?);
     let mut reader = d.read_info()?;
     let mut buf = vec![0; reader.output_buffer_size()];
     let info = reader.next_frame(&mut buf)?;
     let bytes = &buf[..info.buffer_size()];
-    let pixels: Vec<RGB8> = bytes.as_rgba().iter().map(|color| color.rgb()).collect();
+    let pixels = bytes.as_rgba().to_owned();
     Ok((pixels, info.width as usize, info.height as usize))
 }
 
