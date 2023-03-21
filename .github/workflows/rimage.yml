@@ -1,0 +1,38 @@
+name: Rimage
+
+on:
+  push:
+     branches:
+       - main
+     paths-ignore:
+       - '**.md'
+  pull_request:
+     paths-ignore:
+       - '**.md'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    name: Test `cargo check/test` on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    
+    env:
+      CARGO_TERM_COLOR: always
+
+    steps:
+    - uses: actions/checkout@v3
+    
+    - run: |
+        rustup set auto-self-update disable
+        rustup toolchain install stable --profile minimal
+      
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2.2.1
+    
+    - name: Check
+      run: cargo check --verbose
+    - name: Run tests
+      run: cargo test --verbose
