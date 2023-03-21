@@ -5,12 +5,12 @@ use std::{
 };
 
 use mozjpeg::Compress;
-use rgb::{ComponentBytes, FromSlice, RGB8};
+use rgb::{ComponentBytes, FromSlice, RGBA8};
 
 /// Encodes image with pixels, width, height, quality and saves it to path
 pub fn encode_image(
     path: &path::PathBuf,
-    pixels: &[RGB8],
+    pixels: &[RGBA8],
     output_format: &str,
     width: usize,
     height: usize,
@@ -29,7 +29,7 @@ pub fn encode_image(
 }
 
 fn encode_jpeg(
-    pixels: &[RGB8],
+    pixels: &[RGBA8],
     width: usize,
     height: usize,
     quality: f32,
@@ -55,7 +55,7 @@ fn encode_jpeg(
 }
 
 fn encode_png(
-    pixels: &[RGB8],
+    pixels: &[RGBA8],
     width: usize,
     height: usize,
 ) -> Result<Vec<u8>, Box<dyn error::Error>> {
