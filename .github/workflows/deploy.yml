@@ -14,9 +14,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - run: |
-        rustup set auto-self-update disable
-        rustup toolchain install stable --profile minimal
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        target: x86_64-pc-windows-msvc
+        override: true
     
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.2.1
@@ -67,9 +71,13 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - run: |
-        rustup set auto-self-update disable
-        rustup toolchain install stable-${{ matrix.target }} --profile minimal
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        target: ${{ matrix.target }}
+        override: true
     
     - name: Install musl
       if: contains(matrix.target, 'linux-musl')
