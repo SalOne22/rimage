@@ -1,6 +1,6 @@
 # Rimage
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/SalOne22/rimage/rust.yml?label=rimage)](https://github.com/SalOne22/rimage/actions?query=branch%3Amain+)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SalOne22/rimage/rimage.yml?label=rimage)](https://github.com/SalOne22/rimage/actions?query=branch%3Amain+)
 ![Version](https://img.shields.io/crates/v/rimage)
 ![License](https://img.shields.io/crates/l/rimage)
 
