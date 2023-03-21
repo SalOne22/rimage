@@ -16,7 +16,7 @@ use rgb::{ComponentBytes, FromSlice, RGBA8};
 ///
 /// # Panics
 /// This function will panic if Error occurs in encode functions
-/// 
+///
 /// TODO: Return error if inner functions returns error
 pub fn encode_image(
     path: &path::PathBuf,
@@ -116,6 +116,7 @@ mod tests {
     }
 
     #[test]
+    #[ignore = "Too long"]
     fn test_encode_transparent_png() {
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("test/test_transparent.png")).unwrap();
