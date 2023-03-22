@@ -3,10 +3,10 @@ use std::{error::Error, fs, io, panic, path};
 use mozjpeg::Decompress;
 use rgb::{FromSlice, RGBA8};
 
-/// Decodes an image file to a vector of RGB8 pixels, along with the image's width and height.
+/// Decodes an image file to a vector of RGBA8 pixels, along with the image's width and height.
 ///
 /// Result is
-/// - Ok with tuple (pixels in RGB8, width, height)
+/// - Ok with tuple (pixels in RGBA8, width, height)
 /// - Err if error occurs from decode functions
 /// - Err if input_format not supported
 ///
