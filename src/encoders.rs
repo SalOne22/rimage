@@ -79,7 +79,7 @@ fn encode_png(
         w.write_image_data(pixels.as_bytes())?;
         w.finish()?;
     }
-    let opts = oxipng::Options::from_preset(6);
+    let opts = oxipng::Options::from_preset(2);
     Ok(oxipng::optimize_from_memory(buf.get_ref(), &opts)?)
 }
 
@@ -127,6 +127,21 @@ mod tests {
 
         let encoded_bytes = result.unwrap();
         assert!(!encoded_bytes.is_empty());
+    }
+
+    #[test]
+    fn test_encode_large_png() {
+        let (pixels, _, _) =
+            decoders::decode_image(&PathBuf::from("test/large_test1.jpg")).unwrap();
+
+        let mut options = oxipng::Options::default();
+        options.fix_errors = true;
+
+        let result = oxipng::optimize_from_memory(&pixels.as_bytes(), &options);
+
+        println!("{:#?}", result);
+
+        assert!(result.is_ok());
     }
 
     #[test]
