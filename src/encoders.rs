@@ -7,7 +7,7 @@ use std::{
 use mozjpeg::Compress;
 use rgb::{ComponentBytes, RGBA8};
 
-/// Encodes an image to file at path from a vector of RGB8 pixels, width, height, output format and quality.
+/// Encodes an image to file at path from a vector of RGBA8 pixels, width, height, output format and quality.
 ///
 /// Result is
 /// - Ok(()) if no errors
