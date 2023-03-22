@@ -25,7 +25,7 @@ rimage -q 0.75 *.jpg
 ```
 
 - Quality: `-q 0` through `-q 1`, higher is better
-- Output format: `-o png`, now supported only jpg and png
+- Output format: `-o png`, currently supported only jpg and png
 - More options will be added later
 
 ## To-Do
@@ -34,6 +34,7 @@ rimage -q 0.75 *.jpg
 - Support for AVIF and WebP
 - Image resize
 - Image quantization
+- API
 - And alot of bugfixes and optimizations
 
 ## Contribute
@@ -45,3 +46,5 @@ Im new to GitHub and Rust so any help would be greatly appreciated! 🤘
 ## License
 
 Rimage is licensed under either the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), or [the MIT license](https://opensource.org/licenses/MIT).
+
+All images maded by me or taken from [Unsplash](https://unsplash.com/)
