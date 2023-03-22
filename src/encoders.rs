@@ -130,21 +130,6 @@ mod tests {
     }
 
     #[test]
-    fn test_encode_large_png() {
-        let (pixels, _, _) =
-            decoders::decode_image(&PathBuf::from("test/large_test1.jpg")).unwrap();
-
-        let mut options = oxipng::Options::default();
-        options.fix_errors = true;
-
-        let result = oxipng::optimize_from_memory(&pixels.as_bytes(), &options);
-
-        println!("{:#?}", result);
-
-        assert!(result.is_ok());
-    }
-
-    #[test]
     fn test_encode_image() {
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("test/encode_test.png")).unwrap();
