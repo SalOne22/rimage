@@ -53,7 +53,7 @@ fn encode_jpeg(
         comp.set_mem_dest();
         comp.start_compress();
 
-        assert!(comp.write_scanlines(&pixels[..].as_bytes()));
+        assert!(comp.write_scanlines(pixels[..].as_bytes()));
 
         comp.finish_compress();
         Ok(comp.data_to_vec().unwrap())
@@ -71,7 +71,7 @@ fn encode_png(
 ) -> Result<Vec<u8>, Box<dyn error::Error>> {
     let mut buf = Cursor::new(Vec::with_capacity(width * height * 4));
     {
-        let ref mut w = BufWriter::new(&mut buf);
+        let w = &mut BufWriter::new(&mut buf);
         let mut encoder = png::Encoder::new(w, width as u32, height as u32);
         encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
