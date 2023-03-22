@@ -844,6 +844,7 @@ dependencies = [
  "mozjpeg",
  "oxipng",
  "png",
+ "rayon",
  "rgb",
  "wild",
 ]
