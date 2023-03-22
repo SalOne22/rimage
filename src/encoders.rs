@@ -79,7 +79,7 @@ fn encode_png(
         w.write_image_data(pixels.as_bytes())?;
         w.finish()?;
     }
-    let opts = oxipng::Options::from_preset(6);
+    let opts = oxipng::Options::from_preset(2);
     Ok(oxipng::optimize_from_memory(buf.get_ref(), &opts)?)
 }
 
