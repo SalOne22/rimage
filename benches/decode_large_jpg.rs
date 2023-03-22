@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, time::Duration};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use rimage::decoders::decode_image;
@@ -15,5 +15,9 @@ fn bench_decode_jpg_2(c: &mut Criterion) {
     });
 }
 
-criterion_group!(benches, bench_decode_jpg_1, bench_decode_jpg_2);
+criterion_group!(
+    name = benches;
+    config = Criterion::default().sample_size(20).measurement_time(Duration::from_secs(25));
+    targets = bench_decode_jpg_1, bench_decode_jpg_2
+);
 criterion_main!(benches);
