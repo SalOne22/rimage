@@ -18,12 +18,25 @@ fn main() {
     match conf.command {
         Commands::Info { input } => {
             for path in input {
-                let d = Decoder::build(&path).unwrap();
-                let img_data = d.decode().unwrap();
+                let d = match Decoder::build(&path) {
+                    Ok(dec) => dec,
+                    Err(e) => {
+                        println!("Error: {e}");
+                        continue;
+                    }
+                };
+                let img_data = match d.decode() {
+                    Ok(img_d) => img_d,
+                    Err(e) => {
+                        println!("Error: {e}");
+                        continue;
+                    }
+                };
 
                 println!("Path: {:?}", path);
                 println!("WxH: {:?}", img_data.size());
                 println!("Color space: {:?}", img_data.color_space());
+                println!("Bytes: {}", img_data.data_len());
                 println!("");
             }
             process::exit(0);
