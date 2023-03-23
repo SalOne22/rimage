@@ -93,6 +93,7 @@ mod tests {
     #[test]
     fn test_decode_image_jpg() {
         let file_path = PathBuf::from("tests/files/test.jpg");
+        #[allow(deprecated)]
         let result = decode_image(&file_path);
         assert!(result.is_ok());
     }
@@ -100,6 +101,7 @@ mod tests {
     #[test]
     fn test_decode_image_png() {
         let file_path = PathBuf::from("tests/files/test.png");
+        #[allow(deprecated)]
         let result = decode_image(&file_path);
         assert!(result.is_ok());
     }
@@ -107,6 +109,7 @@ mod tests {
     #[test]
     fn test_decode_image_unsupported() {
         let file_path = PathBuf::from("tests/files/test.bmp");
+        #[allow(deprecated)]
         let result = decode_image(&file_path);
         assert!(result.is_err());
     }

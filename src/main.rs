@@ -1,5 +1,3 @@
-use std::process;
-
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use rimage::{decoders, encoders, Config};

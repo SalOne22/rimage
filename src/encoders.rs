@@ -92,6 +92,7 @@ mod tests {
 
     #[test]
     fn test_encode_jpeg() {
+        #[allow(deprecated)]
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("tests/files/encode_test.png")).unwrap();
         let quality = 0.8;
@@ -105,6 +106,7 @@ mod tests {
 
     #[test]
     fn test_encode_png() {
+        #[allow(deprecated)]
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("tests/files/encode_test.png")).unwrap();
 
@@ -118,6 +120,7 @@ mod tests {
     #[test]
     #[ignore = "Too long"]
     fn test_encode_transparent_png() {
+        #[allow(deprecated)]
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("tests/files/test_transparent.png")).unwrap();
 
@@ -130,16 +133,19 @@ mod tests {
 
     #[test]
     fn test_encode_image() {
+        #[allow(deprecated)]
         let (pixels, width, height) =
             decoders::decode_image(&PathBuf::from("tests/files/encode_test.png")).unwrap();
         let quality = 0.8;
 
         let path = PathBuf::from("test.jpg");
+        #[allow(deprecated)]
         let result = encode_image(&path, &pixels, "jpg", width, height, quality);
         assert!(result.is_ok());
         assert!(fs::remove_file(path).is_ok());
 
         let path = PathBuf::from("test.png");
+        #[allow(deprecated)]
         let result = encode_image(&path, &pixels, "png", width, height, quality);
         assert!(result.is_ok());
         assert!(fs::remove_file(path).is_ok());
