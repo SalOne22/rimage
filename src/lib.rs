@@ -7,7 +7,7 @@ use std::{
     path::{self, PathBuf},
 };
 
-use clap::{Parser, Subcommand};
+use clap::Parser;
 
 /// Decoders for images
 pub mod decoders;
@@ -28,14 +28,6 @@ pub struct Config {
     /// Format of output images
     #[arg(short, long, default_value_t = String::from("jpg"))]
     pub output_format: String,
-
-    #[command(subcommand)]
-    pub command: Commands,
-}
-
-#[derive(Subcommand, Debug)]
-pub enum Commands {
-    Info { input: Vec<std::path::PathBuf> },
 }
 
 pub struct ImageData {
@@ -67,7 +59,7 @@ pub enum ConfigError {
     FormatNotSupported(String),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ColorScheme {
     RGB,
     RGBA,
@@ -218,6 +210,8 @@ impl fmt::Display for ConfigError {
 
 #[cfg(test)]
 mod tests {
+    use regex::Regex;
+
     use super::*;
 
     #[test]
@@ -259,5 +253,144 @@ mod tests {
             ConfigError::FormatNotSupported("webp".to_string()).to_string(),
             "webp is not supported"
         )
+    }
+
+    #[test]
+    fn decode_grayscale() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+0g\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorScheme::Grayscale);
+            assert_ne!(image.data_len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
+    fn decode_grayscale_alpha() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+4a\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorScheme::GrayscaleAlpha);
+            assert_ne!(image.data_len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
+    fn decode_rgb() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+2c\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorScheme::RGB);
+            assert_ne!(image.data_len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
+    fn decode_rgba() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+6a\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorScheme::RGBA);
+            assert_ne!(image.data_len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
+    fn decode_indexed() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+3p\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorScheme::Indexed);
+            assert_ne!(image.data_len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
+    #[should_panic]
+    fn decode_corrupted() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/x.+0g\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorScheme::Grayscale);
+            assert_ne!(image.data_len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
     }
 }
