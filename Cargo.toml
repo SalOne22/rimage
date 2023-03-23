@@ -20,9 +20,11 @@ lto = true
 bytemuck = "1.13.1"
 clap = { version = "4.1.11", features = ["derive"] }
 indicatif = "0.17.3"
+log = "0.4.17"
 mozjpeg = "0.9.4"
 oxipng = "8.0.0"
 png = "0.17.7"
+pretty_env_logger = "0.4.0"
 rayon = "1.7.0"
 rgb = "0.8.36"
 wild = "2.1.0"
