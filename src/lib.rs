@@ -39,7 +39,7 @@ pub enum Commands {
 }
 
 pub struct ImageData {
-    color_space: mozjpeg::ColorSpace,
+    color_space: ColorScheme,
     width: usize,
     height: usize,
     data: Vec<u8>,
@@ -65,6 +65,15 @@ pub enum ConfigError {
     HeightIsZero,
     SizeIsZero,
     FormatNotSupported(String),
+}
+
+#[derive(Debug)]
+pub enum ColorScheme {
+    RGB,
+    RGBA,
+    Indexed,
+    Grayscale,
+    GrayscaleAlpha,
 }
 
 impl<'a> Decoder<'a> {
@@ -94,8 +103,15 @@ impl<'a> Decoder<'a> {
     fn decode_jpeg(&self) -> Result<ImageData, DecodingError> {
         panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
             let d = mozjpeg::Decompress::new_mem(&self.raw_data)?;
-            let color_space = d.color_space();
-            let mut image = match color_space {
+            let color_space = match d.color_space() {
+                mozjpeg::ColorSpace::JCS_GRAYSCALE => ColorScheme::Grayscale,
+                mozjpeg::ColorSpace::JCS_EXT_RGBA => ColorScheme::RGBA,
+                mozjpeg::ColorSpace::JCS_EXT_BGRA => ColorScheme::RGBA,
+                mozjpeg::ColorSpace::JCS_EXT_ABGR => ColorScheme::RGBA,
+                mozjpeg::ColorSpace::JCS_EXT_ARGB => ColorScheme::RGBA,
+                _ => ColorScheme::RGB,
+            };
+            let mut image = match d.color_space() {
                 mozjpeg::ColorSpace::JCS_UNKNOWN => {
                     return Err(DecodingError::Parsing("Unknown color space".to_string()))
                 }
@@ -129,14 +145,14 @@ impl<'a> Decoder<'a> {
         let info = reader.next_frame(&mut buf)?;
         let data = buf[..info.buffer_size()].to_vec();
         let color_space = match info.color_type {
-            png::ColorType::Grayscale => mozjpeg::ColorSpace::JCS_GRAYSCALE,
-            png::ColorType::Rgb => mozjpeg::ColorSpace::JCS_RGB,
-            png::ColorType::Indexed => mozjpeg::ColorSpace::JCS_UNKNOWN,
-            png::ColorType::GrayscaleAlpha => mozjpeg::ColorSpace::JCS_GRAYSCALE,
-            png::ColorType::Rgba => mozjpeg::ColorSpace::JCS_EXT_RGBA,
+            png::ColorType::Grayscale => ColorScheme::Grayscale,
+            png::ColorType::Rgb => ColorScheme::RGB,
+            png::ColorType::Indexed => ColorScheme::Indexed,
+            png::ColorType::GrayscaleAlpha => ColorScheme::GrayscaleAlpha,
+            png::ColorType::Rgba => ColorScheme::RGBA,
         };
         Ok(ImageData {
-            color_space: color_space,
+            color_space,
             width: info.width as usize,
             height: info.height as usize,
             data,
@@ -148,8 +164,11 @@ impl ImageData {
     pub fn size(&self) -> (usize, usize) {
         (self.width, self.height)
     }
-    pub fn color_space(&self) -> mozjpeg::ColorSpace {
-        self.color_space
+    pub fn color_space(&self) -> &ColorScheme {
+        &self.color_space
+    }
+    pub fn data_len(&self) -> usize {
+        self.data.len()
     }
 }
 
