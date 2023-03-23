@@ -92,57 +92,50 @@ mod tests {
 
     #[test]
     fn test_decode_image_jpg() {
-        let file_path = PathBuf::from("test/test.jpg");
+        let file_path = PathBuf::from("tests/files/test.jpg");
         let result = decode_image(&file_path);
-        println!("{result:?}");
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_decode_image_png() {
-        let file_path = PathBuf::from("test/test.png");
+        let file_path = PathBuf::from("tests/files/test.png");
         let result = decode_image(&file_path);
-        println!("{result:?}");
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_decode_image_unsupported() {
-        let file_path = PathBuf::from("test/test.bmp");
+        let file_path = PathBuf::from("tests/files/test.bmp");
         let result = decode_image(&file_path);
-        println!("{result:?}");
         assert!(result.is_err());
     }
 
     #[test]
     fn test_decode_jpeg() {
-        let file_path = PathBuf::from("test/test.jpg");
+        let file_path = PathBuf::from("tests/files/test.jpg");
         let result = decode_jpeg(&file_path);
-        println!("{result:?}");
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_decode_jpeg_invalid() {
-        let file_path = PathBuf::from("test/invalid.jpg");
+        let file_path = PathBuf::from("tests/files/invalid.jpg");
         let result = decode_jpeg(&file_path);
-        println!("{result:?}");
         assert!(result.is_err());
     }
 
     #[test]
     fn test_decode_png() {
-        let file_path = PathBuf::from("test/test.png");
+        let file_path = PathBuf::from("tests/files/test.png");
         let result = decode_png(&file_path);
-        println!("{result:?}");
         assert!(result.is_ok());
     }
 
     #[test]
     fn test_decode_png_invalid() {
-        let file_path = PathBuf::from("test/invalid.png");
+        let file_path = PathBuf::from("tests/files/invalid.png");
         let result = decode_png(&file_path);
-        println!("{result:?}");
         assert!(result.is_err());
     }
 }

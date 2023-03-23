@@ -93,7 +93,7 @@ mod tests {
     #[test]
     fn test_encode_jpeg() {
         let (pixels, width, height) =
-            decoders::decode_image(&PathBuf::from("test/encode_test.png")).unwrap();
+            decoders::decode_image(&PathBuf::from("tests/files/encode_test.png")).unwrap();
         let quality = 0.8;
 
         let result = encode_jpeg(&pixels, width, height, quality);
@@ -106,10 +106,9 @@ mod tests {
     #[test]
     fn test_encode_png() {
         let (pixels, width, height) =
-            decoders::decode_image(&PathBuf::from("test/encode_test.png")).unwrap();
+            decoders::decode_image(&PathBuf::from("tests/files/encode_test.png")).unwrap();
 
         let result = encode_png(&pixels, width, height);
-        println!("{result:?}");
         assert!(result.is_ok());
 
         let encoded_bytes = result.unwrap();
@@ -120,10 +119,9 @@ mod tests {
     #[ignore = "Too long"]
     fn test_encode_transparent_png() {
         let (pixels, width, height) =
-            decoders::decode_image(&PathBuf::from("test/test_transparent.png")).unwrap();
+            decoders::decode_image(&PathBuf::from("tests/files/test_transparent.png")).unwrap();
 
         let result = encode_png(&pixels, width, height);
-        println!("{result:?}");
         assert!(result.is_ok());
 
         let encoded_bytes = result.unwrap();
@@ -133,18 +131,16 @@ mod tests {
     #[test]
     fn test_encode_image() {
         let (pixels, width, height) =
-            decoders::decode_image(&PathBuf::from("test/encode_test.png")).unwrap();
+            decoders::decode_image(&PathBuf::from("tests/files/encode_test.png")).unwrap();
         let quality = 0.8;
 
         let path = PathBuf::from("test.jpg");
         let result = encode_image(&path, &pixels, "jpg", width, height, quality);
-        println!("{result:?}");
         assert!(result.is_ok());
         assert!(fs::remove_file(path).is_ok());
 
         let path = PathBuf::from("test.png");
         let result = encode_image(&path, &pixels, "png", width, height, quality);
-        println!("{result:?}");
         assert!(result.is_ok());
         assert!(fs::remove_file(path).is_ok());
     }
