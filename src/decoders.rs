@@ -14,6 +14,7 @@ use rgb::{FromSlice, RGBA8};
 /// This function will panic if file has no extension
 ///
 /// TODO: Return error if file has no extension
+#[deprecated(since = "0.2.0", note = "use the Decoder struct")]
 pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
     let input_format = path.extension().unwrap();
     let decoded = match input_format.to_str() {
