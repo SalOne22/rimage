@@ -83,9 +83,9 @@ impl<'a> Decoder<'a> {
         match extension.to_str() {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
-            Some(ext) => return Err(DecodingError::Format(ext.to_string())),
+            Some(ext) => Err(DecodingError::Format(ext.to_string())),
             None => {
-                return Err(DecodingError::Parsing(
+                Err(DecodingError::Parsing(
                     "Extension is not valid unicode".to_string(),
                 ))
             }
