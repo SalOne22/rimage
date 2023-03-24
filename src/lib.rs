@@ -62,10 +62,7 @@ println!("Data length: {:?}", image.data().len());
 */
 #![warn(missing_docs)]
 
-use std::{
-    fmt, fs, io, panic,
-    path::{self, PathBuf},
-};
+use std::{fmt, fs, io, panic, path};
 
 use clap::Parser;
 
@@ -129,31 +126,32 @@ pub struct Decoder<'a> {
     raw_data: Vec<u8>,
 }
 
-/// Decoding error
+/// An error that occurred during decoding a image
 #[derive(Debug)]
 pub enum DecodingError {
-    /// Error that occurs if file is missing, failed to open or other [`io::Error`]
+    /// A [`io::Error`] if file failed to read, find, etc.
     IoError(io::Error),
-    /// Error that occurs if format of file is not supported
+    /// The format of file is not supported
     Format(String),
-    /// Error that occurs if [`Config`] is invalid
+    /// A configuration error, see [`ConfigError`]
     Config(ConfigError),
-    /// Error that occurs if file failed to decode
+    /// A decoding error, file is not a image, unsupported color space, etc.
     Parsing(String),
 }
 
-/// Configuration error
+/// An error that occurred if configuration is invalid
 #[derive(Debug)]
+#[non_exhaustive]
 pub enum ConfigError {
-    /// Error that occurs if quality is less than 0 or greater than 1
+    /// Quality is less than 0 or greater than 1
     QualityOutOfBounds,
-    /// Error that occurs if width is 0
+    /// Width is 0
     WidthIsZero,
-    /// Error that occurs if height is 0
+    /// Height is 0
     HeightIsZero,
-    /// Error that occurs if size is 0
+    /// Size is 0
     SizeIsZero,
-    /// Error that occurs if output format is not supported
+    /// Output format is not supported
     FormatNotSupported(String),
 }
 
@@ -199,7 +197,7 @@ impl<'a> Decoder<'a> {
     /// - [`DecodingError`] if
     ///   - File not found or other `io::Error`
     ///   - Config is invalid
-    pub fn build(path: &'a PathBuf) -> Result<Self, DecodingError> {
+    pub fn build(path: &'a path::PathBuf) -> Result<Self, DecodingError> {
         let raw_data = fs::read(path)?;
 
         Ok(Decoder { path, raw_data })

@@ -35,7 +35,7 @@ fn main() {
             println!("Bit Depth: {:?}", img.bit_depth());
             println!("Size: {:?}", img.size());
             println!("Data length: {:?}", img.data().len());
-            println!("");
+            println!();
         }
         process::exit(0);
     }
