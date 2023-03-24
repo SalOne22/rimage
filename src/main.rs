@@ -34,7 +34,7 @@ fn main() {
             println!("Color Space: {:?}", img.color_space());
             println!("Bit Depth: {:?}", img.bit_depth());
             println!("Size: {:?}", img.size());
-            println!("Data length: {:?}", img.data_len());
+            println!("Data length: {:?}", img.data().len());
             println!("");
         }
         process::exit(0);
