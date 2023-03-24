@@ -18,7 +18,6 @@ use rgb::{ComponentBytes, RGBA8};
 /// This function will panic if Error occurs in encode functions
 ///
 /// TODO: Return error if inner functions returns error
-#[deprecated(since = "0.2.0", note = "use the Encoder struct")]
 pub fn encode_image(
     path: &path::PathBuf,
     pixels: &[RGBA8],
