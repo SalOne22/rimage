@@ -140,15 +140,8 @@ impl<'a> Decoder<'a> {
         let mut buf = vec![0; reader.output_buffer_size()];
         let info = reader.next_frame(&mut buf)?;
         let data = buf[..info.buffer_size()].to_vec();
-        let color_space = match info.color_type {
-            png::ColorType::Grayscale => ColorScheme::Grayscale,
-            png::ColorType::Rgb => ColorScheme::Rgb,
-            png::ColorType::Indexed => ColorScheme::Indexed,
-            png::ColorType::GrayscaleAlpha => ColorScheme::GrayscaleAlpha,
-            png::ColorType::Rgba => ColorScheme::Rgba,
-        };
         Ok(ImageData {
-            color_space,
+            color_space: info.color_type.into(),
             bit_depth: info.bit_depth.into(),
             width: info.width as usize,
             height: info.height as usize,
@@ -187,6 +180,18 @@ impl From<png::DecodingError> for DecodingError {
             png::DecodingError::LimitsExceeded => {
                 DecodingError::Parsing("Png limits exceeded".to_string())
             }
+        }
+    }
+}
+
+impl From<png::ColorType> for ColorScheme {
+    fn from(color_type: png::ColorType) -> Self {
+        match color_type {
+            png::ColorType::Grayscale => ColorScheme::Grayscale,
+            png::ColorType::Rgb => ColorScheme::Rgb,
+            png::ColorType::Indexed => ColorScheme::Indexed,
+            png::ColorType::GrayscaleAlpha => ColorScheme::GrayscaleAlpha,
+            png::ColorType::Rgba => ColorScheme::Rgba,
         }
     }
 }

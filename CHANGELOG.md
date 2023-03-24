@@ -3,6 +3,10 @@
 - [Added] struct `ImageData` for storing images
 - [Added] struct `DecodingError` to process errors
 - [Added] struct `Decoder` to decode images
+
+- [Added] image processing from stdio
+- [Added] info option
+
 - [Changed] `decoders::decode_image` and `encoders::encode_image` now deprecated, use `Decoder` and `Encoder` structs instead
 
 ## v0.1.3
