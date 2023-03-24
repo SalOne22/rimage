@@ -28,10 +28,15 @@ pub struct Config {
     /// Format of output images
     #[arg(short, long, default_value_t = String::from("jpg"))]
     pub output_format: String,
+
+    /// Outputs info about image
+    #[arg(short, long, default_value_t = false)]
+    pub info: bool,
 }
 
 pub struct ImageData {
     color_space: ColorScheme,
+    bit_depth: BitDepth,
     width: usize,
     height: usize,
     data: Vec<u8>,
@@ -61,11 +66,22 @@ pub enum ConfigError {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum ColorScheme {
-    RGB,
-    RGBA,
+    Rgb,
+    Rgba,
+    Cmyk,
     Indexed,
     Grayscale,
     GrayscaleAlpha,
+}
+
+#[derive(Debug)]
+#[repr(u8)]
+pub enum BitDepth {
+    One = 1,
+    Two = 2,
+    Four = 4,
+    Eight = 8,
+    Sixteen = 16,
 }
 
 impl<'a> Decoder<'a> {
@@ -84,11 +100,9 @@ impl<'a> Decoder<'a> {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
             Some(ext) => Err(DecodingError::Format(ext.to_string())),
-            None => {
-                Err(DecodingError::Parsing(
-                    "Extension is not valid unicode".to_string(),
-                ))
-            }
+            None => Err(DecodingError::Parsing(
+                "Extension is not valid unicode".to_string(),
+            )),
         }
     }
 
@@ -97,31 +111,21 @@ impl<'a> Decoder<'a> {
             let d = mozjpeg::Decompress::new_mem(&self.raw_data)?;
             let color_space = match d.color_space() {
                 mozjpeg::ColorSpace::JCS_GRAYSCALE => ColorScheme::Grayscale,
-                mozjpeg::ColorSpace::JCS_EXT_RGBA => ColorScheme::RGBA,
-                mozjpeg::ColorSpace::JCS_EXT_BGRA => ColorScheme::RGBA,
-                mozjpeg::ColorSpace::JCS_EXT_ABGR => ColorScheme::RGBA,
-                mozjpeg::ColorSpace::JCS_EXT_ARGB => ColorScheme::RGBA,
-                _ => ColorScheme::RGB,
+                mozjpeg::ColorSpace::JCS_CMYK => ColorScheme::Cmyk,
+                mozjpeg::ColorSpace::JCS_RGB => ColorScheme::Rgb,
+                _ => ColorScheme::Rgb,
             };
-            let mut image = match d.color_space() {
-                mozjpeg::ColorSpace::JCS_UNKNOWN => {
-                    return Err(DecodingError::Parsing("Unknown color space".to_string()))
-                }
-                mozjpeg::ColorSpace::JCS_GRAYSCALE => d.grayscale(),
-                mozjpeg::ColorSpace::JCS_EXT_RGBA => d.rgba(),
-                mozjpeg::ColorSpace::JCS_EXT_BGRA => d.rgba(),
-                mozjpeg::ColorSpace::JCS_EXT_ABGR => d.rgba(),
-                mozjpeg::ColorSpace::JCS_EXT_ARGB => d.rgba(),
-                _ => d.rgb(),
-            }?;
-
-            let width = image.width();
-            let height = image.height();
+            let mut image = match d.image()? {
+                mozjpeg::Format::RGB(img) => img,
+                mozjpeg::Format::Gray(img) => img,
+                mozjpeg::Format::CMYK(img) => img,
+            };
 
             Ok(ImageData {
                 color_space,
-                width,
-                height,
+                bit_depth: BitDepth::Eight,
+                width: image.width(),
+                height: image.height(),
                 data: image.read_scanlines_flat().unwrap(),
             })
         })
@@ -138,13 +142,14 @@ impl<'a> Decoder<'a> {
         let data = buf[..info.buffer_size()].to_vec();
         let color_space = match info.color_type {
             png::ColorType::Grayscale => ColorScheme::Grayscale,
-            png::ColorType::Rgb => ColorScheme::RGB,
+            png::ColorType::Rgb => ColorScheme::Rgb,
             png::ColorType::Indexed => ColorScheme::Indexed,
             png::ColorType::GrayscaleAlpha => ColorScheme::GrayscaleAlpha,
-            png::ColorType::Rgba => ColorScheme::RGBA,
+            png::ColorType::Rgba => ColorScheme::Rgba,
         };
         Ok(ImageData {
             color_space,
+            bit_depth: info.bit_depth.into(),
             width: info.width as usize,
             height: info.height as usize,
             data,
@@ -161,6 +166,9 @@ impl ImageData {
     }
     pub fn data_len(&self) -> usize {
         self.data.len()
+    }
+    pub fn bit_depth(&self) -> &BitDepth {
+        &self.bit_depth
     }
 }
 
@@ -179,6 +187,18 @@ impl From<png::DecodingError> for DecodingError {
             png::DecodingError::LimitsExceeded => {
                 DecodingError::Parsing("Png limits exceeded".to_string())
             }
+        }
+    }
+}
+
+impl From<png::BitDepth> for BitDepth {
+    fn from(bit_depth: png::BitDepth) -> Self {
+        match bit_depth {
+            png::BitDepth::One => BitDepth::One,
+            png::BitDepth::Two => BitDepth::Two,
+            png::BitDepth::Four => BitDepth::Four,
+            png::BitDepth::Eight => BitDepth::Eight,
+            png::BitDepth::Sixteen => BitDepth::Sixteen,
         }
     }
 }
@@ -264,13 +284,15 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x].+0g\d\d\.png$").unwrap();
+                let re = Regex::new(r"^tests/files/[^x].+0g\d\d((\.png)|(\.jpg))").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
 
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
+
+            println!("{path:?}");
 
             assert_eq!(image.color_space(), &ColorScheme::Grayscale);
             assert_ne!(image.data_len(), 0);
@@ -287,7 +309,7 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x].+4a\d\d\.png$").unwrap();
+                let re = Regex::new(r"^tests/files/[^x].+4a\d\d\.png").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
@@ -310,7 +332,7 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x].+2c\d\d\.png$").unwrap();
+                let re = Regex::new(r"^^tests/files/[^x].+2c\d\d((\.png)|(\.jpg))").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
@@ -318,7 +340,7 @@ mod tests {
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorScheme::RGB);
+            assert_eq!(image.color_space(), &ColorScheme::Rgb);
             assert_ne!(image.data_len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -341,7 +363,7 @@ mod tests {
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorScheme::RGBA);
+            assert_eq!(image.color_space(), &ColorScheme::Rgba);
             assert_ne!(image.data_len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -371,7 +393,6 @@ mod tests {
     }
 
     #[test]
-    #[should_panic]
     fn decode_corrupted() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
@@ -380,17 +401,17 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/x.+0g\d\d\.png$").unwrap();
+                let re = Regex::new(r"^tests/files/x.+\d\d\.png$").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
 
         files.iter().for_each(|path| {
-            let image = Decoder::build(path).unwrap().decode().unwrap();
+            let d = Decoder::build(path);
+            assert!(d.is_ok());
 
-            assert_eq!(image.color_space(), &ColorScheme::Grayscale);
-            assert_ne!(image.data_len(), 0);
-            assert_ne!(image.size(), (0, 0));
+            let img = d.unwrap().decode();
+            assert!(img.is_err());
         })
     }
 }
