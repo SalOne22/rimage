@@ -1,6 +1,66 @@
-//! # Rimage
-//! `rimage` is CLI tool that compress multiple images at once.
-//! Also it provides lib crate with functions to decode and encode images
+/*!
+This crate provides a cli tool and library for image processing.
+Similar to [squoosh!](https://squoosh.app/) using same codecs,
+but fully written on rust and with bulk processing support.
+
+Current features:
+- Decoding jpeg and png
+- Encoding with optimizations
+- Get image information
+
+# Usage
+
+First add this crate to your dependencies:
+```text
+cargo add rimage
+```
+
+or add this to Cargo.toml:
+```toml
+[dependencies]
+rimage = "0.2"
+```
+
+Next import Decoder:
+```text
+use rimage::Decoder;
+```
+
+After that you can use this crate:
+
+## Decoding
+
+```
+# use rimage::Decoder;
+# let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+// Build decoder from file path
+let decoder = match Decoder::build(&path) {
+    Ok(d) => d,
+    Err(e) => {
+        eprintln!("Oh no there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Decode image to image data
+let image = match decoder.decode() {
+    Ok(img) => img,
+    Err(e) => {
+        eprintln!("Oh no there is another error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Get image data
+println!("Color Space: {:?}", image.color_space());
+println!("Bit Depth: {:?}", image.bit_depth());
+println!("Size: {:?}", image.size());
+println!("Data length: {:?}", image.data().len());
+
+// Do something with image...
+```
+*/
+#![warn(missing_docs)]
 
 use std::{
     fmt, fs, io, panic,
@@ -10,8 +70,10 @@ use std::{
 use clap::Parser;
 
 /// Decoders for images
+#[deprecated(since = "0.2.0", note = "use the Decoder struct instead")]
 pub mod decoders;
 /// Encoders for images
+#[deprecated(since = "0.2.0", note = "use the Encoder struct instead")]
 pub mod encoders;
 
 /// Config from command line input
@@ -29,67 +91,139 @@ pub struct Config {
     #[arg(short, long, default_value_t = String::from("jpg"))]
     pub output_format: String,
 
-    /// Outputs info about image
+    /// Outputs info about images
     #[arg(short, long, default_value_t = false)]
     pub info: bool,
 }
 
+/// Image data from decoder
+///
+/// # Examples
+///
+/// ```
+/// # use rimage::{Decoder, DecodingError};
+/// # use std::path;
+/// # let path = path::PathBuf::from("tests/files/basi0g01.jpg");
+/// let d = Decoder::build(&path)?;
+///
+/// let image = d.decode()?;
+///
+/// // Get something from image data
+/// println!("Color Space: {:?}", image.color_space());
+/// println!("Bit Depth: {:?}", image.bit_depth());
+/// println!("Size: {:?}", image.size());
+/// println!("Data length: {:?}", image.data().len());
+/// # Ok::<(), DecodingError>(())
+/// ```
 pub struct ImageData {
-    color_space: ColorScheme,
+    color_space: ColorSpace,
     bit_depth: BitDepth,
     width: usize,
     height: usize,
     data: Vec<u8>,
 }
 
+/// Decoder used to get image data from file
 pub struct Decoder<'a> {
     path: &'a path::PathBuf,
     raw_data: Vec<u8>,
 }
 
+/// Decoding error
 #[derive(Debug)]
 pub enum DecodingError {
+    /// Error that occurs if file is missing, failed to open or other [`io::Error`]
     IoError(io::Error),
+    /// Error that occurs if format of file is not supported
     Format(String),
+    /// Error that occurs if [`Config`] is invalid
     Config(ConfigError),
+    /// Error that occurs if file failed to decode
     Parsing(String),
 }
 
+/// Configuration error
 #[derive(Debug)]
 pub enum ConfigError {
+    /// Error that occurs if quality is less than 0 or greater than 1
     QualityOutOfBounds,
+    /// Error that occurs if width is 0
     WidthIsZero,
+    /// Error that occurs if height is 0
     HeightIsZero,
+    /// Error that occurs if size is 0
     SizeIsZero,
+    /// Error that occurs if output format is not supported
     FormatNotSupported(String),
 }
 
+/// Color space of image
 #[derive(Debug, PartialEq, Eq)]
-pub enum ColorScheme {
+pub enum ColorSpace {
+    /// **R**ed/**G**reen/**B**lue
     Rgb,
+    /// **R**ed/**G**reen/**B**lue/**A**lpha
     Rgba,
+    /// **C**yan/**M**agenta/**Y**ellow/Blac**K**
     Cmyk,
+    /// Indexed color palette
     Indexed,
+    /// Grayscale
     Grayscale,
+    /// Grayscale/Alpha
     GrayscaleAlpha,
 }
 
+/// Bit depth of image per pixel
 #[derive(Debug)]
 #[repr(u8)]
 pub enum BitDepth {
+    /// One bit per pixel
     One = 1,
+    /// Two bits per pixel
     Two = 2,
+    /// Four bits per pixel
     Four = 4,
+    /// Eight bits per pixel
     Eight = 8,
+    /// Sixteen bits per pixel
     Sixteen = 16,
 }
 
 impl<'a> Decoder<'a> {
+    /// Builds decoder from path
+    ///
+    /// # Result
+    ///
+    /// - [`Decoder`] if Ok
+    /// - [`DecodingError`] if
+    ///   - File not found or other `io::Error`
+    ///   - Config is invalid
     pub fn build(path: &'a PathBuf) -> Result<Self, DecodingError> {
         let raw_data = fs::read(path)?;
+
         Ok(Decoder { path, raw_data })
     }
 
+    /// Decodes file to ImageData
+    ///
+    /// # Result
+    ///
+    /// - [`ImageData`] if Ok
+    /// - [`DecodingError`] if
+    ///   - File is not a image
+    ///   - File extension not supported
+    ///   - File corrupted or in unknown color space
+    ///
+    /// # Examples
+    /// ```
+    /// # use rimage::{Decoder, DecodingError};
+    /// # use std::path;
+    /// # let path = path::PathBuf::from("tests/files/basi0g01.jpg");
+    /// let d = Decoder::build(&path)?;
+    /// let img = d.decode()?;
+    /// # Ok::<(), DecodingError>(())
+    /// ```
     pub fn decode(&self) -> Result<ImageData, DecodingError> {
         let extension = match self.path.extension() {
             Some(ext) => ext,
@@ -110,10 +244,10 @@ impl<'a> Decoder<'a> {
         panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
             let d = mozjpeg::Decompress::new_mem(&self.raw_data)?;
             let color_space = match d.color_space() {
-                mozjpeg::ColorSpace::JCS_GRAYSCALE => ColorScheme::Grayscale,
-                mozjpeg::ColorSpace::JCS_CMYK => ColorScheme::Cmyk,
-                mozjpeg::ColorSpace::JCS_RGB => ColorScheme::Rgb,
-                _ => ColorScheme::Rgb,
+                mozjpeg::ColorSpace::JCS_GRAYSCALE => ColorSpace::Grayscale,
+                mozjpeg::ColorSpace::JCS_CMYK => ColorSpace::Cmyk,
+                mozjpeg::ColorSpace::JCS_RGB => ColorSpace::Rgb,
+                _ => ColorSpace::Rgb,
             };
             let mut image = match d.image()? {
                 mozjpeg::Format::RGB(img) => img,
@@ -121,12 +255,16 @@ impl<'a> Decoder<'a> {
                 mozjpeg::Format::CMYK(img) => img,
             };
 
+            let data = image.read_scanlines_flat().ok_or(DecodingError::Parsing(
+                "Cannot read jpeg scanlines".to_string(),
+            ))?;
+
             Ok(ImageData {
                 color_space,
                 bit_depth: BitDepth::Eight,
                 width: image.width(),
                 height: image.height(),
-                data: image.read_scanlines_flat().unwrap(),
+                data,
             })
         })
         .unwrap_or(Err(DecodingError::Parsing(
@@ -151,15 +289,19 @@ impl<'a> Decoder<'a> {
 }
 
 impl ImageData {
+    /// Returns size of image (Width, Height)
     pub fn size(&self) -> (usize, usize) {
         (self.width, self.height)
     }
-    pub fn color_space(&self) -> &ColorScheme {
+    /// Returns a ref to color space of image [`ColorSpace`]
+    pub fn color_space(&self) -> &ColorSpace {
         &self.color_space
     }
-    pub fn data_len(&self) -> usize {
-        self.data.len()
+    /// Returns a ref to array of bytes in image
+    pub fn data(&self) -> &[u8] {
+        &self.data
     }
+    /// Returns a ref to bit depth of image [`BitDepth`]
     pub fn bit_depth(&self) -> &BitDepth {
         &self.bit_depth
     }
@@ -184,14 +326,14 @@ impl From<png::DecodingError> for DecodingError {
     }
 }
 
-impl From<png::ColorType> for ColorScheme {
+impl From<png::ColorType> for ColorSpace {
     fn from(color_type: png::ColorType) -> Self {
         match color_type {
-            png::ColorType::Grayscale => ColorScheme::Grayscale,
-            png::ColorType::Rgb => ColorScheme::Rgb,
-            png::ColorType::Indexed => ColorScheme::Indexed,
-            png::ColorType::GrayscaleAlpha => ColorScheme::GrayscaleAlpha,
-            png::ColorType::Rgba => ColorScheme::Rgba,
+            png::ColorType::Grayscale => ColorSpace::Grayscale,
+            png::ColorType::Rgb => ColorSpace::Rgb,
+            png::ColorType::Indexed => ColorSpace::Indexed,
+            png::ColorType::GrayscaleAlpha => ColorSpace::GrayscaleAlpha,
+            png::ColorType::Rgba => ColorSpace::Rgba,
         }
     }
 }
@@ -299,8 +441,8 @@ mod tests {
 
             println!("{path:?}");
 
-            assert_eq!(image.color_space(), &ColorScheme::Grayscale);
-            assert_ne!(image.data_len(), 0);
+            assert_eq!(image.color_space(), &ColorSpace::Grayscale);
+            assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
     }
@@ -322,8 +464,8 @@ mod tests {
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorScheme::GrayscaleAlpha);
-            assert_ne!(image.data_len(), 0);
+            assert_eq!(image.color_space(), &ColorSpace::GrayscaleAlpha);
+            assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
     }
@@ -345,8 +487,8 @@ mod tests {
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorScheme::Rgb);
-            assert_ne!(image.data_len(), 0);
+            assert_eq!(image.color_space(), &ColorSpace::Rgb);
+            assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
     }
@@ -368,8 +510,8 @@ mod tests {
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorScheme::Rgba);
-            assert_ne!(image.data_len(), 0);
+            assert_eq!(image.color_space(), &ColorSpace::Rgba);
+            assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
     }
@@ -391,8 +533,8 @@ mod tests {
         files.iter().for_each(|path| {
             let image = Decoder::build(path).unwrap().decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorScheme::Indexed);
-            assert_ne!(image.data_len(), 0);
+            assert_eq!(image.color_space(), &ColorSpace::Indexed);
+            assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
     }
