@@ -8,7 +8,7 @@ fn main() {
     let mut conf = Config::parse_from(wild::args_os());
     let pb = ProgressBar::new(conf.input.len() as u64);
 
-    if conf.input.len() == 0 {
+    if conf.input.is_empty() {
         conf.input = io::stdin()
             .lines()
             .map(|res| {
