@@ -36,17 +36,17 @@ criterion = { version = "0.4.0", features = ["html_reports"] }
 regex = "1.7.2"
 
 [[bench]]
-name = "decode_large_jpg"
+name = "decode_jpg"
 harness = false
 
 [[bench]]
-name = "decode_large_png"
+name = "decode_png"
 harness = false
 
 [[bench]]
-name = "encode_large_jpg"
+name = "encode_jpg"
 harness = false
 
 [[bench]]
-name = "encode_large_png"
+name = "encode_png"
 harness = false
