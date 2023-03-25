@@ -2,14 +2,36 @@ use std::{io, path, process};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use rimage::{decoders, encoders, Config, Decoder};
+use rimage::{decoders, encoders, Config, Decoder, OutputFormat};
+
+#[derive(Parser)]
+#[command(author, about, version, long_about = None)]
+struct Args {
+    /// Input file(s)
+    input: Vec<path::PathBuf>,
+    /// Quality of the output image (0-100)
+    #[arg(short, long, default_value = "75")]
+    quality: f32,
+    /// Output format of the output image
+    #[arg(short, long, default_value = "jpg")]
+    output_format: OutputFormat,
+    /// Print image info
+    #[arg(short, long)]
+    info: bool,
+}
 
 fn main() {
-    let mut conf = Config::parse_from(wild::args_os());
-    let pb = ProgressBar::new(conf.input.len() as u64);
+    let mut args = Args::parse_from(wild::args_os());
+    let conf = if let Ok(conf) = Config::build(&args.input, args.quality, args.output_format) {
+        conf
+    } else {
+        eprintln!("Error: Invalid configuration.");
+        process::exit(1);
+    };
+    let pb = ProgressBar::new(args.input.len() as u64);
 
-    if conf.input.is_empty() {
-        conf.input = io::stdin()
+    if args.input.is_empty() {
+        args.input = io::stdin()
             .lines()
             .map(|res| {
                 let input_file = res.unwrap();
@@ -25,8 +47,8 @@ fn main() {
     );
     pb.set_position(0);
 
-    if conf.info {
-        for path in &conf.input {
+    if args.info {
+        for path in &args.input {
             let d = match Decoder::build(path) {
                 Ok(d) => d,
                 Err(e) => {
@@ -53,7 +75,7 @@ fn main() {
         process::exit(0);
     }
 
-    for path in &conf.input {
+    for path in &args.input {
         pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
         pb.inc(1);
 
@@ -68,10 +90,10 @@ fn main() {
         match encoders::encode_image(
             path,
             &pixels,
-            &conf.output_format,
+            &args.output_format.to_string(),
             width,
             height,
-            conf.quality,
+            args.quality,
         ) {
             Ok(()) => (),
             Err(e) => {
