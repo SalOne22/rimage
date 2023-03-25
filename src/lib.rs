@@ -62,10 +62,11 @@ println!("Data length: {:?}", image.data().len());
 */
 #![warn(missing_docs)]
 
+use error::{ConfigError, DecodingError};
 use std::{fs, panic, path};
 
-pub use error::{ConfigError, DecodingError};
-pub use image::{BitDepth, ColorSpace, ImageData, OutputFormat};
+pub use image::ImageData;
+use image::{BitDepth, ColorSpace, OutputFormat};
 
 /// Decoders for images
 #[deprecated(since = "0.2.0", note = "use the Decoder struct instead")]
