@@ -27,8 +27,21 @@ fn main() {
 
     if conf.info {
         for path in &conf.input {
-            let d = Decoder::build(path).unwrap();
-            let img = d.decode().unwrap();
+            let d = match Decoder::build(path) {
+                Ok(d) => d,
+                Err(e) => {
+                    eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                    continue;
+                }
+            };
+
+            let img = match d.decode() {
+                Ok(img) => img,
+                Err(e) => {
+                    eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                    continue;
+                }
+            };
 
             println!("{:?}", path.file_name().unwrap());
             println!("Color Space: {:?}", img.color_space());
