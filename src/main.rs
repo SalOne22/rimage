@@ -2,7 +2,7 @@ use std::{io, path, process};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use rimage::{decoders, encoders, Config, Decoder, OutputFormat};
+use rimage::{decoders, encoders, image::OutputFormat, Config, Decoder};
 
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]

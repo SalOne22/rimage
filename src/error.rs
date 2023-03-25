@@ -4,7 +4,7 @@ use std::{fmt, io};
 ///
 /// # Examples
 /// ```
-/// # use rimage::{Config, ConfigError};
+/// # use rimage::{Config, error::ConfigError};
 /// let config = Config::build(&[], 1.1, rimage::OutputFormat::MozJpeg);
 /// match config {
 ///    Ok(_) => println!("Config is valid"),
@@ -43,7 +43,7 @@ pub enum ConfigError {
 ///
 /// # Examples
 /// ```
-/// # use rimage::{Decoder, DecodingError};
+/// # use rimage::{Decoder, error::DecodingError};
 /// # use std::path;
 /// # let path = path::PathBuf::from("tests/files/basi0g01.jpg");
 /// let d = Decoder::build(&path)?;

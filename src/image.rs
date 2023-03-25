@@ -5,7 +5,7 @@ use std::{borrow::Cow, fmt};
 /// # Examples
 ///
 /// ```
-/// # use rimage::{Decoder, DecodingError};
+/// # use rimage::{Decoder, error::DecodingError};
 /// # use std::path;
 /// # let path = path::PathBuf::from("tests/files/basi0g01.jpg");
 /// let d = Decoder::build(&path)?;
