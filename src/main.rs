@@ -22,12 +22,6 @@ struct Args {
 
 fn main() {
     let mut args = Args::parse_from(wild::args_os());
-    let conf = if let Ok(conf) = Config::build(&args.input, args.quality, args.output_format) {
-        conf
-    } else {
-        eprintln!("Error: Invalid configuration.");
-        process::exit(1);
-    };
     let pb = ProgressBar::new(args.input.len() as u64);
 
     if args.input.is_empty() {
