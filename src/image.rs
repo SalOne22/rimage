@@ -19,7 +19,7 @@ use std::{borrow::Cow, fmt};
 /// println!("Data length: {:?}", image.data().len());
 /// # Ok::<(), DecodingError>(())
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImageData {
     color_space: ColorSpace,
     width: usize,

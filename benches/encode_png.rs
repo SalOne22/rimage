@@ -1,13 +1,25 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
+use rimage::Decoder;
 #[allow(deprecated)]
 use rimage::{decoders::decode_image, encoders::encode_image};
 
 #[allow(deprecated)]
 fn bench_encode_png(c: &mut Criterion) {
+    let mut group = c.benchmark_group("encode_png");
+
     let (pixels, width, height) = decode_image(&PathBuf::from("tests/files/basi6a08.png")).unwrap();
-    c.bench_function("en png", |b| {
+
+    let data = fs::read(&Path::new("tests/files/basi6a08.jpg")).unwrap();
+    let image = Decoder::new(&Path::new("tests/files/basi6a08.jpg"), &data)
+        .decode()
+        .unwrap();
+
+    group.bench_function("encoders", |b| {
         b.iter(|| {
             encode_image(
                 black_box(&PathBuf::from("en")),
@@ -19,7 +31,25 @@ fn bench_encode_png(c: &mut Criterion) {
             )
         })
     });
-    fs::remove_file("en.png").unwrap();
+    group.bench_function("Encoder", |b| {
+        b.iter(|| {
+            rimage::Encoder::new(
+                black_box(
+                    &rimage::Config::build(
+                        PathBuf::from("en_u.png"),
+                        75.0,
+                        rimage::OutputFormat::Oxipng,
+                    )
+                    .unwrap(),
+                ),
+                black_box(image.clone()),
+            )
+            .encode()
+            .unwrap();
+        })
+    });
+    // fs::remove_file("en.png").unwrap();
+    // fs::remove_file("en_u.png").unwrap();
 }
 
 criterion_group!(benches, bench_encode_png);
