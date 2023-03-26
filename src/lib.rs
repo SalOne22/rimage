@@ -607,4 +607,72 @@ mod tests {
             assert!(fs::remove_file(out_path).is_ok());
         })
     }
+
+    #[test]
+    fn encode_png() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x]").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            let out_path = path.with_extension("out.png");
+
+            let conf = Config::build(out_path.clone(), 75.0, OutputFormat::Png).unwrap();
+
+            let encoder = Encoder::new(&conf, image);
+            let result = encoder.encode();
+
+            assert!(result.is_ok());
+            assert!(out_path.exists());
+            assert!(out_path.is_file());
+            assert!(out_path.metadata().unwrap().len() > 0);
+            assert!(fs::remove_file(out_path).is_ok());
+        })
+    }
+
+    #[test]
+    fn encode_oxipng() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x]").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            let out_path = path.with_extension("out.oxi.png");
+
+            let conf = Config::build(out_path.clone(), 75.0, OutputFormat::Oxipng).unwrap();
+
+            let encoder = Encoder::new(&conf, image);
+            let result = encoder.encode();
+
+            assert!(result.is_ok());
+            assert!(out_path.exists());
+            assert!(out_path.is_file());
+            assert!(out_path.metadata().unwrap().len() > 0);
+            assert!(fs::remove_file(out_path).is_ok());
+        })
+    }
 }
