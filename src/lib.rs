@@ -522,7 +522,6 @@ mod tests {
     }
 
     #[test]
-    #[ignore]
     fn encode_grayscale_jpeg() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
