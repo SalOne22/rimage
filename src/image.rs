@@ -100,6 +100,10 @@ impl ImageData {
     pub fn data(&self) -> &[u8] {
         &self.data
     }
+    #[inline]
+    pub(crate) fn data_mut(&mut self) -> &mut Vec<u8> {
+        &mut self.data
+    }
 }
 
 /// Supported output format
@@ -202,7 +206,7 @@ impl Into<mozjpeg::ColorSpace> for ColorSpace {
     fn into(self) -> mozjpeg::ColorSpace {
         match self {
             ColorSpace::Rgb => mozjpeg::ColorSpace::JCS_RGB,
-            ColorSpace::Rgba => mozjpeg::ColorSpace::JCS_RGB,
+            ColorSpace::Rgba => mozjpeg::ColorSpace::JCS_EXT_RGBA,
             ColorSpace::Cmyk => mozjpeg::ColorSpace::JCS_CMYK,
             ColorSpace::Indexed => mozjpeg::ColorSpace::JCS_RGB,
             ColorSpace::Gray => mozjpeg::ColorSpace::JCS_GRAYSCALE,

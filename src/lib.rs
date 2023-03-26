@@ -302,12 +302,15 @@ impl<'a> Encoder<'a> {
         }
     }
 
-    fn encode_mozjpeg(self) -> Result<(), EncodingError> {
+    fn encode_mozjpeg(mut self) -> Result<(), EncodingError> {
+        if self.image_data.color_space() == &image::ColorSpace::GrayAlpha {
+            for i in 0..self.image_data.size().0 * self.image_data.size().1 {
+                self.image_data.data_mut()[i] = self.image_data.data()[i * 2];
+            }
+        }
+
         panic::catch_unwind(|| -> Result<(), EncodingError> {
             let mut encoder = mozjpeg::Compress::new((*self.image_data.color_space()).into());
-            println!("ImgData: {:?}", self.image_data);
-            println!("Config: {:?}", self.config);
-            println!("Data len: {}", self.image_data.data().len());
 
             encoder.set_size(self.image_data.size().0, self.image_data.size().1);
             encoder.set_quality(self.config.quality);
@@ -448,6 +451,31 @@ mod tests {
     }
 
     #[test]
+    fn decode_rgb_transparent() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^^tests/files/[^x]&[t].+2c\d\d((\.png)|(\.jpg))").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorSpace::Rgba);
+            assert_ne!(image.data().len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
     fn decode_rgba() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
@@ -498,6 +526,31 @@ mod tests {
     }
 
     #[test]
+    fn decode_indexed_transparent() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x]&[t].+3p\d\d\.png$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            assert_eq!(image.color_space(), &ColorSpace::Rgba);
+            assert_ne!(image.data().len(), 0);
+            assert_ne!(image.size(), (0, 0));
+        })
+    }
+
+    #[test]
     fn decode_corrupted() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
@@ -522,7 +575,7 @@ mod tests {
     }
 
     #[test]
-    fn encode_grayscale_jpeg() {
+    fn encode_jpeg() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
             .map(|entry| {
@@ -530,7 +583,7 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x].+0g\d\d((\.png)|(\.jpg))").unwrap();
+                let re = Regex::new(r"^tests/files/[^x]").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
