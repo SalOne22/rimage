@@ -24,6 +24,7 @@ debug = 1
 [dependencies]
 bytemuck = "1.13.1"
 clap = { version = "4.1.11", features = ["derive"] }
+imagequant = "4.1.1"
 indicatif = "0.17.3"
 mozjpeg = "0.9.4"
 oxipng = "8.0.0"
