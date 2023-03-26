@@ -315,19 +315,18 @@ impl<'a> Encoder<'a> {
     }
 
     fn encode_mozjpeg(self) -> Result<(), EncodingError> {
-        let image_data = self.image_data.convert_bit_depth(BitDepth::Eight);
         panic::catch_unwind(|| -> Result<(), EncodingError> {
-            let mut encoder = mozjpeg::Compress::new((*image_data.color_space()).into());
-            println!("ImgData: {:?}", image_data);
+            let mut encoder = mozjpeg::Compress::new((*self.image_data.color_space()).into());
+            println!("ImgData: {:?}", self.image_data);
             println!("Config: {:?}", self.config);
-            println!("Data len: {}", image_data.data().len());
+            println!("Data len: {}", self.image_data.data().len());
 
-            encoder.set_size(image_data.size().0, image_data.size().1);
+            encoder.set_size(self.image_data.size().0, self.image_data.size().1);
             encoder.set_quality(self.config.quality);
             encoder.set_progressive_mode();
             encoder.set_mem_dest();
             encoder.start_compress();
-            encoder.write_scanlines(&image_data.data());
+            encoder.write_scanlines(&self.image_data.data());
             encoder.finish_compress();
 
             let data = encoder.data_as_mut_slice().unwrap();
