@@ -604,7 +604,7 @@ mod tests {
             assert!(out_path.exists());
             assert!(out_path.is_file());
             assert!(out_path.metadata().unwrap().len() > 0);
-            // assert!(fs::remove_file(out_path).is_ok());
+            assert!(fs::remove_file(out_path).is_ok());
         })
     }
 }
