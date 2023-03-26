@@ -1,30 +1,6 @@
 use std::{error::Error, fmt, io};
 
 /// An error that occurred if configuration is invalid
-///
-/// # Examples
-/// ```
-/// # use rimage::{Config, error::ConfigError};
-/// let config = Config::build(&[], 1.1, rimage::OutputFormat::MozJpeg);
-/// match config {
-///    Ok(_) => println!("Config is valid"),
-///  Err(e) => println!("Error: {}", e),
-/// }
-/// ```
-///
-/// # Errors
-///
-/// - [`ConfigError::QualityOutOfBounds`] if quality is less than 0 or greater than 1
-/// - [`ConfigError::InputIsEmpty`] if input is empty
-/// - [`ConfigError::WidthIsZero`] if width is 0
-/// - [`ConfigError::HeightIsZero`] if height is 0
-/// - [`ConfigError::SizeIsZero`] if size is 0
-///
-/// [`ConfigError::QualityOutOfBounds`]: enum.ConfigError.html#variant.QualityOutOfBounds
-/// [`ConfigError::InputIsEmpty`]: enum.ConfigError.html#variant.InputIsEmpty
-/// [`ConfigError::WidthIsZero`]: enum.ConfigError.html#variant.WidthIsZero
-/// [`ConfigError::HeightIsZero`]: enum.ConfigError.html#variant.HeightIsZero
-/// [`ConfigError::SizeIsZero`]: enum.ConfigError.html#variant.SizeIsZero
 #[derive(Debug)]
 pub enum ConfigError {
     /// Quality is less than 0 or greater than 1
@@ -54,20 +30,6 @@ impl fmt::Display for ConfigError {
 }
 
 /// An error that occurred during decoding a image
-///
-/// # Examples
-/// ```
-/// # use rimage::{Decoder, error::DecodingError};
-/// # use std::path;
-/// # let path = path::PathBuf::from("tests/files/basi0g01.jpg");
-/// let d = Decoder::build(&path)?;
-/// let image = d.decode();
-/// match image {
-///     Ok(_) => println!("Image decoded"),
-///     Err(e) => println!("Error: {}", e),
-/// }
-/// # Ok::<(), DecodingError>(())
-/// ```
 #[derive(Debug)]
 pub enum DecodingError {
     /// A [`io::Error`] if file failed to read, find, etc.

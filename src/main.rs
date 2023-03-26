@@ -1,8 +1,8 @@
-use std::{io, path, process};
+use std::{fs, io, path, process};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use rimage::{decoders, encoders, image::OutputFormat, Config, Decoder};
+use rimage::{decoders, encoders, image::OutputFormat, Decoder};
 
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
@@ -43,13 +43,8 @@ fn main() {
 
     if args.info {
         for path in &args.input {
-            let d = match Decoder::build(path) {
-                Ok(d) => d,
-                Err(e) => {
-                    eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
-                    continue;
-                }
-            };
+            let data = fs::read(path).unwrap();
+            let d = Decoder::new(path, &data);
 
             let img = match d.decode() {
                 Ok(img) => img,
@@ -61,7 +56,6 @@ fn main() {
 
             println!("{:?}", path.file_name().unwrap());
             println!("Color Space: {:?}", img.color_space());
-            println!("Bit Depth: {:?}", img.bit_depth());
             println!("Size: {:?}", img.size());
             println!("Data length: {:?}", img.data().len());
             println!();
