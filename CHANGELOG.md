@@ -11,6 +11,7 @@
 
 - [Changed] `decoders::decode_image` and `encoders::encode_image` now deprecated, use `Decoder` and `Encoder` structs instead
 - [Improvement] Added documentation to almost all functions and structs with examples
+- [Improvement] Added support for png as output (not oxipng)
 
 ## v0.1.3
 
