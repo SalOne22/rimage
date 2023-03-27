@@ -33,23 +33,17 @@ fn bench_encode_jpg(c: &mut Criterion) {
     });
     group.bench_function("Encoder", |b| {
         b.iter(|| {
-            rimage::Encoder::new(
-                black_box(
-                    &rimage::Config::build(
-                        PathBuf::from("en_u.jpg"),
-                        75.0,
-                        rimage::OutputFormat::MozJpeg,
-                    )
-                    .unwrap(),
-                ),
+            let data = rimage::Encoder::new(
+                black_box(&rimage::Config::build(75.0, rimage::OutputFormat::MozJpeg).unwrap()),
                 black_box(image.clone()),
             )
             .encode()
             .unwrap();
+            fs::write("en_u.jpg", data).unwrap();
         })
     });
-    // fs::remove_file("en.jpg").unwrap();
-    // fs::remove_file("en_u.jpg").unwrap();
+    fs::remove_file("en.jpg").unwrap();
+    fs::remove_file("en_u.jpg").unwrap();
 }
 
 criterion_group!(benches, bench_encode_jpg);
