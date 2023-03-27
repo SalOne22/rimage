@@ -6,7 +6,7 @@ authors = ["Vladyslav Vladinov <vladdf44@gmail.com>"]
 categories = ["command-line-utilities", "compression"]
 keywords = ["cli", "image", "compression"]
 
-exclude = ["test/*", "images/", ".*"]
+exclude = ["tests/*", ".*", "benches/*"]
 repository = "https://github.com/SalOne22/rimage"
 license = "MIT OR Apache-2.0"
 
