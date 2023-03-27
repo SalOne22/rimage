@@ -21,11 +21,13 @@ or from [Releases](https://github.com/SalOne22/rimage/releases) on GitHub
 ## Usage
 
 ```
-rimage -q 0.75 *.jpg
+rimage -q 75 *.jpg
 ```
 
-- Quality: `-q 0` through `-q 1`, higher is better
-- Output format: `-o png`, currently supported only jpg and png
+- Quality: `-q 0` through `-q 100`, higher is better
+- Output format: `-o png`, currently supported only jpg, png and oxipng
+- Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
+- Info: `-i`, flag used to get info about images (size and data length)
 - More options will be added later
 
 ## To-Do
@@ -34,8 +36,7 @@ rimage -q 0.75 *.jpg
 - Support for AVIF and WebP
 - Image resize
 - Image quantization
-- API
-- And alot of bugfixes and optimizations
+- And allot of bugfixes and optimizations
 
 ## Contribute
 
