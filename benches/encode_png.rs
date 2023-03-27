@@ -14,8 +14,8 @@ fn bench_encode_png(c: &mut Criterion) {
 
     let (pixels, width, height) = decode_image(&PathBuf::from("tests/files/basi6a08.png")).unwrap();
 
-    let data = fs::read(&Path::new("tests/files/basi6a08.jpg")).unwrap();
-    let image = Decoder::new(&Path::new("tests/files/basi6a08.jpg"), &data)
+    let data = fs::read(&Path::new("tests/files/basi6a08.png")).unwrap();
+    let image = Decoder::new(&Path::new("tests/files/basi6a08.png"), &data)
         .decode()
         .unwrap();
 
@@ -33,23 +33,17 @@ fn bench_encode_png(c: &mut Criterion) {
     });
     group.bench_function("Encoder", |b| {
         b.iter(|| {
-            rimage::Encoder::new(
-                black_box(
-                    &rimage::Config::build(
-                        PathBuf::from("en_u.png"),
-                        75.0,
-                        rimage::OutputFormat::Oxipng,
-                    )
-                    .unwrap(),
-                ),
+            let data = rimage::Encoder::new(
+                black_box(&rimage::Config::build(75.0, rimage::OutputFormat::Oxipng).unwrap()),
                 black_box(image.clone()),
             )
             .encode()
             .unwrap();
+            fs::write("en_u.png", data).unwrap();
         })
     });
-    // fs::remove_file("en.png").unwrap();
-    // fs::remove_file("en_u.png").unwrap();
+    fs::remove_file("en.png").unwrap();
+    fs::remove_file("en_u.png").unwrap();
 }
 
 criterion_group!(benches, bench_encode_png);
