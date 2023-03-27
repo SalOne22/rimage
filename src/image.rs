@@ -62,9 +62,9 @@ impl std::str::FromStr for OutputFormat {
 impl fmt::Display for OutputFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OutputFormat::MozJpeg => write!(f, "jpeg"),
+            OutputFormat::MozJpeg => write!(f, "jpg"),
             OutputFormat::Png => write!(f, "png"),
-            OutputFormat::Oxipng => write!(f, "oxipng"),
+            OutputFormat::Oxipng => write!(f, "png"),
         }
     }
 }

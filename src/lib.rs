@@ -89,7 +89,7 @@ std::fs::write("output.jpg", data);
 use error::{ConfigError, DecodingError, EncodingError};
 use rgb::{
     alt::{GRAY8, GRAYA8},
-    AsPixels, FromSlice, RGB8, RGBA8,
+    AsPixels, ComponentBytes, FromSlice, RGB8, RGBA8,
 };
 use std::{panic, path};
 
@@ -184,14 +184,14 @@ impl<'a> Decoder<'a> {
             let d = mozjpeg::Decompress::new_mem(&self.raw_data)?;
             let mut image = d.rgba()?;
 
-            let data = image.read_scanlines().ok_or(DecodingError::Parsing(
+            let data: Vec<RGBA8> = image.read_scanlines().ok_or(DecodingError::Parsing(
                 "Failed to read scanlines".to_string(),
             ))?;
 
             Ok(ImageData::new(
                 image.width() as usize,
                 image.height() as usize,
-                data,
+                data.as_bytes().to_owned(),
             ))
         })
         .unwrap_or(Err(DecodingError::Parsing(

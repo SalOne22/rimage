@@ -2,7 +2,7 @@ use std::{error::Error, fs, io, path, process};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use rimage::{decoders, encoders, image::OutputFormat, Config, Decoder, Encoder};
+use rimage::{image::OutputFormat, Config, Decoder, Encoder};
 
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
@@ -18,6 +18,9 @@ struct Args {
     /// Print image info
     #[arg(short, long)]
     info: bool,
+    /// Prefix of the output file
+    #[arg(short, long)]
+    suffix: Option<String>,
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
@@ -66,13 +69,25 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     for path in &args.input {
         pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
-        pb.inc(1);
 
         let data = fs::read(&path)?;
 
         let d = Decoder::new(&path, &data);
         let e = Encoder::new(&conf, d.decode()?);
-        fs::write(path, e.encode()?)?
+
+        let mut new_path = path.clone();
+        let ext = args.output_format.to_string();
+        let suffix = args.suffix.clone().unwrap_or_default();
+
+        new_path.set_file_name(format!(
+            "{}{}",
+            path.file_stem().unwrap().to_str().unwrap(),
+            suffix,
+        ));
+        new_path.set_extension(ext);
+
+        fs::write(new_path, e.encode()?)?;
+        pb.inc(1);
     }
     pb.finish();
     Ok(())
