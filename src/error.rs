@@ -3,7 +3,7 @@ use std::{error::Error, fmt, io};
 /// An error that occurred if configuration is invalid
 #[derive(Debug)]
 pub enum ConfigError {
-    /// Quality is less than 0 or greater than 1
+    /// Quality is less than 0 or greater than 100
     QualityOutOfBounds,
     /// Width is 0
     WidthIsZero,

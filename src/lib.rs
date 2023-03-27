@@ -21,18 +21,13 @@ or add this to Cargo.toml:
 rimage = "0.2"
 ```
 
-Next import Decoder:
-```text
-use rimage::Decoder;
-```
-
 After that you can use this crate:
 
 ## Decoding
-
 ```
-# use rimage::Decoder;
+use rimage::Decoder;
 # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+
 // Create decoder from file path and data
 let data = std::fs::read(&path).unwrap();
 let decoder = Decoder::new(&path, &data);
@@ -47,17 +42,56 @@ let image = match decoder.decode() {
 };
 
 // Get image data
-println!("Color Space: {:?}", image.color_space());
 println!("Size: {:?}", image.size());
 println!("Data length: {:?}", image.data().len());
 
 // Do something with image...
 ```
+
+## Encoding
+
+```
+# use rimage::Decoder;
+use rimage::{Config, Encoder, OutputFormat};
+# let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+# let data = std::fs::read(&path).unwrap();
+# let decoder = Decoder::new(&path, &data);
+# let image = decoder.decode().unwrap();
+
+// Encode image to file
+let config = match Config::build(
+    75.0,
+    OutputFormat::MozJpeg,
+) {
+    Ok(config) => config,
+    Err(e) => {
+        eprintln!("Oh no there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+let encoder = Encoder::new(&config, image);
+
+let data = match encoder.encode() {
+    Ok(data) => data,
+    Err(e) => {
+        eprintln!("Oh no there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Write image to file
+std::fs::write("output.jpg", data);
+```
 */
 #![warn(missing_docs)]
 
 use error::{ConfigError, DecodingError, EncodingError};
-use std::{fs, panic, path};
+use rgb::{
+    alt::{GRAY8, GRAYA8},
+    AsPixels, FromSlice, RGB8, RGBA8,
+};
+use std::{panic, path};
 
 pub use image::{ImageData, OutputFormat};
 
@@ -68,68 +102,38 @@ pub mod decoders;
 #[deprecated(since = "0.2.0", note = "use the Encoder struct instead")]
 pub mod encoders;
 
-/// All errors that can occur
+/// Errors that can occur during image processing
 pub mod error;
 
-/// Image data
+/// Image data structs
 pub mod image;
 
-/// Config for encoder
+/// Config for image encoding
 #[derive(Debug)]
 pub struct Config {
-    output: path::PathBuf,
     quality: f32,
     output_format: OutputFormat,
 }
 
 impl Config {
-    /// Builds config from parameters
-    ///
-    /// # Examples
-    ///
-    /// ```
-    /// # use rimage::{Config, OutputFormat};
-    /// # use std::path;
-    /// let input = path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// let quality = 100.0;
-    /// let output_format = OutputFormat::MozJpeg;
-    /// let config = Config::build(input, quality, output_format).unwrap();
-    /// ```
-    ///
-    /// # Errors
-    /// - [`ConfigError::QualityOutOfBounds`] if quality is not in range 0.0 - 100.0
-    /// - [`ConfigError::InputIsEmpty`] if input is empty
-    pub fn build(
-        output: path::PathBuf,
-        quality: f32,
-        output_format: OutputFormat,
-    ) -> Result<Self, ConfigError> {
+    /// Create new config
+    pub fn build(quality: f32, output_format: OutputFormat) -> Result<Self, ConfigError> {
         if quality < 0.0 || quality > 100.0 {
             return Err(ConfigError::QualityOutOfBounds);
         }
 
-        if output.to_str().unwrap().is_empty() {
-            return Err(ConfigError::InputIsEmpty);
-        }
-
         Ok(Config {
-            output,
             quality,
             output_format,
         })
     }
+    /// Get quality
     #[inline]
-    /// Gets input array of paths from config
-    pub fn input(&self) -> &path::PathBuf {
-        &self.output
-    }
-    #[inline]
-    /// Gets quality of output images from config
     pub fn quality(&self) -> f32 {
         self.quality
     }
+    /// Get output format
     #[inline]
-    /// Gets format of output images from config
     pub fn output_format(&self) -> &OutputFormat {
         &self.output_format
     }
@@ -139,58 +143,26 @@ impl Default for Config {
     #[inline]
     fn default() -> Self {
         Self {
-            output: path::PathBuf::from(""),
             quality: 75.0,
             output_format: OutputFormat::MozJpeg,
         }
     }
 }
 
-/// Decoder used to get image data from file
+/// Decoder for images
 pub struct Decoder<'a> {
     path: &'a path::Path,
     raw_data: &'a [u8],
 }
 
 impl<'a> Decoder<'a> {
-    /// Creates new decoder from path and raw data
-    ///
-    /// # Examples
-    /// ```
-    /// # use rimage::Decoder;
-    /// # use std::path;
-    /// # let path = path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// let data = std::fs::read(&path).unwrap();
-    /// Decoder::new(&path, &data);
-    /// ```
+    /// Create new decoder
     #[inline]
     pub fn new(path: &'a path::Path, raw_data: &'a [u8]) -> Self {
         Decoder { path, raw_data }
     }
 
-    /// Decodes file to ImageData
-    ///
-    /// # Examples
-    /// ```
-    /// # use rimage::{Decoder, ImageData};
-    /// # use std::path;
-    /// # let path = path::Path::new("tests/files/basi0g01.jpg");
-    /// let data = std::fs::read(&path).unwrap();
-    /// let d = Decoder::new(&path, &data);
-    /// let image = d.decode();
-    /// match image {
-    ///   Ok(_) => println!("Image decoded"),
-    ///  Err(e) => println!("Error: {}", e),
-    /// }
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// - [`DecodingError::Format`] if format is not supported
-    /// - [`DecodingError::Parsing`] if file is not a image, unsupported color space, etc.
-    ///
-    /// [`DecodingError::Format`]: enum.DecodingError.html#variant.Format
-    /// [`DecodingError::Parsing`]: enum.DecodingError.html#variant.Parsing
+    /// Decode image
     pub fn decode(&self) -> Result<ImageData, DecodingError> {
         let extension = match self.path.extension() {
             Some(ext) => ext,
@@ -210,19 +182,13 @@ impl<'a> Decoder<'a> {
     fn decode_jpeg(&self) -> Result<ImageData, DecodingError> {
         panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
             let d = mozjpeg::Decompress::new_mem(&self.raw_data)?;
-            let color_space = d.color_space().into();
-            let mut image = match d.image()? {
-                mozjpeg::Format::RGB(img) => img,
-                mozjpeg::Format::Gray(img) => img,
-                mozjpeg::Format::CMYK(img) => img,
-            };
+            let mut image = d.rgba()?;
 
-            let data = image.read_scanlines_flat().ok_or(DecodingError::Parsing(
-                "Cannot read jpeg scanlines".to_string(),
+            let data = image.read_scanlines().ok_or(DecodingError::Parsing(
+                "Failed to read scanlines".to_string(),
             ))?;
 
             Ok(ImageData::new(
-                color_space,
                 image.width() as usize,
                 image.height() as usize,
                 data,
@@ -233,68 +199,65 @@ impl<'a> Decoder<'a> {
         )))
     }
 
+    fn expand_pixels<T: Copy>(buf: &mut [u8], to_rgba: impl Fn(T) -> RGBA8)
+    where
+        [u8]: AsPixels<T> + FromSlice<u8>,
+    {
+        assert!(std::mem::size_of::<T>() <= std::mem::size_of::<RGBA8>());
+        for i in (0..buf.len() / 4).rev() {
+            let src_pix = buf.as_pixels()[i];
+            buf.as_rgba_mut()[i] = to_rgba(src_pix);
+        }
+    }
+
     fn decode_png(&self) -> Result<ImageData, DecodingError> {
         let mut d = png::Decoder::new(&self.raw_data[..]);
         d.set_transformations(png::Transformations::normalize_to_color8());
 
         let mut reader = d.read_info()?;
+        let width = reader.info().width;
+        let height = reader.info().height;
 
-        let mut buf = vec![0; reader.output_buffer_size()];
+        let buf_size = width as usize * height as usize * 4;
+
+        let mut buf = vec![0; buf_size];
 
         let info = reader.next_frame(&mut buf)?;
 
-        Ok(ImageData::new(
-            info.color_type.into(),
-            info.width as usize,
-            info.height as usize,
-            buf,
-        ))
+        match info.color_type {
+            png::ColorType::Grayscale => {
+                Self::expand_pixels(&mut buf, |gray: GRAY8| GRAY8::from(gray).into())
+            }
+            png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
+            png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
+            png::ColorType::Rgba => {}
+            png::ColorType::Indexed => {
+                return Err(DecodingError::Parsing(
+                    "Indexed color must be expanded to RGB".to_string(),
+                ))
+            }
+        }
+
+        Ok(ImageData::new(width as usize, height as usize, buf))
     }
 }
 
-/// Encoder used to encode image data to file
+/// Encoder for images
 pub struct Encoder<'a> {
     image_data: ImageData,
     config: &'a Config,
 }
 
-// Write Encoder encode method to encode image data to file in different formats from config
-// Write Encoder build method to build encoder from Config and ImageData
-// Write Encoder encode_png method to encode image data to png file
-// Write Encoder encode_jpeg method to encode image data to jpeg file
 impl<'a> Encoder<'a> {
-    /// Builds encoder from config and image data
-    ///
-    /// # Examples
-    /// ```
-    /// # use rimage::{Encoder, Config, ImageData, image};
-    /// let config = Config::default();
-    /// let image_data = ImageData::new(image::ColorSpace::Rgb, 8, 8, vec![0; 192]);
-    /// let encoder = Encoder::new(&config, image_data);
-    /// ```
+    /// Create new encoder
     pub fn new(conf: &'a Config, image_data: ImageData) -> Self {
         Encoder {
             image_data,
             config: conf,
         }
     }
-
-    /// Encodes image data to file
-    ///
-    /// # Examples
-    /// ```
-    /// # use rimage::{Encoder, Config, ImageData, image};
-    /// # let config = Config::default();
-    /// # let image_data = ImageData::new(image::ColorSpace::Rgb, 8, 8, vec![0; 192]);
-    /// # let encoder = Encoder::new(&config, image_data);
-    /// encoder.encode();
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// - [`EncodingError::Encoding`] if encoding failed
-    /// - [`EncodingError::IoError`] if IO error occurred
-    pub fn encode(self) -> Result<(), EncodingError> {
+    /// Encode image
+    pub fn encode(self) -> Result<Vec<u8>, EncodingError> {
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
@@ -302,15 +265,9 @@ impl<'a> Encoder<'a> {
         }
     }
 
-    fn encode_mozjpeg(mut self) -> Result<(), EncodingError> {
-        if self.image_data.color_space() == &image::ColorSpace::GrayAlpha {
-            for i in 0..self.image_data.size().0 * self.image_data.size().1 {
-                self.image_data.data_mut()[i] = self.image_data.data()[i * 2];
-            }
-        }
-
-        panic::catch_unwind(|| -> Result<(), EncodingError> {
-            let mut encoder = mozjpeg::Compress::new((*self.image_data.color_space()).into());
+    fn encode_mozjpeg(self) -> Result<Vec<u8>, EncodingError> {
+        panic::catch_unwind(|| -> Result<Vec<u8>, EncodingError> {
+            let mut encoder = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
 
             encoder.set_size(self.image_data.size().0, self.image_data.size().1);
             encoder.set_quality(self.config.quality);
@@ -320,58 +277,64 @@ impl<'a> Encoder<'a> {
             encoder.write_scanlines(&self.image_data.data());
             encoder.finish_compress();
 
-            let data = encoder.data_as_mut_slice().unwrap();
-
-            fs::write(&self.config.output, data)?;
-
-            Ok(())
+            encoder.data_to_vec().map_err(|_| {
+                EncodingError::Encoding("Failed to convert data to vector".to_string())
+            })
         })
         .unwrap_or(Err(EncodingError::Encoding(
             "Failed to encode jpeg".to_string(),
         )))
     }
 
-    fn encode_png(&self) -> Result<(), EncodingError> {
-        let mut encoder = png::Encoder::new(
-            fs::File::create(&self.config.output)?,
-            self.image_data.size().0 as u32,
-            self.image_data.size().1 as u32,
-        );
+    fn encode_png(&self) -> Result<Vec<u8>, EncodingError> {
+        let mut buf = Vec::new();
 
-        encoder.set_color((*self.image_data.color_space()).into());
-        let mut writer = encoder.write_header()?;
-        writer.write_image_data(&self.image_data.data())?;
+        {
+            let mut encoder = png::Encoder::new(
+                &mut buf,
+                self.image_data.size().0 as u32,
+                self.image_data.size().1 as u32,
+            );
 
-        Ok(())
+            encoder.set_color(png::ColorType::Rgba);
+            encoder.set_depth(png::BitDepth::Eight);
+
+            let mut writer = encoder.write_header()?;
+            writer.write_image_data(self.image_data.data())?;
+            writer.finish()?;
+        }
+
+        Ok(buf)
     }
 
-    fn encode_oxipng(&self) -> Result<(), EncodingError> {
-        let mut file = fs::File::create(&self.config.output)?;
-        let mut encoder = png::Encoder::new(
-            &mut file,
-            self.image_data.size().0 as u32,
-            self.image_data.size().1 as u32,
-        );
-        encoder.set_color((*self.image_data.color_space()).into());
-        let mut writer = encoder.write_header()?;
-        writer.write_image_data(&self.image_data.data())?;
-        writer.finish()?;
+    fn encode_oxipng(&self) -> Result<Vec<u8>, EncodingError> {
+        let mut buf = Vec::new();
 
-        oxipng::optimize(
-            &oxipng::InFile::from(&self.config.output),
-            &oxipng::OutFile::Path(Some(self.config.output.clone())),
-            &oxipng::Options::default(),
-        )?;
+        {
+            let mut encoder = png::Encoder::new(
+                &mut buf,
+                self.image_data.size().0 as u32,
+                self.image_data.size().1 as u32,
+            );
 
-        Ok(())
+            encoder.set_color(png::ColorType::Rgba);
+            encoder.set_depth(png::BitDepth::Eight);
+
+            let mut writer = encoder.write_header()?;
+            writer.write_image_data(self.image_data.data())?;
+            writer.finish()?;
+        }
+
+        oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
+            .map_err(|e| EncodingError::Encoding(e.to_string()))
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use regex::Regex;
+    use std::fs;
 
-    use crate::image::ColorSpace;
+    use regex::Regex;
 
     use super::*;
 
@@ -394,7 +357,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::Gray);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -419,7 +381,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::GrayAlpha);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -444,7 +405,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::Rgb);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -469,7 +429,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::Rgba);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -494,7 +453,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::Rgba);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -519,7 +477,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::Rgb);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -544,7 +501,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            assert_eq!(image.color_space(), &ColorSpace::Rgba);
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
         })
@@ -583,7 +539,7 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x]").unwrap();
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
@@ -595,16 +551,14 @@ mod tests {
 
             let out_path = path.with_extension("out.jpg");
 
-            let conf = Config::build(out_path.clone(), 75.0, OutputFormat::MozJpeg).unwrap();
+            let conf = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
 
             assert!(result.is_ok());
-            assert!(out_path.exists());
-            assert!(out_path.is_file());
-            assert!(out_path.metadata().unwrap().len() > 0);
-            assert!(fs::remove_file(out_path).is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
         })
     }
 
@@ -617,7 +571,7 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x]").unwrap();
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
@@ -629,16 +583,14 @@ mod tests {
 
             let out_path = path.with_extension("out.png");
 
-            let conf = Config::build(out_path.clone(), 75.0, OutputFormat::Png).unwrap();
+            let conf = Config::build(75.0, OutputFormat::Png).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
 
             assert!(result.is_ok());
-            assert!(out_path.exists());
-            assert!(out_path.is_file());
-            assert!(out_path.metadata().unwrap().len() > 0);
-            assert!(fs::remove_file(out_path).is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
         })
     }
 
@@ -651,7 +603,7 @@ mod tests {
                 entry.path()
             })
             .filter(|path| {
-                let re = Regex::new(r"^tests/files/[^x]").unwrap();
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
@@ -663,16 +615,14 @@ mod tests {
 
             let out_path = path.with_extension("out.oxi.png");
 
-            let conf = Config::build(out_path.clone(), 75.0, OutputFormat::Oxipng).unwrap();
+            let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
 
             assert!(result.is_ok());
-            assert!(out_path.exists());
-            assert!(out_path.is_file());
-            assert!(out_path.metadata().unwrap().len() > 0);
-            assert!(fs::remove_file(out_path).is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
         })
     }
 }
