@@ -83,6 +83,7 @@ let data = match encoder.encode() {
 
 // Write image to file
 std::fs::write("output.jpg", data);
+# std::fs::remove_file("output.jpg").unwrap();
 ```
 */
 #![warn(missing_docs)]
