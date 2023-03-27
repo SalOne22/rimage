@@ -118,7 +118,7 @@ pub struct Config {
 impl Config {
     /// Create new config
     pub fn build(quality: f32, output_format: OutputFormat) -> Result<Self, ConfigError> {
-        if quality < 0.0 || quality > 100.0 {
+        if !(0.0..=100.0).contains(&quality) {
             return Err(ConfigError::QualityOutOfBounds);
         }
 
@@ -181,7 +181,7 @@ impl<'a> Decoder<'a> {
 
     fn decode_jpeg(&self) -> Result<ImageData, DecodingError> {
         panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
-            let d = mozjpeg::Decompress::new_mem(&self.raw_data)?;
+            let d = mozjpeg::Decompress::new_mem(self.raw_data)?;
             let mut image = d.rgba()?;
 
             let data: Vec<RGBA8> = image.read_scanlines().ok_or(DecodingError::Parsing(
@@ -189,8 +189,8 @@ impl<'a> Decoder<'a> {
             ))?;
 
             Ok(ImageData::new(
-                image.width() as usize,
-                image.height() as usize,
+                image.width(),
+                image.height(),
                 data.as_bytes().to_owned(),
             ))
         })
@@ -211,7 +211,7 @@ impl<'a> Decoder<'a> {
     }
 
     fn decode_png(&self) -> Result<ImageData, DecodingError> {
-        let mut d = png::Decoder::new(&self.raw_data[..]);
+        let mut d = png::Decoder::new(self.raw_data);
         d.set_transformations(png::Transformations::normalize_to_color8());
 
         let mut reader = d.read_info()?;
@@ -226,7 +226,7 @@ impl<'a> Decoder<'a> {
 
         match info.color_type {
             png::ColorType::Grayscale => {
-                Self::expand_pixels(&mut buf, |gray: GRAY8| GRAY8::from(gray).into())
+                Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into())
             }
             png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
@@ -274,7 +274,7 @@ impl<'a> Encoder<'a> {
             encoder.set_progressive_mode();
             encoder.set_mem_dest();
             encoder.start_compress();
-            encoder.write_scanlines(&self.image_data.data());
+            encoder.write_scanlines(self.image_data.data());
             encoder.finish_compress();
 
             encoder.data_to_vec().map_err(|_| {
@@ -549,8 +549,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            let out_path = path.with_extension("out.jpg");
-
             let conf = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
 
             let encoder = Encoder::new(&conf, image);
@@ -581,8 +579,6 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            let out_path = path.with_extension("out.png");
-
             let conf = Config::build(75.0, OutputFormat::Png).unwrap();
 
             let encoder = Encoder::new(&conf, image);
@@ -612,8 +608,6 @@ mod tests {
             println!("{path:?}");
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
-
-            let out_path = path.with_extension("out.oxi.png");
 
             let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
