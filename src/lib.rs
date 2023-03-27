@@ -26,9 +26,9 @@ After that you can use this crate:
 ## Decoding
 ```
 use rimage::Decoder;
-# let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
 
 // Create decoder from file path and data
+let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
 let data = std::fs::read(&path).unwrap();
 let decoder = Decoder::new(&path, &data);
 
@@ -36,7 +36,7 @@ let decoder = Decoder::new(&path, &data);
 let image = match decoder.decode() {
     Ok(img) => img,
     Err(e) => {
-        eprintln!("Oh no there is another error! {e}");
+        eprintln!("Oh no, there is error! {e}");
         std::process::exit(1);
     }
 };
@@ -58,24 +58,25 @@ use rimage::{Config, Encoder, OutputFormat};
 # let decoder = Decoder::new(&path, &data);
 # let image = decoder.decode().unwrap();
 
-// Encode image to file
+// Build config for encoding
 let config = match Config::build(
     75.0,
     OutputFormat::MozJpeg,
 ) {
     Ok(config) => config,
     Err(e) => {
-        eprintln!("Oh no there is error! {e}");
+        eprintln!("Oh no, there is error! {e}");
         std::process::exit(1);
     }
 };
 
-let encoder = Encoder::new(&config, image);
+let encoder = Encoder::new(&config, image); // where image is image::ImageData
 
+// Get encoded image data from encoder
 let data = match encoder.encode() {
     Ok(data) => data,
     Err(e) => {
-        eprintln!("Oh no there is error! {e}");
+        eprintln!("Oh no, there is error! {e}");
         std::process::exit(1);
     }
 };
@@ -109,6 +110,22 @@ pub mod error;
 pub mod image;
 
 /// Config for image encoding
+///
+/// # Example
+/// ```
+/// use rimage::{Config, OutputFormat};
+///
+/// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+/// ```
+///
+/// # Default
+/// ```
+/// use rimage::{Config, OutputFormat};
+///
+/// let config = Config::default();
+/// assert_eq!(config.quality(), 75.0);
+/// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
+/// ```
 #[derive(Debug)]
 pub struct Config {
     quality: f32,
@@ -117,6 +134,24 @@ pub struct Config {
 
 impl Config {
     /// Create new config
+    ///
+    /// # Example
+    /// ```
+    /// use rimage::{Config, OutputFormat};
+    ///
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// If quality is not in range 0.0..=100.0
+    ///
+    /// ```
+    /// use rimage::{Config, OutputFormat};
+    ///
+    /// let config = Config::build(200.0, OutputFormat::MozJpeg);
+    /// assert!(config.is_err());
+    /// ```
     pub fn build(quality: f32, output_format: OutputFormat) -> Result<Self, ConfigError> {
         if !(0.0..=100.0).contains(&quality) {
             return Err(ConfigError::QualityOutOfBounds);
@@ -128,11 +163,27 @@ impl Config {
         })
     }
     /// Get quality
+    ///
+    /// # Example
+    /// ```
+    /// use rimage::{Config, OutputFormat};
+    ///
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert_eq!(config.quality(), 75.0);
+    /// ```
     #[inline]
     pub fn quality(&self) -> f32 {
         self.quality
     }
     /// Get output format
+    ///
+    /// # Example
+    /// ```
+    /// use rimage::{Config, OutputFormat};
+    ///
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
+    /// ```
     #[inline]
     pub fn output_format(&self) -> &OutputFormat {
         &self.output_format
@@ -150,6 +201,24 @@ impl Default for Config {
 }
 
 /// Decoder for images
+///
+/// # Example
+/// ```
+/// # use rimage::Decoder;
+/// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+/// let data = std::fs::read(&path).unwrap();
+///
+/// let decoder = Decoder::new(&path, &data);
+///
+/// // Decode image to image data
+/// let image = match decoder.decode() {
+///     Ok(img) => img,
+///     Err(e) => {
+///         eprintln!("Oh no there is error! {e}");
+///         std::process::exit(1);
+///     }
+/// };
+/// ```
 pub struct Decoder<'a> {
     path: &'a path::Path,
     raw_data: &'a [u8],
@@ -157,12 +226,69 @@ pub struct Decoder<'a> {
 
 impl<'a> Decoder<'a> {
     /// Create new decoder
+    ///
+    /// # Example
+    /// ```
+    /// # use rimage::Decoder;
+    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+    /// let data = std::fs::read(&path).unwrap();
+    ///
+    /// let decoder = Decoder::new(&path, &data);
+    /// ```
     #[inline]
     pub fn new(path: &'a path::Path, raw_data: &'a [u8]) -> Self {
         Decoder { path, raw_data }
     }
 
     /// Decode image
+    ///
+    /// # Example
+    /// ```
+    /// # use rimage::Decoder;
+    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+    /// # let data = std::fs::read(&path).unwrap();
+    /// # let decoder = Decoder::new(&path, &data);
+    /// // Decode image to image data
+    /// let image = match decoder.decode() {
+    ///     Ok(img) => img,
+    ///     Err(e) => {
+    ///         eprintln!("Oh no there is error! {e}");
+    ///         std::process::exit(1);
+    ///     }
+    /// };
+    ///
+    /// // Do something with image data...
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// If image format is not supported
+    ///
+    /// ```
+    /// # use rimage::Decoder;
+    /// let path = std::path::PathBuf::from("tests/files/test.bmp");
+    /// let data = std::fs::read(&path).unwrap();
+    /// let decoder = Decoder::new(&path, &data);
+    ///
+    /// let result = decoder.decode();
+    ///
+    /// assert!(result.is_err());
+    /// assert_eq!(result.unwrap_err().to_string(), "Format Error: bmp");
+    /// ```
+    ///
+    /// If image format is supported but there is error during decoding
+    ///
+    /// ```
+    /// # use rimage::Decoder;
+    /// let path = std::path::PathBuf::from("tests/files/test_corrupted.jpg");
+    /// let data = std::fs::read(&path).unwrap();
+    /// let decoder = Decoder::new(&path, &data);
+    ///
+    /// let result = decoder.decode();
+    ///
+    /// assert!(result.is_err());
+    /// assert_eq!(result.unwrap_err().to_string(), "Parsing Error: Failed to decode jpeg");
+    /// ```
     pub fn decode(&self) -> Result<ImageData, DecodingError> {
         let extension = match self.path.extension() {
             Some(ext) => ext,
@@ -225,9 +351,7 @@ impl<'a> Decoder<'a> {
         let info = reader.next_frame(&mut buf)?;
 
         match info.color_type {
-            png::ColorType::Grayscale => {
-                Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into())
-            }
+            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
             png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
             png::ColorType::Rgba => {}
@@ -243,6 +367,21 @@ impl<'a> Decoder<'a> {
 }
 
 /// Encoder for images
+///
+/// # Example
+/// ```
+/// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+/// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+/// # let data = std::fs::read(&path).unwrap();
+/// # let decoder = rimage::Decoder::new(&path, &data);
+/// # let image = decoder.decode().unwrap();
+/// let config = Config::default();
+///
+/// // image is ImageData
+/// let encoder = Encoder::new(&config, image);
+/// let result = encoder.encode();
+/// assert!(result.is_ok());
+/// ```
 pub struct Encoder<'a> {
     image_data: ImageData,
     config: &'a Config,
@@ -250,6 +389,17 @@ pub struct Encoder<'a> {
 
 impl<'a> Encoder<'a> {
     /// Create new encoder
+    ///
+    /// # Example
+    /// ```
+    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+    /// # let data = std::fs::read(&path).unwrap();
+    /// # let decoder = rimage::Decoder::new(&path, &data);
+    /// # let image = decoder.decode().unwrap();
+    /// let config = Config::default();
+    /// let encoder = Encoder::new(&config, image); // where image is ImageData
+    /// ```
     pub fn new(conf: &'a Config, image_data: ImageData) -> Self {
         Encoder {
             image_data,
@@ -257,6 +407,23 @@ impl<'a> Encoder<'a> {
         }
     }
     /// Encode image
+    ///
+    /// # Example
+    /// ```
+    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+    /// # let data = std::fs::read(&path).unwrap();
+    /// # let decoder = rimage::Decoder::new(&path, &data);
+    /// # let image = decoder.decode().unwrap();
+    /// let config = Config::default();
+    /// let encoder = Encoder::new(&config, image); // where image is ImageData
+    /// let result = encoder.encode();
+    /// assert!(result.is_ok());
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EncodingError`] if encoding failed
     pub fn encode(self) -> Result<Vec<u8>, EncodingError> {
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
