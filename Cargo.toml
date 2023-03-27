@@ -30,6 +30,7 @@ mozjpeg = "0.9.4"
 oxipng = "8.0.0"
 png = "0.17.7"
 rgb = "0.8.36"
+simple-error = "0.3.0"
 wild = "2.1.0"
 
 [dev-dependencies]
