@@ -70,9 +70,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     for path in &args.input {
         pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
 
-        let data = fs::read(&path)?;
+        let data = fs::read(path)?;
 
-        let d = Decoder::new(&path, &data);
+        let d = Decoder::new(path, &data);
         let e = Encoder::new(&conf, d.decode()?);
 
         let mut new_path = path.clone();
