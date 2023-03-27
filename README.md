@@ -48,4 +48,4 @@ Im new to GitHub and Rust so any help would be greatly appreciated! 🤘
 
 Rimage is licensed under either the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), or [the MIT license](https://opensource.org/licenses/MIT).
 
-All images maded by me or taken from [Unsplash](https://unsplash.com/)
+All images are taken from [PNGSuite](http://www.schaik.com/pngsuite/)
