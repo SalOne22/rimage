@@ -1,6 +1,8 @@
 use std::{borrow::Cow, fmt};
 
 /// Image data
+/// 
+/// Used to store dimensions and data of an image
 #[derive(Debug, Clone)]
 pub struct ImageData {
     width: usize,
@@ -14,7 +16,7 @@ impl ImageData {
     /// # Examples
     /// ```
     /// # use rimage::{ImageData, image};
-    /// let image = ImageData::new(100, 100, vec![0; 100 * 100]);
+    /// let image = ImageData::new(100, 100, vec![0; 100 * 100 * 4]); // 100x100 RGBA image
     /// ```
     pub fn new(width: usize, height: usize, data: Vec<u8>) -> Self {
         Self {
@@ -35,8 +37,8 @@ impl ImageData {
     }
 }
 
-/// Image format to encode
-#[derive(Debug, Clone, Copy)]
+/// Image format for output
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OutputFormat {
     /// MozJpeg image
     MozJpeg,
