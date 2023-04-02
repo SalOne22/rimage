@@ -93,6 +93,7 @@ use rgb::{
     alt::{GRAY8, GRAYA8},
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA8,
 };
+use simple_error::SimpleError;
 use std::{panic, path};
 
 pub use image::{ImageData, OutputFormat};
@@ -274,7 +275,7 @@ impl<'a> Decoder<'a> {
     /// let result = decoder.decode();
     ///
     /// assert!(result.is_err());
-    /// assert_eq!(result.unwrap_err().to_string(), "Format Error: bmp");
+    /// assert_eq!(result.unwrap_err().to_string(), "Format Error: bmp not supported");
     /// ```
     ///
     /// If image format is supported but there is error during decoding
@@ -293,16 +294,23 @@ impl<'a> Decoder<'a> {
     pub fn decode(&self) -> Result<ImageData, DecodingError> {
         let extension = match self.path.extension() {
             Some(ext) => ext,
-            None => return Err(DecodingError::Format("None".to_string())),
+            None => {
+                return Err(DecodingError::Format(Box::new(SimpleError::new(
+                    "No extension",
+                ))))
+            }
         };
 
         match extension.to_str() {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
-            Some(ext) => Err(DecodingError::Format(ext.to_string())),
-            None => Err(DecodingError::Parsing(
-                "Extension is not valid unicode".to_string(),
-            )),
+            Some(ext) => Err(DecodingError::Format(Box::new(SimpleError::new(format!(
+                "{} not supported",
+                ext
+            ))))),
+            None => Err(DecodingError::Parsing(Box::new(SimpleError::new(
+                "Failed to get extension",
+            )))),
         }
     }
 
@@ -311,9 +319,12 @@ impl<'a> Decoder<'a> {
             let d = mozjpeg::Decompress::new_mem(self.raw_data)?;
             let mut image = d.rgba()?;
 
-            let data: Vec<RGBA8> = image.read_scanlines().ok_or(DecodingError::Parsing(
-                "Failed to read scanlines".to_string(),
-            ))?;
+            let data: Vec<RGBA8> =
+                image
+                    .read_scanlines()
+                    .ok_or(DecodingError::Parsing(Box::new(SimpleError::new(
+                        "Failed to read scanlines",
+                    ))))?;
 
             Ok(ImageData::new(
                 image.width(),
@@ -321,9 +332,9 @@ impl<'a> Decoder<'a> {
                 data.as_bytes().to_owned(),
             ))
         })
-        .unwrap_or(Err(DecodingError::Parsing(
-            "Failed to decode jpeg".to_string(),
-        )))
+        .unwrap_or(Err(DecodingError::Parsing(Box::new(SimpleError::new(
+            "Failed to decode jpeg",
+        )))))
     }
 
     fn expand_pixels<T: Copy>(buf: &mut [u8], to_rgba: impl Fn(T) -> RGBA8)
@@ -357,9 +368,9 @@ impl<'a> Decoder<'a> {
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
             png::ColorType::Rgba => {}
             png::ColorType::Indexed => {
-                return Err(DecodingError::Parsing(
-                    "Indexed color must be expanded to RGB".to_string(),
-                ))
+                return Err(DecodingError::Parsing(Box::new(SimpleError::new(
+                    "Indexed color type is not supported",
+                ))))
             }
         }
 
@@ -446,12 +457,14 @@ impl<'a> Encoder<'a> {
             encoder.finish_compress();
 
             encoder.data_to_vec().map_err(|_| {
-                EncodingError::Encoding("Failed to convert data to vector".to_string())
+                EncodingError::Encoding(Box::new(SimpleError::new("Failed to convert data to vec")))
             })
         })
-        .unwrap_or(Err(EncodingError::Encoding(
-            "Failed to encode jpeg".to_string(),
-        )))
+        .unwrap_or_else(|e| {
+            Err(EncodingError::Encoding(Box::new(SimpleError::new(
+                format!("Failed to encode image: {:?}", e),
+            ))))
+        })
     }
 
     fn encode_png(&self) -> Result<Vec<u8>, EncodingError> {
@@ -494,7 +507,7 @@ impl<'a> Encoder<'a> {
         }
 
         oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
-            .map_err(|e| EncodingError::Encoding(e.to_string()))
+            .map_err(|e| EncodingError::Encoding(Box::new(e)))
     }
 }
 
@@ -505,6 +518,36 @@ mod tests {
     use regex::Regex;
 
     use super::*;
+
+    #[test]
+    fn config_edge_cases() {
+        let config = Config::default();
+        assert_eq!(config.output_format, OutputFormat::MozJpeg);
+        assert_eq!(config.quality, 75.0);
+        let config = Config::build(100.0, OutputFormat::Png).unwrap();
+        assert_eq!(config.output_format, OutputFormat::Png);
+        assert_eq!(config.quality, 100.0);
+        let config = Config::build(0.0, OutputFormat::Oxipng).unwrap();
+        assert_eq!(config.output_format, OutputFormat::Oxipng);
+        assert_eq!(config.quality, 0.0);
+        let config_result = Config::build(101.0, OutputFormat::MozJpeg);
+        assert!(config_result.is_err());
+        let config_result = Config::build(-1.0, OutputFormat::MozJpeg);
+        assert!(config_result.is_err());
+    }
+
+    #[test]
+    fn decode_unsupported() {
+        let path = path::Path::new("tests/files/test.bmp");
+
+        fs::read(path)
+            .map(|data| {
+                let decoder = Decoder::new(path, &data);
+                let result = decoder.decode();
+                assert!(result.is_err());
+            })
+            .unwrap();
+    }
 
     #[test]
     fn decode_grayscale() {

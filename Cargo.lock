@@ -898,6 +898,7 @@ dependencies = [
  "pretty_env_logger",
  "regex",
  "rgb",
+ "simple-error",
  "threadpool",
  "wild",
 ]
@@ -994,6 +995,12 @@ name = "simd-adler32"
 version = "0.3.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "238abfbb77c1915110ad968465608b68e869e0772622c9656714e73e5a1a522f"
+
+[[package]]
+name = "simple-error"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8542b68b8800c3cda649d2c72d688b6907b30f1580043135d61669d4aad1c175"
 
 [[package]]
 name = "stderrlog"
