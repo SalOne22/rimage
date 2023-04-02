@@ -127,7 +127,7 @@ pub mod image;
 /// assert_eq!(config.quality(), 75.0);
 /// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Config {
     quality: f32,
     output_format: OutputFormat,
