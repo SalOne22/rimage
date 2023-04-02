@@ -31,7 +31,6 @@ fn main() {
     let mut args = Args::parse_from(wild::args_os());
     let pb = ProgressBar::new(args.input.len() as u64);
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
-    println!("{}", num_cpus::get());
 
     // Get all files from stdin if no input is given
     if args.input.is_empty() {
