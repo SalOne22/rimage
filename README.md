@@ -28,11 +28,11 @@ rimage -q 75 *.jpg
 - Output format: `-o png`, currently supported only jpg, png and oxipng
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
+- Threads: `-t 4`, number of threads to use
 - More options will be added later
 
 ## To-Do
 
-- Bulk image optimization in parallel
 - Support for AVIF and WebP
 - Image resize
 - Image quantization
@@ -43,6 +43,28 @@ rimage -q 75 *.jpg
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
 
 Any help would be greatly appreciated!
+
+## Development
+
+Clone this repository with git or GitHub Desktop
+
+```
+git clone https://github.com/SalOne22/rimage.git
+```
+
+Build rimage with cargo
+
+```
+cargo build
+```
+
+Do your staff and test that all works as expected
+
+```
+cargo test
+```
+
+Next you can create pull request
 
 ## License
 
