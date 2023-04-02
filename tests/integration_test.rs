@@ -14,7 +14,7 @@ fn test_image_processing_jpeg() {
     let encoder = Encoder::new(&config, image);
     let encoded_data = encoder.encode().unwrap();
 
-    let output_path = "tests/output/out.jpg";
+    let output_path = "tests/files/out.jpg";
     fs::write(output_path, encoded_data).unwrap();
 
     let output_data = fs::read(output_path).unwrap();
@@ -34,7 +34,7 @@ fn test_image_processing_png() {
     let encoder = Encoder::new(&config, image);
     let encoded_data = encoder.encode().unwrap();
 
-    let output_path = "tests/output/out.png";
+    let output_path = "tests/files/out.png";
     fs::write(output_path, encoded_data).unwrap();
 
     let output_data = fs::read(output_path).unwrap();
@@ -54,7 +54,7 @@ fn test_image_processing_oxipng() {
     let encoder = Encoder::new(&config, image);
     let encoded_data = encoder.encode().unwrap();
 
-    let output_path = "tests/output/oxiout.png";
+    let output_path = "tests/files/oxiout.png";
     fs::write(output_path, encoded_data).unwrap();
 
     let output_data = fs::read(output_path).unwrap();
@@ -86,7 +86,7 @@ fn test_bulk_image_processing_jpeg() {
         let encoder = Encoder::new(&config, image);
         let encoded_data = encoder.encode().unwrap();
 
-        let mut output_path = path::PathBuf::from("tests/output/");
+        let mut output_path = path::PathBuf::from("tests/files/");
         output_path.push(path.file_name().unwrap());
         output_path.set_extension("out.jpg");
         fs::write(&output_path, encoded_data).unwrap();
@@ -121,7 +121,7 @@ fn test_bulk_image_processing_png() {
         let encoder = Encoder::new(&config, image);
         let encoded_data = encoder.encode().unwrap();
 
-        let mut output_path = path::PathBuf::from("tests/output/");
+        let mut output_path = path::PathBuf::from("tests/files/");
         output_path.push(path.file_name().unwrap());
         output_path.set_extension("out.png");
         fs::write(&output_path, encoded_data).unwrap();
@@ -156,7 +156,7 @@ fn test_bulk_image_processing_oxipng() {
         let encoder = Encoder::new(&config, image);
         let encoded_data = encoder.encode().unwrap();
 
-        let mut output_path = path::PathBuf::from("tests/output/");
+        let mut output_path = path::PathBuf::from("tests/files/");
         output_path.push(path.file_name().unwrap());
         output_path.set_extension("oxiout.png");
         fs::write(&output_path, encoded_data).unwrap();
