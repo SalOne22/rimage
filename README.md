@@ -40,9 +40,9 @@ rimage -q 75 *.jpg
 
 ## Contribute
 
-If you are interested in contributing to the development of Rimage, you can get started by cloning the repository using Git or GitHub Desktop, followed by running `cargo build`.
-Once you have created your branch and it builds successfully, you can make a pull request.  
-Im new to GitHub and Rust so any help would be greatly appreciated! 🤘
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
+Any help would be greatly appreciated!
 
 ## License
 
