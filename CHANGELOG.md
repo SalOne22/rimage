@@ -1,3 +1,7 @@
+## v0.2.1
+- [Changed] Readme updated
+- [Changed] Updated regex to 1.7.3
+
 ## v0.2.0
 
 - [Added] struct `ImageData` for storing images data
