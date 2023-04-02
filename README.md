@@ -21,11 +21,13 @@ or from [Releases](https://github.com/SalOne22/rimage/releases) on GitHub
 ## Usage
 
 ```
-rimage -q 0.75 *.jpg
+rimage -q 75 *.jpg
 ```
 
-- Quality: `-q 0` through `-q 1`, higher is better
-- Output format: `-o png`, currently supported only jpg and png
+- Quality: `-q 0` through `-q 100`, higher is better
+- Output format: `-o png`, currently supported only jpg, png and oxipng
+- Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
+- Info: `-i`, flag used to get info about images (size and data length)
 - More options will be added later
 
 ## To-Do
@@ -34,17 +36,16 @@ rimage -q 0.75 *.jpg
 - Support for AVIF and WebP
 - Image resize
 - Image quantization
-- API
-- And alot of bugfixes and optimizations
+- And allot of bugfixes and optimizations
 
 ## Contribute
 
-If you are interested in contributing to the development of Rimage, you can get started by cloning the repository using Git or GitHub Desktop, followed by running `cargo build`.
-Once you have created your branch and it builds successfully, you can make a pull request.  
-Im new to GitHub and Rust so any help would be greatly appreciated! 🤘
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
+
+Any help would be greatly appreciated!
 
 ## License
 
 Rimage is licensed under either the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), or [the MIT license](https://opensource.org/licenses/MIT).
 
-All images maded by me or taken from [Unsplash](https://unsplash.com/)
+All images are taken from [PNGSuite](http://www.schaik.com/pngsuite/)
