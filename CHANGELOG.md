@@ -2,6 +2,7 @@
 
 - [Added] Parallelism
 - [Added] Thread number to use option (Default: number of cpus)
+- [Changed] Strings in errors replaced with SimpleError
 
 ## v0.2.1
 
