@@ -35,9 +35,9 @@ pub enum DecodingError {
     /// A [`io::Error`] if file failed to read, find, etc.
     IoError(io::Error),
     /// The format of file is not supported
-    Format(String),
+    Format(Box<dyn Error>),
     /// A decoding error, file is not a image, unsupported color space, etc.
-    Parsing(String),
+    Parsing(Box<dyn Error>),
 }
 
 impl Error for DecodingError {}
@@ -53,11 +53,7 @@ impl From<png::DecodingError> for DecodingError {
     fn from(err: png::DecodingError) -> Self {
         match err {
             png::DecodingError::IoError(io_err) => DecodingError::IoError(io_err),
-            png::DecodingError::Format(f_err) => DecodingError::Format(f_err.to_string()),
-            png::DecodingError::Parameter(p_err) => DecodingError::Parsing(p_err.to_string()),
-            png::DecodingError::LimitsExceeded => {
-                DecodingError::Parsing("Png limits exceeded".to_string())
-            }
+            _ => DecodingError::Parsing(Box::new(err)),
         }
     }
 }
@@ -78,9 +74,9 @@ pub enum EncodingError {
     /// A [`io::Error`] if file failed to write, find, etc.
     IoError(io::Error),
     /// The format of file is not supported
-    Format(String),
+    Format(Box<dyn Error>),
     /// A encoding error, data is invalid, unsupported color space, etc.
-    Encoding(String),
+    Encoding(Box<dyn Error>),
 }
 
 impl Error for EncodingError {}
@@ -96,36 +92,14 @@ impl From<png::EncodingError> for EncodingError {
     fn from(err: png::EncodingError) -> Self {
         match err {
             png::EncodingError::IoError(io_err) => EncodingError::IoError(io_err),
-            png::EncodingError::Format(f_err) => EncodingError::Format(f_err.to_string()),
-            png::EncodingError::Parameter(p_err) => EncodingError::Encoding(p_err.to_string()),
-            png::EncodingError::LimitsExceeded => {
-                EncodingError::Encoding("Png limits exceeded".to_string())
-            }
+            _ => EncodingError::Encoding(Box::new(err)),
         }
     }
 }
 
 impl From<oxipng::PngError> for EncodingError {
     fn from(err: oxipng::PngError) -> Self {
-        match err {
-            oxipng::PngError::DeflatedDataTooLong(_) => {
-                EncodingError::Encoding("Deflated data too long".to_string())
-            }
-            oxipng::PngError::TimedOut => EncodingError::Encoding("Timed out".to_string()),
-            oxipng::PngError::NotPNG => EncodingError::Encoding("Not a PNG".to_string()),
-            oxipng::PngError::APNGNotSupported => {
-                EncodingError::Encoding("APNG not supported".to_string())
-            }
-            oxipng::PngError::InvalidData => EncodingError::Encoding("Invalid data".to_string()),
-            oxipng::PngError::TruncatedData => {
-                EncodingError::Encoding("Truncated data".to_string())
-            }
-            oxipng::PngError::ChunkMissing(_) => {
-                EncodingError::Encoding("Chunk missing".to_string())
-            }
-            oxipng::PngError::Other(err) => EncodingError::Encoding(err.into_string()),
-            _ => EncodingError::Encoding("Unknown error".to_string()),
-        }
+        EncodingError::Encoding(Box::new(err))
     }
 }
 
@@ -141,6 +115,8 @@ impl fmt::Display for EncodingError {
 
 #[cfg(test)]
 mod tests {
+    use simple_error::SimpleError;
+
     use super::*;
 
     #[test]
@@ -151,8 +127,8 @@ mod tests {
             "IO Error: path not found"
         );
         assert_eq!(
-            DecodingError::Format("WebP not supported".to_string()).to_string(),
-            "Format Error: WebP not supported"
+            DecodingError::Format(Box::new(SimpleError::new("webp not supported"))).to_string(),
+            "Format Error: webp not supported"
         );
     }
 

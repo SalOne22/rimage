@@ -1,5 +1,6 @@
 use std::{error::Error, fs, io, panic, path};
 
+use log::info;
 use mozjpeg::Decompress;
 use rgb::{FromSlice, RGBA8};
 
@@ -16,8 +17,9 @@ use rgb::{FromSlice, RGBA8};
 /// TODO: Return error if file has no extension
 pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), Box<dyn Error>> {
     let input_format = path.extension().unwrap();
+    info!("Started decoding...");
     let decoded = match input_format.to_str() {
-        Some("jpg") => decode_jpeg(path)?,
+        Some("jpg") | Some("jpeg") => decode_jpeg(path)?,
         Some("png") => decode_png(path)?,
         _ => {
             return Err(Box::new(io::Error::new(
@@ -26,6 +28,7 @@ pub fn decode_image(path: &path::PathBuf) -> Result<(Vec<RGBA8>, usize, usize), 
             )))
         }
     };
+    info!("Decoded {} pixels", decoded.0.len());
 
     Ok(decoded)
 }

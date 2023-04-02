@@ -10,7 +10,7 @@ exclude = ["tests/*", ".*"]
 repository = "https://github.com/SalOne22/rimage"
 license = "MIT OR Apache-2.0"
 
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 
 [profile.release]
@@ -26,10 +26,15 @@ bytemuck = "1.13.1"
 clap = { version = "4.1.11", features = ["derive"] }
 imagequant = "4.1.1"
 indicatif = "0.17.3"
+log = "0.4.17"
 mozjpeg = "0.9.4"
+num_cpus = "1.15.0"
 oxipng = "8.0.0"
 png = "0.17.7"
+pretty_env_logger = "0.4.0"
 rgb = "0.8.36"
+threadpool = "1.8.1"
+simple-error = "0.3.0"
 wild = "2.1.0"
 
 [dev-dependencies]
