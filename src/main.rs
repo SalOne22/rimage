@@ -25,6 +25,9 @@ struct Args {
     /// Number of threads to use
     #[arg(short, long)]
     threads: Option<usize>,
+    /// Target quantization quality from 2 to 100
+    #[arg(long)]
+    quantization: Option<u8>,
 }
 
 fn main() {
@@ -44,9 +47,9 @@ fn main() {
     }
 
     let conf = Config::build(args.quality, args.output_format).unwrap_or_else(|e| {
-        eprintln!("Error: {e}");
-        process::exit(1);
-    });
+            eprintln!("Error: {e}");
+            process::exit(1);
+        });
 
     pb.set_style(
         ProgressStyle::with_template("{bar:40.green/blue}  {pos}/{len}")
