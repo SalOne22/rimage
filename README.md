@@ -39,12 +39,6 @@ rimage -q 75 *.jpg
 - Image resize
 - And allot of bugfixes and optimizations
 
-## Contribute
-
-Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
-
-Any help would be greatly appreciated!
-
 ## Development
 
 Clone this repository with git or GitHub Desktop
@@ -67,8 +61,14 @@ cargo test
 
 Next you can create pull request
 
+Any help would be greatly appreciated!
+
 ## License
 
 Rimage is licensed under either the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0), or [the MIT license](https://opensource.org/licenses/MIT).
 
 All images are taken from [PNGSuite](http://www.schaik.com/pngsuite/)
+
+## Contribute
+
+Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.
