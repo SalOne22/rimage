@@ -134,7 +134,7 @@ jobs:
         id: tagName
         run: |
           VERSION=$(cargo pkgid | cut -d# -f2 | cut -d: -f2)
-          tail -n +2 CHANGELOG.md | sed -e '/^$/,$d' > CHANGELOG.txt
+          tail -n +3 CHANGELOG.md | sed -e '/^$/,$d' > CHANGELOG.txt
           echo "::set-output name=tag::$VERSION"
       
       - name: Download artifacts
