@@ -37,7 +37,6 @@ rimage -q 75 *.jpg
 
 - Support for AVIF and WebP
 - Image resize
-- Image quantization
 - And allot of bugfixes and optimizations
 
 ## Contribute
