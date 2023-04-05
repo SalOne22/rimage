@@ -5,6 +5,7 @@
 - [Added] data_mut function to ImageData
 - [Added] Encode quantized function
 - [Added] Quantization argument to CLI
+- [Added] Dithering argument to CLI
 
 ## v0.3.0
 
