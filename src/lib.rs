@@ -455,7 +455,7 @@ impl<'a> Encoder<'a> {
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
-    /// let result = encoder.encode_quantized();
+    /// let result = encoder.encode_quantized(75, 1.0);
     /// assert!(result.is_ok());
     /// ```
     ///
