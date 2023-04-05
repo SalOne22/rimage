@@ -1,9 +1,9 @@
 # Rimage
 
-[![Build Status](https://img.shields.io/github/actions/workflow/status/SalOne22/rimage/rimage.yml?label=rimage)](https://github.com/SalOne22/rimage/actions?query=branch%3Amain+)
-[![docs.rs](https://img.shields.io/docsrs/rimage/latest)](https://docs.rs/rimage)
-[![Version](https://img.shields.io/crates/v/rimage)](https://crates.io/crates/rimage)
-[![License](https://img.shields.io/crates/l/rimage)](https://github.com/SalOne22/rimage)
+[![Build Status](https://img.shields.io/github/actions/workflow/status/SalOne22/rimage/rimage.yml?label=rimage&style=flat-square)](https://github.com/SalOne22/rimage/actions?query=branch%3Amain+)
+[![docs.rs](https://img.shields.io/docsrs/rimage/latest?style=flat-square)](https://docs.rs/rimage)
+[![Version](https://img.shields.io/crates/v/rimage?style=flat-square)](https://crates.io/crates/rimage)
+[![License](https://img.shields.io/crates/l/rimage?style=flat-square)](https://github.com/SalOne22/rimage)
 
 This is CLI tool inspired by [squoosh!](https://squoosh.app/)  
 Rimage currently supports two codecs, mozjpeg and oxipng, and aims to add support for AVIF and WebP in the future.
