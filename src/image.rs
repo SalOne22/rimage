@@ -1,7 +1,7 @@
 use std::{borrow::Cow, fmt};
 
 /// Image data
-/// 
+///
 /// Used to store dimensions and data of an image
 #[derive(Debug, Clone)]
 pub struct ImageData {
@@ -34,6 +34,11 @@ impl ImageData {
     #[inline]
     pub fn data(&self) -> &[u8] {
         &self.data
+    }
+    /// Get image data as mutable
+    #[inline]
+    pub fn data_mut(&mut self) -> &mut [u8] {
+        &mut self.data
     }
 }
 
