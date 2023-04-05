@@ -1,3 +1,11 @@
+## v0.4.0
+
+- [Added] Image quantization
+- [Added] Quantization error to EncodingError
+- [Added] data_mut function to ImageData
+- [Added] Encode quantized function
+- [Added] Quantization argument to CLI
+
 ## v0.3.0
 
 - [Added] Parallelism
