@@ -29,6 +29,7 @@ rimage -q 75 *.jpg
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
 - Threads: `-t 4`, number of threads to use
+- Quantization: `--quantization 50`, quality of quantization from 0 to 100, higher is better
 - More options will be added later
 
 ## To-Do
