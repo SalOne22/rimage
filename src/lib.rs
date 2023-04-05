@@ -444,6 +444,69 @@ impl<'a> Encoder<'a> {
         }
     }
 
+    /// Encode image with quantization
+    ///
+    /// # Example
+    /// ```
+    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+    /// # let data = std::fs::read(&path).unwrap();
+    /// # let decoder = rimage::Decoder::new(&path, &data);
+    /// # let image = decoder.decode().unwrap();
+    /// let config = Config::default();
+    /// let encoder = Encoder::new(&config, image); // where image is ImageData
+    /// let result = encoder.encode_quantized();
+    /// assert!(result.is_ok());
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns [`EncodingError`] if encoding failed
+    pub fn encode_quantized(
+        mut self,
+        quantization_quality: u8,
+        dithering_level: f32,
+    ) -> Result<Vec<u8>, EncodingError> {
+        let mut liq = imagequant::new();
+
+        liq.set_speed(5)?;
+        liq.set_quality(0, quantization_quality)?;
+
+        let mut img = liq.new_image(
+            self.image_data.data().as_pixels(),
+            self.image_data.size().0,
+            self.image_data.size().1,
+            0.0,
+        )?;
+
+        let mut res = liq.quantize(&mut img)?;
+
+        res.set_dithering_level(dithering_level)?;
+
+        let (palette, pixels) = res.remapped(&mut img)?;
+
+        let mut data = Vec::with_capacity(pixels.len() * 4);
+
+        pixels.iter().for_each(|pix| {
+            let color = palette[*pix as usize];
+            data.extend_from_slice(&[color.r, color.g, color.b, color.a]);
+        });
+
+        println!(
+            "Quantization: {} -> {}",
+            self.image_data.data().len(),
+            data.len()
+        );
+
+        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, data);
+
+        match self.config.output_format {
+            OutputFormat::Png => self.encode_png(),
+            OutputFormat::Oxipng => self.encode_oxipng(),
+            OutputFormat::MozJpeg => self.encode_mozjpeg(),
+        }
+    }
+
     fn encode_mozjpeg(self) -> Result<Vec<u8>, EncodingError> {
         panic::catch_unwind(|| -> Result<Vec<u8>, EncodingError> {
             let mut encoder = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
@@ -829,5 +892,36 @@ mod tests {
             let result = result.unwrap();
             assert!(!result.is_empty());
         })
+    }
+
+    #[test]
+    fn encode_quantized() {
+        let path = path::PathBuf::from("tests/files/basi2c08.png");
+
+        let data = fs::read(&path).unwrap();
+        let image = Decoder::new(&path, &data).decode().unwrap();
+
+        let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
+
+        let encoder = Encoder::new(&conf, image);
+        let result = encoder.encode_quantized(50, 1.0);
+
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(!result.is_empty());
+    }
+
+    #[test]
+    fn encode_quantized_out_of_bounds() {
+        let path = path::PathBuf::from("tests/files/basi2c08.png");
+
+        let data = fs::read(&path).unwrap();
+        let image = Decoder::new(&path, &data).decode().unwrap();
+
+        let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
+
+        let encoder = Encoder::new(&conf, image);
+        let result = encoder.encode_quantized(120, 1.0);
+        assert!(result.is_err());
     }
 }
