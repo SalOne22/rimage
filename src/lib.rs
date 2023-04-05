@@ -492,12 +492,6 @@ impl<'a> Encoder<'a> {
             data.extend_from_slice(&[color.r, color.g, color.b, color.a]);
         });
 
-        println!(
-            "Quantization: {} -> {}",
-            self.image_data.data().len(),
-            data.len()
-        );
-
         self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, data);
 
         match self.config.output_format {
