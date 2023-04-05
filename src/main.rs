@@ -25,6 +25,12 @@ struct Args {
     /// Number of threads to use
     #[arg(short, long)]
     threads: Option<usize>,
+    /// Target quantization quality from 0 to 100
+    #[arg(long)]
+    quantization: Option<u8>,
+    /// Target quantization dithering strength from 0 to 1.0
+    #[arg(long)]
+    dithering: Option<f32>,
 }
 
 fn main() {
@@ -86,6 +92,76 @@ fn main() {
             println!("Data length: {:?}", img.data().len());
             println!();
         }
+
+        process::exit(0);
+    }
+
+    if args.quantization.is_some() || args.dithering.is_some() {
+        let quantization = args.quantization.unwrap_or(100);
+        let dithering = args.dithering.unwrap_or(1.0);
+
+        for path in args.input {
+            let pb = pb.clone();
+            let conf = conf.clone();
+            let suffix = args.suffix.clone();
+            pool.execute(move || {
+                pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
+
+                let data = match fs::read(&path) {
+                    Ok(data) => data,
+                    Err(e) => {
+                        eprintln!(
+                            "{} Error: {e}",
+                            &path.file_name().unwrap().to_str().unwrap()
+                        );
+                        return;
+                    }
+                };
+
+                let d = Decoder::new(&path, &data);
+                let e = Encoder::new(
+                    &conf,
+                    match d.decode() {
+                        Ok(img) => img,
+                        Err(e) => {
+                            eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                            return;
+                        }
+                    },
+                );
+
+                let mut new_path = path.clone();
+                let ext = args.output_format.to_string();
+                let suffix = suffix.clone().unwrap_or_default();
+
+                new_path.set_file_name(format!(
+                    "{}{}",
+                    path.file_stem().unwrap().to_str().unwrap(),
+                    suffix,
+                ));
+                new_path.set_extension(ext);
+
+                match fs::write(
+                    new_path,
+                    match e.encode_quantized(quantization, dithering) {
+                        Ok(data) => data,
+                        Err(e) => {
+                            eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                            return;
+                        }
+                    },
+                ) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                        return;
+                    }
+                };
+                pb.inc(1);
+            });
+        }
+        pool.join();
+        pb.finish();
 
         process::exit(0);
     }
