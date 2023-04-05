@@ -77,6 +77,8 @@ pub enum EncodingError {
     Format(Box<dyn Error>),
     /// A encoding error, data is invalid, unsupported color space, etc.
     Encoding(Box<dyn Error>),
+    /// A quantization error, if some error occurred during quantization
+    Quantization(Box<dyn Error>),
 }
 
 impl Error for EncodingError {}
@@ -98,7 +100,15 @@ impl From<png::EncodingError> for EncodingError {
 }
 
 impl From<oxipng::PngError> for EncodingError {
+    #[inline]
     fn from(err: oxipng::PngError) -> Self {
+        EncodingError::Encoding(Box::new(err))
+    }
+}
+
+impl From<imagequant::Error> for EncodingError {
+    #[inline]
+    fn from(err: imagequant::Error) -> Self {
         EncodingError::Encoding(Box::new(err))
     }
 }
@@ -109,6 +119,7 @@ impl fmt::Display for EncodingError {
             EncodingError::IoError(io_err) => write!(f, "IO Error: {}", io_err),
             EncodingError::Format(fmt_err) => write!(f, "Format Error: {}", fmt_err),
             EncodingError::Encoding(enc_err) => write!(f, "Encoding Error: {}", enc_err),
+            EncodingError::Quantization(qnt_err) => write!(f, "Quantization Error: {}", qnt_err),
         }
     }
 }
