@@ -79,6 +79,8 @@ pub enum EncodingError {
     Encoding(Box<dyn Error>),
     /// A quantization error, if some error occurred during quantization
     Quantization(Box<dyn Error>),
+    /// A resize error, if some error occurred during resizing
+    Resize(Box<dyn Error>),
 }
 
 impl Error for EncodingError {}
@@ -113,6 +115,13 @@ impl From<imagequant::Error> for EncodingError {
     }
 }
 
+impl From<resize::Error> for EncodingError {
+    #[inline]
+    fn from(err: resize::Error) -> Self {
+        EncodingError::Encoding(Box::new(err))
+    }
+}
+
 impl fmt::Display for EncodingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -120,6 +129,7 @@ impl fmt::Display for EncodingError {
             EncodingError::Format(fmt_err) => write!(f, "Format Error: {}", fmt_err),
             EncodingError::Encoding(enc_err) => write!(f, "Encoding Error: {}", enc_err),
             EncodingError::Quantization(qnt_err) => write!(f, "Quantization Error: {}", qnt_err),
+            EncodingError::Resize(rsz_err) => write!(f, "Resize Error: {}", rsz_err),
         }
     }
 }

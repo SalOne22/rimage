@@ -62,6 +62,9 @@ use rimage::{Config, Encoder, OutputFormat};
 let config = match Config::build(
     75.0,
     OutputFormat::MozJpeg,
+    None,
+    None,
+    None,
 ) {
     Ok(config) => config,
     Err(e) => {
@@ -91,12 +94,12 @@ std::fs::write("output.jpg", data);
 use error::{ConfigError, DecodingError, EncodingError};
 use rgb::{
     alt::{GRAY8, GRAYA8},
-    AsPixels, ComponentBytes, FromSlice, RGB8, RGBA8,
+    AsPixels, ComponentBytes, FromSlice, RGB8, RGBA, RGBA8,
 };
 use simple_error::SimpleError;
 use std::{panic, path};
 
-pub use image::{ImageData, OutputFormat};
+pub use image::{ImageData, OutputFormat, ResizeType};
 
 /// Decoders for images
 #[deprecated(since = "0.2.0", note = "use the Decoder struct instead")]
@@ -115,9 +118,13 @@ pub mod image;
 ///
 /// # Example
 /// ```
-/// use rimage::{Config, OutputFormat};
+/// use rimage::{Config, OutputFormat, ResizeType};
 ///
-/// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+/// // Without resize
+/// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+///
+/// // With resize
+/// let config_resize = Config::build(75.0, OutputFormat::MozJpeg, Some(200), Some(200), Some(ResizeType::Lanczos3)).unwrap();
 /// ```
 ///
 /// # Default
@@ -132,6 +139,9 @@ pub mod image;
 pub struct Config {
     quality: f32,
     output_format: OutputFormat,
+    target_width: Option<usize>,
+    target_height: Option<usize>,
+    resize_type: Option<ResizeType>,
 }
 
 impl Config {
@@ -139,9 +149,13 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, OutputFormat, ResizeType};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// // Without resize
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    ///
+    /// // With resize
+    /// let config_resize = Config::build(75.0, OutputFormat::MozJpeg, Some(200), Some(200), Some(ResizeType::Lanczos3)).unwrap();
     /// ```
     ///
     /// # Errors
@@ -151,17 +165,37 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(200.0, OutputFormat::MozJpeg);
+    /// let config = Config::build(200.0, OutputFormat::MozJpeg, None, None, None);
     /// assert!(config.is_err());
     /// ```
-    pub fn build(quality: f32, output_format: OutputFormat) -> Result<Self, ConfigError> {
+    pub fn build(
+        quality: f32,
+        output_format: OutputFormat,
+        width: Option<usize>,
+        height: Option<usize>,
+        resize_type: Option<ResizeType>,
+    ) -> Result<Self, ConfigError> {
         if !(0.0..=100.0).contains(&quality) {
             return Err(ConfigError::QualityOutOfBounds);
+        }
+
+        if let Some(width) = width {
+            if width == 0 {
+                return Err(ConfigError::WidthIsZero);
+            }
+        }
+        if let Some(height) = height {
+            if height == 0 {
+                return Err(ConfigError::HeightIsZero);
+            }
         }
 
         Ok(Config {
             quality,
             output_format,
+            target_width: width,
+            target_height: height,
+            resize_type,
         })
     }
     /// Get quality
@@ -170,7 +204,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
     /// assert_eq!(config.quality(), 75.0);
     /// ```
     #[inline]
@@ -183,7 +217,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
     /// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
     /// ```
     #[inline]
@@ -198,6 +232,9 @@ impl Default for Config {
         Self {
             quality: 75.0,
             output_format: OutputFormat::MozJpeg,
+            target_width: None,
+            target_height: None,
+            resize_type: Some(ResizeType::Lanczos3),
         }
     }
 }
@@ -436,7 +473,11 @@ impl<'a> Encoder<'a> {
     /// # Errors
     ///
     /// Returns [`EncodingError`] if encoding failed
-    pub fn encode(self) -> Result<Vec<u8>, EncodingError> {
+    pub fn encode(mut self) -> Result<Vec<u8>, EncodingError> {
+        if self.config.target_height.is_some() || self.config.target_width.is_some() {
+            self.resize()?;
+        }
+
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
@@ -467,6 +508,10 @@ impl<'a> Encoder<'a> {
         quantization_quality: u8,
         dithering_level: f32,
     ) -> Result<Vec<u8>, EncodingError> {
+        if self.config.target_height.is_some() || self.config.target_width.is_some() {
+            self.resize()?;
+        }
+
         let mut liq = imagequant::new();
 
         liq.set_speed(5)?;
@@ -499,6 +544,48 @@ impl<'a> Encoder<'a> {
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
         }
+    }
+
+    fn resize(&mut self) -> Result<(), EncodingError> {
+        let (width, height) = self.image_data.size();
+        let aspect_ratio = width as f32 / height as f32;
+
+        // If target width or height is not set, calculate it from the other
+        // or use the original size
+        let target_width = self.config.target_width.unwrap_or(
+            self.config
+                .target_height
+                .map(|h| (h as f32 * aspect_ratio) as usize)
+                .unwrap_or(width),
+        );
+        let target_height = self.config.target_height.unwrap_or(
+            self.config
+                .target_width
+                .map(|w| (w as f32 / aspect_ratio) as usize)
+                .unwrap_or(height),
+        );
+
+        let mut dest = vec![RGBA::new(0, 0, 0, 0); target_width * target_height];
+
+        let mut resizer = resize::new(
+            width,
+            height,
+            target_width,
+            target_height,
+            resize::Pixel::RGBA8,
+            resize::Type::from(
+                self.config
+                    .resize_type
+                    .as_ref()
+                    .unwrap_or(&ResizeType::Lanczos3),
+            ),
+        )?;
+
+        resizer.resize(self.image_data.data().as_rgba(), &mut dest)?;
+
+        self.image_data = ImageData::new(target_width, target_height, dest.as_bytes().to_vec());
+
+        Ok(())
     }
 
     fn encode_mozjpeg(self) -> Result<Vec<u8>, EncodingError> {
@@ -581,15 +668,15 @@ mod tests {
         let config = Config::default();
         assert_eq!(config.output_format, OutputFormat::MozJpeg);
         assert_eq!(config.quality, 75.0);
-        let config = Config::build(100.0, OutputFormat::Png).unwrap();
+        let config = Config::build(100.0, OutputFormat::Png, None, None, None).unwrap();
         assert_eq!(config.output_format, OutputFormat::Png);
         assert_eq!(config.quality, 100.0);
-        let config = Config::build(0.0, OutputFormat::Oxipng).unwrap();
+        let config = Config::build(0.0, OutputFormat::Oxipng, None, None, None).unwrap();
         assert_eq!(config.output_format, OutputFormat::Oxipng);
         assert_eq!(config.quality, 0.0);
-        let config_result = Config::build(101.0, OutputFormat::MozJpeg);
+        let config_result = Config::build(101.0, OutputFormat::MozJpeg, None, None, None);
         assert!(config_result.is_err());
-        let config_result = Config::build(-1.0, OutputFormat::MozJpeg);
+        let config_result = Config::build(-1.0, OutputFormat::MozJpeg, None, None, None);
         assert!(config_result.is_err());
     }
 
@@ -817,7 +904,7 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            let conf = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+            let conf = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
@@ -847,7 +934,7 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            let conf = Config::build(75.0, OutputFormat::Png).unwrap();
+            let conf = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
@@ -877,7 +964,7 @@ mod tests {
             let data = fs::read(path).unwrap();
             let image = Decoder::new(path, &data).decode().unwrap();
 
-            let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
+            let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
@@ -895,7 +982,7 @@ mod tests {
         let data = fs::read(&path).unwrap();
         let image = Decoder::new(&path, &data).decode().unwrap();
 
-        let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
+        let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
         let encoder = Encoder::new(&conf, image);
         let result = encoder.encode_quantized(50, 1.0);
@@ -912,10 +999,26 @@ mod tests {
         let data = fs::read(&path).unwrap();
         let image = Decoder::new(&path, &data).decode().unwrap();
 
-        let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
+        let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
         let encoder = Encoder::new(&conf, image);
         let result = encoder.encode_quantized(120, 1.0);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn resize_image() {
+        let data = vec![255; 100 * 100 * 4];
+        let image = ImageData::new(100, 100, data);
+
+        let conf = Config::build(75.0, OutputFormat::Oxipng, Some(50), Some(50), None).unwrap();
+
+        let mut encoder = Encoder::new(&conf, image);
+
+        let result = encoder.resize();
+
+        assert!(result.is_ok());
+        assert_eq!(encoder.image_data.size(), (50, 50));
+        assert!(encoder.image_data.data().len() < 100 * 100 * 4);
     }
 }

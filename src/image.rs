@@ -1,4 +1,4 @@
-use std::{borrow::Cow, fmt};
+use std::{borrow::Cow, fmt, str::FromStr};
 
 /// Image data
 ///
@@ -72,6 +72,48 @@ impl fmt::Display for OutputFormat {
             OutputFormat::MozJpeg => write!(f, "jpg"),
             OutputFormat::Png => write!(f, "png"),
             OutputFormat::Oxipng => write!(f, "png"),
+        }
+    }
+}
+
+/// Wrapper around [`resize::Type`]
+#[derive(Debug, Clone)]
+pub enum ResizeType {
+    /// [`resize::Type::Point`]
+    Point,
+    /// [`resize::Type::Triangle`]
+    Triangle,
+    /// [`resize::Type::Catrom`]
+    CatmullRom,
+    /// [`resize::Type::Mitchell`]
+    Mitchell,
+    /// [`resize::Type::Lanczos3`]
+    Lanczos3,
+}
+
+// Implement to [`resize::Type`] for [`ResizeType`]
+impl From<&ResizeType> for resize::Type {
+    fn from(resize_type: &ResizeType) -> Self {
+        match resize_type {
+            ResizeType::Point => resize::Type::Point,
+            ResizeType::Triangle => resize::Type::Triangle,
+            ResizeType::CatmullRom => resize::Type::Catrom,
+            ResizeType::Mitchell => resize::Type::Mitchell,
+            ResizeType::Lanczos3 => resize::Type::Lanczos3,
+        }
+    }
+}
+
+impl FromStr for ResizeType {
+    type Err = Box<dyn std::error::Error + Send + Sync + 'static>;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "point" => Ok(Self::Point),
+            "triangle" => Ok(Self::Triangle),
+            "catmull-rom" => Ok(Self::CatmullRom),
+            "mitchell" => Ok(Self::Mitchell),
+            "lanczos3" => Ok(Self::Lanczos3),
+            _ => Err(format!("{} is not a valid resize type", s).into()),
         }
     }
 }

@@ -1,3 +1,11 @@
+## v0.5.0
+
+- [Added] Image Resize
+- [Added] Resize error to EncodingError
+- [Added] Width and Height arguments to CLI
+- [Added] Resize filter type argument to CLI
+- [Changed] `Config::build` now require 5 arguments
+
 ## v0.4.0
 
 - [Added] Image quantization
