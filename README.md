@@ -37,8 +37,7 @@ rimage -q 75 *.jpg
 
 ## To-Do
 
-- Support for AVIF and WebP
-- Image resize
+- Support for AVIF, JPEG XL and WebP
 - And allot of bugfixes and optimizations
 
 ## Development
