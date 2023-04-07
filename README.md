@@ -42,27 +42,7 @@ rimage -q 75 *.jpg
 
 ## Development
 
-Clone this repository with git or GitHub Desktop
-
-```
-git clone https://github.com/SalOne22/rimage.git
-```
-
-Build rimage with cargo
-
-```
-cargo build
-```
-
-Do your staff and test that all works as expected
-
-```
-cargo test
-```
-
-Next you can create pull request
-
-Any help would be greatly appreciated!
+Please read the [contribution guide](CONTRIBUTING.md)
 
 ## License
 
