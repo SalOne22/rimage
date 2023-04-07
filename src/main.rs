@@ -31,13 +31,14 @@ struct Args {
     /// Target quantization dithering strength from 0 to 1.0
     #[arg(long)]
     dithering: Option<f32>,
-    /// Target width of the output image
+    /// Target width in pixels of the output image
     #[arg(long)]
     width: Option<usize>,
-    /// Target height of the output image
+    /// Target height in pixels of the output image
     #[arg(long)]
     height: Option<usize>,
-    /// Resize filter to use
+    /// Resize filter to use.
+    /// Supported filters: point, triangle, catmull-rom, mitchell, lanczos3
     #[arg(long)]
     filter: Option<rimage::image::ResizeType>,
 }

@@ -31,6 +31,8 @@ rimage -q 75 *.jpg
 - Threads: `-t 4`, number of threads to use
 - Quantization: `--quantization 50`, quality of quantization from 0 to 100, higher is better
 - Dithering: `--dithering 0.5`, quality of dithering from 0 to 1, higher is better
+- Resize: `--width 250` or `--height 100`, resizes image to specified width or height
+- Filter: `--filter mitchell`, filter used to resizing
 - More options will be added later
 
 ## To-Do
