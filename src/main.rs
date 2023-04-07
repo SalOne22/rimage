@@ -31,6 +31,15 @@ struct Args {
     /// Target quantization dithering strength from 0 to 1.0
     #[arg(long)]
     dithering: Option<f32>,
+    /// Target width of the output image
+    #[arg(long)]
+    width: Option<usize>,
+    /// Target height of the output image
+    #[arg(long)]
+    height: Option<usize>,
+    /// Resize filter to use
+    #[arg(long)]
+    filter: Option<rimage::image::ResizeType>,
 }
 
 fn main() {
@@ -49,7 +58,14 @@ fn main() {
             .collect();
     }
 
-    let conf = Config::build(args.quality, args.output_format).unwrap_or_else(|e| {
+    let conf = Config::build(
+        args.quality,
+        args.output_format,
+        args.width,
+        args.height,
+        args.filter,
+    )
+    .unwrap_or_else(|e| {
         eprintln!("Error: {e}");
         process::exit(1);
     });
