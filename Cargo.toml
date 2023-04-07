@@ -10,7 +10,7 @@ exclude = ["tests/*", ".*"]
 repository = "https://github.com/SalOne22/rimage"
 license = "MIT OR Apache-2.0"
 
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 
 [profile.release]
@@ -36,6 +36,7 @@ rgb = "0.8.36"
 threadpool = "1.8.1"
 simple-error = "0.3.0"
 wild = "2.1.0"
+resize = "0.7.4"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
