@@ -62,6 +62,9 @@ use rimage::{Config, Encoder, OutputFormat};
 let config = match Config::build(
     75.0,
     OutputFormat::MozJpeg,
+    None,
+    None,
+    None,
 ) {
     Ok(config) => config,
     Err(e) => {
@@ -115,9 +118,13 @@ pub mod image;
 ///
 /// # Example
 /// ```
-/// use rimage::{Config, OutputFormat};
+/// use rimage::{Config, OutputFormat, ResizeType};
 ///
-/// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+/// // Without resize
+/// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+///
+/// // With resize
+/// let config_resize = Config::build(75.0, OutputFormat::MozJpeg, Some(200), Some(200), Some(ResizeType::Lanczos3)).unwrap();
 /// ```
 ///
 /// # Default
@@ -142,9 +149,13 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, OutputFormat, ResizeType};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// // Without resize
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    ///
+    /// // With resize
+    /// let config_resize = Config::build(75.0, OutputFormat::MozJpeg, Some(200), Some(200), Some(ResizeType::Lanczos3)).unwrap();
     /// ```
     ///
     /// # Errors
@@ -154,7 +165,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(200.0, OutputFormat::MozJpeg);
+    /// let config = Config::build(200.0, OutputFormat::MozJpeg, None, None, None);
     /// assert!(config.is_err());
     /// ```
     pub fn build(
@@ -193,7 +204,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
     /// assert_eq!(config.quality(), 75.0);
     /// ```
     #[inline]
@@ -206,7 +217,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
     /// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
     /// ```
     #[inline]
