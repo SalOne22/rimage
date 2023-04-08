@@ -33,12 +33,17 @@ rimage -q 75 *.jpg
 - Dithering: `--dithering 0.5`, quality of dithering from 0 to 1, higher is better
 - Resize: `--width 250` or `--height 100`, resizes image to specified width or height
 - Filter: `--filter mitchell`, filter used to resizing
+- Logging: `RUST_LOG=trace`, enables logging output, more information see [here](https://docs.rs/env_logger/latest/env_logger/)
 - More options will be added later
 
 ## To-Do
 
 - Support for AVIF, JPEG XL and WebP
 - And allot of bugfixes and optimizations
+
+## Changelog
+
+Read changelog [here](CHANGELOG.md)
 
 ## Development
 

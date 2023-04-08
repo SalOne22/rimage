@@ -1,3 +1,8 @@
+## v0.5.1
+
+- [Added] Logging of errors and info
+- [Changed] `eprintln!` now `error!`
+
 ## v0.5.0
 
 - [Added] Image Resize
