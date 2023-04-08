@@ -983,7 +983,7 @@ dependencies = [
 
 [[package]]
 name = "rimage"
-version = "0.5.0"
+version = "0.5.1"
 dependencies = [
  "bytemuck",
  "clap 4.2.1",
