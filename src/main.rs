@@ -234,14 +234,14 @@ fn main() {
                 match e.encode() {
                     Ok(data) => data,
                     Err(e) => {
-                        eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                         return;
                     }
                 },
             ) {
                 Ok(_) => (),
                 Err(e) => {
-                    eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     return;
                 }
             };
