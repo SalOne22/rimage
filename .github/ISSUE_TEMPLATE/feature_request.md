@@ -2,12 +2,12 @@
 name: Feature request
 about: Suggest an idea for this project
 title: ''
-labels: ''
+labels: 'enhancement'
 assignees: ''
 
 ---
 
-**Write a tiny description of idea**
+**Write a small description of idea**
 
 ## Description
 **Is your feature request related to a problem? Please describe.**
