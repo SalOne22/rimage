@@ -152,3 +152,30 @@ jobs:
             ./binaries/**/*.tar.gz
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
+  publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+    
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-unknown-linux-musl
+          override: true
+    
+      - name: Install musl
+        if: contains(matrix.target, 'linux-musl')
+        run: |
+          sudo apt-get install musl-tools
+    
+      - name: Rust Cache
+        uses: Swatinem/rust-cache@v2.2.1
+      
+      - name: Publish to crates.io
+        run: |
+          cargo login ${{ secrets.CRATES_TOKEN }}
+          cargo publish
