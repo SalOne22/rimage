@@ -2,6 +2,7 @@ use std::{fs, io, path, process};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
+use log::error;
 use rimage::{image::OutputFormat, Config, Decoder, Encoder};
 use threadpool::ThreadPool;
 
@@ -44,6 +45,7 @@ struct Args {
 }
 
 fn main() {
+    pretty_env_logger::init();
     let mut args = Args::parse_from(wild::args_os());
     let pb = ProgressBar::new(args.input.len() as u64);
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
@@ -67,7 +69,7 @@ fn main() {
         args.filter,
     )
     .unwrap_or_else(|e| {
-        eprintln!("Error: {e}");
+        error!("{e}");
         process::exit(1);
     });
 
@@ -83,10 +85,7 @@ fn main() {
             let data = match fs::read(&path) {
                 Ok(data) => data,
                 Err(e) => {
-                    eprintln!(
-                        "{} Error: {e}",
-                        &path.file_name().unwrap().to_str().unwrap()
-                    );
+                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     continue;
                 }
             };
@@ -96,10 +95,7 @@ fn main() {
             let img = match d.decode() {
                 Ok(img) => img,
                 Err(e) => {
-                    eprintln!(
-                        "{} Error: {e}",
-                        &path.file_name().unwrap().to_str().unwrap()
-                    );
+                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     continue;
                 }
             };
@@ -127,10 +123,7 @@ fn main() {
                 let data = match fs::read(&path) {
                     Ok(data) => data,
                     Err(e) => {
-                        eprintln!(
-                            "{} Error: {e}",
-                            &path.file_name().unwrap().to_str().unwrap()
-                        );
+                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                         return;
                     }
                 };
@@ -141,7 +134,7 @@ fn main() {
                     match d.decode() {
                         Ok(img) => img,
                         Err(e) => {
-                            eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                            error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                             return;
                         }
                     },
@@ -163,14 +156,14 @@ fn main() {
                     match e.encode_quantized(quantization, dithering) {
                         Ok(data) => data,
                         Err(e) => {
-                            eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                            error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                             return;
                         }
                     },
                 ) {
                     Ok(_) => (),
                     Err(e) => {
-                        eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                         return;
                     }
                 };
@@ -193,10 +186,7 @@ fn main() {
             let data = match fs::read(&path) {
                 Ok(data) => data,
                 Err(e) => {
-                    eprintln!(
-                        "{} Error: {e}",
-                        &path.file_name().unwrap().to_str().unwrap()
-                    );
+                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     return;
                 }
             };
@@ -207,7 +197,7 @@ fn main() {
                 match d.decode() {
                     Ok(img) => img,
                     Err(e) => {
-                        eprintln!("{} Error: {e}", path.file_name().unwrap().to_str().unwrap());
+                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                         return;
                     }
                 },
