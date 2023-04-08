@@ -2,7 +2,7 @@ use std::{fs, io, path, process};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::error;
+use log::{error, info};
 use rimage::{image::OutputFormat, Config, Decoder, Encoder};
 use threadpool::ThreadPool;
 
@@ -49,9 +49,11 @@ fn main() {
     let mut args = Args::parse_from(wild::args_os());
     let pb = ProgressBar::new(args.input.len() as u64);
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
+    info!("Using {} threads", pool.max_count());
 
     // Get all files from stdin if no input is given
     if args.input.is_empty() {
+        info!("Reading input from stdin");
         args.input = io::stdin()
             .lines()
             .map(|res| {
@@ -59,6 +61,7 @@ fn main() {
                 path::PathBuf::from(input_file.trim())
             })
             .collect();
+        info!("{} files read from stdin", args.input.len());
     }
 
     let conf = Config::build(
@@ -72,6 +75,7 @@ fn main() {
         error!("{e}");
         process::exit(1);
     });
+    info!("Using config: {:?}", conf);
 
     pb.set_style(
         ProgressStyle::with_template("{bar:40.green/blue}  {pos}/{len}")
@@ -112,6 +116,10 @@ fn main() {
     if args.quantization.is_some() || args.dithering.is_some() {
         let quantization = args.quantization.unwrap_or(100);
         let dithering = args.dithering.unwrap_or(1.0);
+        info!(
+            "Quantizing to {} with dithering {}",
+            quantization, dithering
+        );
 
         for path in args.input {
             let pb = pb.clone();
@@ -119,6 +127,7 @@ fn main() {
             let suffix = args.suffix.clone();
             pool.execute(move || {
                 pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
+                info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
 
                 let data = match fs::read(&path) {
                     Ok(data) => data,
@@ -127,6 +136,8 @@ fn main() {
                         return;
                     }
                 };
+
+                info!("read {} bytes", data.len());
 
                 let d = Decoder::new(&path, &data);
                 let e = Encoder::new(
@@ -167,6 +178,7 @@ fn main() {
                         return;
                     }
                 };
+                info!("{} done", &path.file_name().unwrap().to_str().unwrap());
                 pb.inc(1);
             });
         }
@@ -181,6 +193,7 @@ fn main() {
         let conf = conf.clone();
         let suffix = args.suffix.clone();
         pool.execute(move || {
+            info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
             pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
 
             let data = match fs::read(&path) {
@@ -190,6 +203,8 @@ fn main() {
                     return;
                 }
             };
+
+            info!("read {} bytes", data.len());
 
             let d = Decoder::new(&path, &data);
             let e = Encoder::new(
@@ -230,6 +245,7 @@ fn main() {
                     return;
                 }
             };
+            info!("{} done", &path.file_name().unwrap().to_str().unwrap());
             pb.inc(1);
         });
     }

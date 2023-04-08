@@ -92,6 +92,7 @@ std::fs::write("output.jpg", data);
 #![warn(missing_docs)]
 
 use error::{ConfigError, DecodingError, EncodingError};
+use log::info;
 use rgb::{
     alt::{GRAY8, GRAYA8},
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA, RGBA8,
@@ -352,6 +353,7 @@ impl<'a> Decoder<'a> {
     }
 
     fn decode_jpeg(&self) -> Result<ImageData, DecodingError> {
+        info!("Processing jpeg decoding");
         panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
             let d = mozjpeg::Decompress::new_mem(self.raw_data)?;
             let mut image = d.rgba()?;
@@ -362,6 +364,9 @@ impl<'a> Decoder<'a> {
                     .ok_or(DecodingError::Parsing(Box::new(SimpleError::new(
                         "Failed to read scanlines",
                     ))))?;
+
+            info!("JPEG Color space: {:?}", image.color_space());
+            info!("Dimentions: {}x{}", image.width(), image.height());
 
             Ok(ImageData::new(
                 image.width(),
@@ -386,6 +391,7 @@ impl<'a> Decoder<'a> {
     }
 
     fn decode_png(&self) -> Result<ImageData, DecodingError> {
+        info!("Processing png decoding");
         let mut d = png::Decoder::new(self.raw_data);
         d.set_transformations(png::Transformations::normalize_to_color8());
 
@@ -398,6 +404,9 @@ impl<'a> Decoder<'a> {
         let mut buf = vec![0; buf_size];
 
         let info = reader.next_frame(&mut buf)?;
+
+        info!("PNG Color type: {:?}", info.color_type);
+        info!("Dimentions: {}x{}", width, height);
 
         match info.color_type {
             png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
@@ -475,6 +484,7 @@ impl<'a> Encoder<'a> {
     /// Returns [`EncodingError`] if encoding failed
     pub fn encode(mut self) -> Result<Vec<u8>, EncodingError> {
         if self.config.target_height.is_some() || self.config.target_width.is_some() {
+            info!("Resizing image");
             self.resize()?;
         }
 
@@ -549,6 +559,8 @@ impl<'a> Encoder<'a> {
     fn resize(&mut self) -> Result<(), EncodingError> {
         let (width, height) = self.image_data.size();
         let aspect_ratio = width as f32 / height as f32;
+        info!("Aspect ratio: {}", aspect_ratio);
+        info!("Original size: {}x{}", width, height);
 
         // If target width or height is not set, calculate it from the other
         // or use the original size
@@ -563,6 +575,15 @@ impl<'a> Encoder<'a> {
                 .target_width
                 .map(|w| (w as f32 / aspect_ratio) as usize)
                 .unwrap_or(height),
+        );
+
+        info!("Target size: {}x{}", target_width, target_height);
+        info!(
+            "Resize type: {:?}",
+            self.config
+                .resize_type
+                .as_ref()
+                .unwrap_or(&ResizeType::Lanczos3)
         );
 
         let mut dest = vec![RGBA::new(0, 0, 0, 0); target_width * target_height];
@@ -589,6 +610,7 @@ impl<'a> Encoder<'a> {
     }
 
     fn encode_mozjpeg(self) -> Result<Vec<u8>, EncodingError> {
+        info!("Encoding with mozjpeg");
         panic::catch_unwind(|| -> Result<Vec<u8>, EncodingError> {
             let mut encoder = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
 
@@ -612,6 +634,7 @@ impl<'a> Encoder<'a> {
     }
 
     fn encode_png(&self) -> Result<Vec<u8>, EncodingError> {
+        info!("Encoding PNG");
         let mut buf = Vec::new();
 
         {
@@ -628,11 +651,14 @@ impl<'a> Encoder<'a> {
             writer.write_image_data(self.image_data.data())?;
             writer.finish()?;
         }
+
+        info!("Encoded {} bytes", buf.len());
 
         Ok(buf)
     }
 
     fn encode_oxipng(&self) -> Result<Vec<u8>, EncodingError> {
+        info!("Encoding with OxiPNG");
         let mut buf = Vec::new();
 
         {
@@ -649,6 +675,8 @@ impl<'a> Encoder<'a> {
             writer.write_image_data(self.image_data.data())?;
             writer.finish()?;
         }
+
+        info!("Encoded {} bytes (Not optimized)", buf.len());
 
         oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
             .map_err(|e| EncodingError::Encoding(Box::new(e)))
