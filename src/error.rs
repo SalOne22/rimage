@@ -58,6 +58,13 @@ impl From<png::DecodingError> for DecodingError {
     }
 }
 
+impl From<libwebp::error::WebPSimpleError> for DecodingError {
+    #[inline]
+    fn from(err: libwebp::error::WebPSimpleError) -> Self {
+        DecodingError::Parsing(Box::new(err))
+    }
+}
+
 impl fmt::Display for DecodingError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
