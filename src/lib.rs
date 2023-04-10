@@ -503,6 +503,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
+            OutputFormat::WebP => self.encode_webp(),
         }
     }
 
@@ -564,6 +565,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
+            OutputFormat::WebP => self.encode_webp(),
         }
     }
 
@@ -691,6 +693,22 @@ impl<'a> Encoder<'a> {
 
         oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
             .map_err(|e| EncodingError::Encoding(Box::new(e)))
+    }
+
+    fn encode_webp(&self) -> Result<Vec<u8>, EncodingError> {
+        info!("Encoding with WebP");
+        let (width, height) = self.image_data.size();
+
+        let data = libwebp::WebPEncodeRGBA(
+            self.image_data.data(),
+            width as u32,
+            height as u32,
+            (width * 4) as u32,
+            self.config.quality,
+        )
+        .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
+
+        Ok(data.to_owned())
     }
 }
 
@@ -1032,6 +1050,36 @@ mod tests {
             let image = Decoder::new(path, &data).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+
+            let encoder = Encoder::new(&conf, image);
+            let result = encoder.encode();
+
+            assert!(result.is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
+        })
+    }
+
+    #[test]
+    fn encode_webp() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
