@@ -1,3 +1,8 @@
+## v0.6.0
+
+- [Added] WebP decoding and encoding
+- [Bugfix] Fixed typo in logs
+
 ## v0.5.1
 
 - [Added] Logging of errors and info

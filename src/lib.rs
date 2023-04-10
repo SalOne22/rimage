@@ -342,6 +342,7 @@ impl<'a> Decoder<'a> {
         match extension.to_str() {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
+            Some("webp") => self.decode_webp(),
             Some(ext) => Err(DecodingError::Format(Box::new(SimpleError::new(format!(
                 "{} not supported",
                 ext
@@ -366,7 +367,7 @@ impl<'a> Decoder<'a> {
                     ))))?;
 
             info!("JPEG Color space: {:?}", image.color_space());
-            info!("Dimentions: {}x{}", image.width(), image.height());
+            info!("Dimensions: {}x{}", image.width(), image.height());
 
             Ok(ImageData::new(
                 image.width(),
@@ -406,7 +407,7 @@ impl<'a> Decoder<'a> {
         let info = reader.next_frame(&mut buf)?;
 
         info!("PNG Color type: {:?}", info.color_type);
-        info!("Dimentions: {}x{}", width, height);
+        info!("Dimensions: {}x{}", width, height);
 
         match info.color_type {
             png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
@@ -421,6 +422,16 @@ impl<'a> Decoder<'a> {
         }
 
         Ok(ImageData::new(width as usize, height as usize, buf))
+    }
+
+    fn decode_webp(&self) -> Result<ImageData, DecodingError> {
+        let (width, height, buf) = libwebp::WebPDecodeRGBA(self.raw_data)?;
+
+        Ok(ImageData::new(
+            width as usize,
+            height as usize,
+            buf.to_owned(),
+        ))
     }
 }
 
@@ -492,6 +503,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
+            OutputFormat::WebP => self.encode_webp(),
         }
     }
 
@@ -553,6 +565,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
+            OutputFormat::WebP => self.encode_webp(),
         }
     }
 
@@ -680,6 +693,22 @@ impl<'a> Encoder<'a> {
 
         oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
             .map_err(|e| EncodingError::Encoding(Box::new(e)))
+    }
+
+    fn encode_webp(&self) -> Result<Vec<u8>, EncodingError> {
+        info!("Encoding with WebP");
+        let (width, height) = self.image_data.size();
+
+        let data = libwebp::WebPEncodeRGBA(
+            self.image_data.data(),
+            width as u32,
+            height as u32,
+            (width * 4) as u32,
+            self.config.quality,
+        )
+        .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
+
+        Ok(data.to_owned())
     }
 }
 
@@ -914,6 +943,34 @@ mod tests {
     }
 
     #[test]
+    fn decode_webp() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/.+.webp$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let d = Decoder::new(path, &data);
+
+            let img = d.decode().unwrap();
+            println!("{:?}", img.size());
+            println!("{:?}", img.data().len());
+
+            assert_ne!(img.data().len(), 0);
+            assert_ne!(img.size(), (0, 0));
+        })
+    }
+
+    #[test]
     fn encode_jpeg() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
@@ -993,6 +1050,36 @@ mod tests {
             let image = Decoder::new(path, &data).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+
+            let encoder = Encoder::new(&conf, image);
+            let result = encoder.encode();
+
+            assert!(result.is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
+        })
+    }
+
+    #[test]
+    fn encode_webp() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();

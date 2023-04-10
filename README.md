@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/crates/l/rimage?style=flat-square)](https://github.com/SalOne22/rimage)
 
 This is CLI tool inspired by [squoosh!](https://squoosh.app/)  
-Rimage currently supports two codecs, mozjpeg and oxipng, and aims to add support for AVIF and WebP in the future.
+Rimage currently supports three codecs, mozjpeg, oxipng and webp, and aims to add support for AVIF and JPEG XL in the future.
 
 ## Installation
 
@@ -25,7 +25,7 @@ rimage -q 75 *.jpg
 ```
 
 - Quality: `-q 0` through `-q 100`, higher is better
-- Output format: `-o png`, currently supported only jpg, png and oxipng
+- Output format: `-o png`, currently supported only jpg, png, oxipng and webp
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
 - Threads: `-t 4`, number of threads to use
@@ -38,7 +38,7 @@ rimage -q 75 *.jpg
 
 ## To-Do
 
-- Support for AVIF, JPEG XL and WebP
+- Support for AVIF and JPEG XL
 - And allot of bugfixes and optimizations
 
 ## Changelog
