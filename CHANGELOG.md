@@ -1,3 +1,7 @@
+## v0.7.0
+
+- [Added] AVIF decoding and encoding
+
 ## v0.6.0
 
 - [Added] WebP decoding and encoding
