@@ -21,6 +21,9 @@ codegen-units = 1
 inherits = "release"
 debug = 1
 
+[features]
+avif = ["dep:libavif-sys"]
+
 [dependencies]
 bytemuck = "1.13.1"
 clap = { version = "4.2.1", features = ["derive"] }
@@ -38,7 +41,7 @@ simple-error = "0.3.0"
 wild = "2.1.0"
 resize = "0.7.4"
 libwebp = "0.1.2"
-libavif-sys = "0.14.3"
+libavif-sys = {version = "0.14.3", optional = true}
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
