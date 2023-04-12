@@ -433,6 +433,42 @@ impl<'a> Decoder<'a> {
             buf.to_owned(),
         ))
     }
+
+    fn decode_avif(&self) -> Result<ImageData, DecodingError> {
+        use libavif_sys::*;
+        unsafe {
+            let image = avifImageCreateEmpty();
+            let decoder = avifDecoderCreate();
+            let decode_result =
+                avifDecoderReadMemory(decoder, image, self.raw_data, self.raw_data.len());
+            avifDecoderDestroy(decoder);
+
+            let mut result = Err(DecodingError::Parsing(Box::new(SimpleError::new(
+                "Failed to decode avif",
+            ))));
+
+            if (decode_result == AVIF_RESULT_OK) {
+                let rgb: avifRGBImage;
+                avifRGBImageSetDefaults(&rgb, image);
+                rgb.depth = 8;
+
+                avifRGBImageAllocatePixels(&rgb);
+                avifImageYUVToRGB(image, &rgb);
+
+                result = Ok(ImageData::new(
+                    rgb.width as usize,
+                    rgb.height as usize,
+                    rgb.pixels.to_owned(),
+                ));
+
+                avifRGBImageFreePixels(&rgb);
+            }
+
+            avifImageDestroy(image);
+
+            result
+        }
+    }
 }
 
 /// Encoder for images
