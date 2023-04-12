@@ -434,7 +434,6 @@ impl<'a> Decoder<'a> {
         ))
     }
 
-    #[cfg(feature = "avif")]
     fn decode_avif(&self) -> Result<ImageData, DecodingError> {
         use libavif_sys::*;
         unsafe {
