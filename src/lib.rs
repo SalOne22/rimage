@@ -343,6 +343,7 @@ impl<'a> Decoder<'a> {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
             Some("webp") => self.decode_webp(),
+            Some("avif") => self.decode_avif(),
             Some(ext) => Err(DecodingError::Format(Box::new(SimpleError::new(format!(
                 "{} not supported",
                 ext
@@ -436,38 +437,52 @@ impl<'a> Decoder<'a> {
 
     fn decode_avif(&self) -> Result<ImageData, DecodingError> {
         use libavif_sys::*;
-        unsafe {
-            let image = avifImageCreateEmpty();
-            let decoder = avifDecoderCreate();
-            let decode_result =
-                avifDecoderReadMemory(decoder, image, self.raw_data, self.raw_data.len());
-            avifDecoderDestroy(decoder);
 
-            let mut result = Err(DecodingError::Parsing(Box::new(SimpleError::new(
-                "Failed to decode avif",
-            ))));
+        let image = unsafe { avifImageCreateEmpty() };
+        let decoder = unsafe { avifDecoderCreate() };
+        let decode_result = unsafe {
+            avifDecoderReadMemory(decoder, image, self.raw_data.as_ptr(), self.raw_data.len())
+        };
+        unsafe { avifDecoderDestroy(decoder) };
 
-            if (decode_result == AVIF_RESULT_OK) {
-                let rgb: avifRGBImage;
-                avifRGBImageSetDefaults(&rgb, image);
-                rgb.depth = 8;
+        let mut result = Err(DecodingError::Parsing(Box::new(SimpleError::new(
+            "Failed to decode avif",
+        ))));
 
-                avifRGBImageAllocatePixels(&rgb);
-                avifImageYUVToRGB(image, &rgb);
+        if decode_result == AVIF_RESULT_OK {
+            let mut rgb: avifRGBImage = Default::default();
+            unsafe { avifRGBImageSetDefaults(&mut rgb, image) };
+            rgb.depth = 8;
 
-                result = Ok(ImageData::new(
-                    rgb.width as usize,
-                    rgb.height as usize,
-                    rgb.pixels.to_owned(),
-                ));
+            unsafe {
+                avifRGBImageAllocatePixels(&mut rgb);
+                avifImageYUVToRGB(image, &mut rgb);
+            };
 
-                avifRGBImageFreePixels(&rgb);
-            }
+            let pixels = unsafe {
+                Vec::from_raw_parts(
+                    rgb.pixels as *mut u8,
+                    rgb.width as usize * rgb.height as usize * 4,
+                    rgb.width as usize * rgb.height as usize * 4,
+                )
+            };
 
-            avifImageDestroy(image);
+            result = Ok(ImageData::new(
+                rgb.width as usize,
+                rgb.height as usize,
+                pixels.clone(),
+            ));
 
-            result
+            std::mem::forget(pixels);
+
+            unsafe { avifRGBImageFreePixels(&mut rgb) };
         }
+
+        unsafe {
+            avifImageDestroy(image);
+        };
+
+        result
     }
 }
 
@@ -988,6 +1003,34 @@ mod tests {
             })
             .filter(|path| {
                 let re = Regex::new(r"^tests/files/.+.webp$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let d = Decoder::new(path, &data);
+
+            let img = d.decode().unwrap();
+            println!("{:?}", img.size());
+            println!("{:?}", img.data().len());
+
+            assert_ne!(img.data().len(), 0);
+            assert_ne!(img.size(), (0, 0));
+        })
+    }
+
+    #[test]
+    fn decode_avif() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/.+.avif$").unwrap();
                 re.is_match(path.to_str().unwrap_or(""))
             })
             .collect();
