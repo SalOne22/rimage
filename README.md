@@ -47,11 +47,9 @@ For building rimage from source you will need to run this command:
 cargo install rimage
 ```
 
-If you want to include AVIF support you will need to install cmake, nasm and ninja/meson, then you can run this command:
+This app requires cmake, nasm and ninja/meson installed on system
 
-```
-cargo install rimage -F avif
-```
+> note: On windows use Visual Studio build environment like developer PowerShell for VS 2019
 
 ## Development
 
