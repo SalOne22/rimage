@@ -555,6 +555,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
             OutputFormat::WebP => self.encode_webp(),
+            OutputFormat::Avif => self.encode_avif(),
         }
     }
 
@@ -617,6 +618,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
             OutputFormat::WebP => self.encode_webp(),
+            OutputFormat::Avif => self.encode_avif(),
         }
     }
 
@@ -760,6 +762,124 @@ impl<'a> Encoder<'a> {
         .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
 
         Ok(data.to_owned())
+    }
+
+    fn encode_avif(&mut self) -> Result<Vec<u8>, EncodingError> {
+        use libavif_sys::*;
+
+        info!("Encoding with AVIF");
+        let (width, height) = self.image_data.size();
+
+        let mut output = avifRWData::default();
+        let depth = 8;
+        let format = AVIF_PIXEL_FORMAT_YUV444;
+
+        // map quality from 0 to 100 to 63 to 0
+        let quality = (63.0 - (self.config.quality / 100.0) * 63.0) as u32;
+        let lossless = quality == AVIF_QUANTIZER_LOSSLESS;
+
+        let image = unsafe { avifImageCreate(width as u32, height as u32, depth, format) };
+
+        if lossless {
+            unsafe {
+                (*image).matrixCoefficients = AVIF_MATRIX_COEFFICIENTS_IDENTITY as u16;
+            }
+        } else {
+            unsafe {
+                (*image).matrixCoefficients = AVIF_MATRIX_COEFFICIENTS_BT601 as u16;
+            }
+        }
+
+        let rgba = self.image_data.data_mut().as_mut_ptr();
+
+        let mut src_rgb = avifRGBImage::default();
+        unsafe { avifRGBImageSetDefaults(&mut src_rgb, image) }
+
+        src_rgb.pixels = rgba;
+        src_rgb.rowBytes = width as u32 * 4;
+        unsafe { avifImageRGBToYUV(image, &mut src_rgb) };
+
+        let encoder = unsafe { avifEncoderCreate() };
+
+        if lossless {
+            unsafe {
+                (*encoder).minQuantizer = AVIF_QUANTIZER_LOSSLESS as i32;
+                (*encoder).maxQuantizer = AVIF_QUANTIZER_LOSSLESS as i32;
+                (*encoder).minQuantizerAlpha = AVIF_QUANTIZER_LOSSLESS as i32;
+                (*encoder).maxQuantizerAlpha = AVIF_QUANTIZER_LOSSLESS as i32;
+            };
+        } else {
+            unsafe {
+                (*encoder).minQuantizer = AVIF_QUANTIZER_BEST_QUALITY as i32;
+                (*encoder).maxQuantizer = AVIF_QUANTIZER_WORST_QUALITY as i32;
+                (*encoder).minQuantizerAlpha = AVIF_QUANTIZER_BEST_QUALITY as i32;
+                (*encoder).maxQuantizerAlpha = AVIF_QUANTIZER_WORST_QUALITY as i32;
+
+                // avifEncoderSetCodecSpecificOption(
+                //     encoder,
+                //     b"end-usage\0".as_ptr() as *const i8,
+                //     b"q\0".as_ptr() as *const i8,
+                // );
+                // avifEncoderSetCodecSpecificOption(
+                //     encoder,
+                //     b"cq-level\0".as_ptr() as *const i8,
+                //     quality.to_string().as_bytes().as_ptr() as *const i8,
+                // );
+                // avifEncoderSetCodecSpecificOption(
+                //     encoder,
+                //     b"sharpness\0".as_ptr() as *const i8,
+                //     b"0\0".as_ptr() as *const i8,
+                // );
+
+                // if quality <= 32 {
+                //     avifEncoderSetCodecSpecificOption(
+                //         encoder,
+                //         b"tune\0".as_ptr() as *const i8,
+                //         b"ssim\0".as_ptr() as *const i8,
+                //     );
+                // }
+
+                // avifEncoderSetCodecSpecificOption(
+                //     encoder,
+                //     b"color:denoise-noise-level\0".as_ptr() as *const i8,
+                //     b"0\0".as_ptr() as *const i8,
+                // );
+            };
+        }
+
+        unsafe {
+            (*encoder).maxThreads = num_cpus::get() as i32;
+            (*encoder).tileRowsLog2 = 0;
+            (*encoder).tileColsLog2 = 0;
+            (*encoder).speed = 6;
+        }
+
+        let encode_result = unsafe { avifEncoderWrite(encoder, image, &mut output) };
+
+        let result: Vec<u8> = vec![0; output.size];
+        if encode_result == AVIF_RESULT_OK {
+            unsafe {
+                std::ptr::copy_nonoverlapping(output.data, result.as_ptr() as *mut u8, output.size);
+            }
+
+            unsafe {
+                avifImageDestroy(image);
+                avifEncoderDestroy(encoder);
+                avifRWDataFree(&mut output);
+            };
+
+            Ok(result)
+        } else {
+            unsafe {
+                avifImageDestroy(image);
+                avifEncoderDestroy(encoder);
+                avifRWDataFree(&mut output);
+            };
+
+            Err(EncodingError::Encoding(Box::new(SimpleError::new(
+                format!("Encoding avif failed with error code {}", encode_result),
+            ))))
+        }
     }
 }
 
@@ -1166,6 +1286,39 @@ mod tests {
             assert!(result.is_ok());
             let result = result.unwrap();
             assert!(!result.is_empty());
+        })
+    }
+
+    #[test]
+    fn encode_avif() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let data = fs::read(path).unwrap();
+            let image = Decoder::new(path, &data).decode().unwrap();
+
+            let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
+
+            let encoder = Encoder::new(&conf, image);
+            let result = encoder.encode();
+
+            assert!(result.is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
+            let mut path = path.clone();
+            path.set_extension("avif");
+            fs::write(path, result).unwrap();
         })
     }
 
