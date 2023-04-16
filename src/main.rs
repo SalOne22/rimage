@@ -3,8 +3,12 @@ use std::{fs, io, path, process};
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
+use mimalloc::MiMalloc;
 use rimage::{image::OutputFormat, Config, Decoder, Encoder};
 use threadpool::ThreadPool;
+
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
