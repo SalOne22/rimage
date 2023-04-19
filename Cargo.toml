@@ -38,6 +38,10 @@ simple-error = "0.3.0"
 wild = "2.1.0"
 resize = "0.7.4"
 libwebp = "0.1.2"
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5"
+[target.'cfg(target_env = "msvc")'.dependencies]
+mimalloc = "0.1.36"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
