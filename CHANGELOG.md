@@ -1,3 +1,7 @@
+## v0.7.0
+
+- [Breaking Changes] Decoder now accept opened file as input
+
 ## v0.6.0
 
 - [Added] WebP decoding and encoding
