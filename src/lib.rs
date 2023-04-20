@@ -387,7 +387,7 @@ impl<'a> Decoder<'a> {
             Ok(ImageData::new(
                 image.width(),
                 image.height(),
-                data.as_bytes().to_owned(),
+                data.as_bytes(),
             ))
         })
         .unwrap_or(Err(DecodingError::Parsing(Box::new(SimpleError::new(
@@ -435,7 +435,7 @@ impl<'a> Decoder<'a> {
             }
         }
 
-        Ok(ImageData::new(width as usize, height as usize, buf))
+        Ok(ImageData::new(width as usize, height as usize, &buf))
     }
 
     fn decode_webp(mut self) -> Result<ImageData, DecodingError> {
@@ -444,11 +444,7 @@ impl<'a> Decoder<'a> {
         self.file.read_to_end(&mut buf)?;
         let (width, height, buf) = libwebp::WebPDecodeRGBA(&buf)?;
 
-        Ok(ImageData::new(
-            width as usize,
-            height as usize,
-            buf.to_owned(),
-        ))
+        Ok(ImageData::new(width as usize, height as usize, &buf))
     }
 }
 
@@ -576,7 +572,7 @@ impl<'a> Encoder<'a> {
             data.extend_from_slice(&[color.r, color.g, color.b, color.a]);
         });
 
-        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, data);
+        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, &data);
 
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
@@ -634,7 +630,7 @@ impl<'a> Encoder<'a> {
 
         resizer.resize(self.image_data.data().as_rgba(), &mut dest)?;
 
-        self.image_data = ImageData::new(target_width, target_height, dest.as_bytes().to_vec());
+        self.image_data = ImageData::new(target_width, target_height, dest.as_bytes());
 
         Ok(())
     }
@@ -1138,8 +1134,8 @@ mod tests {
 
     #[test]
     fn resize_image() {
-        let data = vec![255; 100 * 100 * 4];
-        let image = ImageData::new(100, 100, data);
+        let data = [255; 100 * 100 * 4];
+        let image = ImageData::new(100, 100, &data);
 
         let conf = Config::build(75.0, OutputFormat::Oxipng, Some(50), Some(50), None).unwrap();
 
