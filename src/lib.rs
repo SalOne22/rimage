@@ -355,10 +355,23 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    fn decode_jpeg(self) -> Result<ImageData, DecodingError> {
+    // mut for not unix case
+    #[allow(unused_mut)]
+    fn decode_jpeg(mut self) -> Result<ImageData, DecodingError> {
         info!("Processing jpeg decoding");
-        panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
+        panic::catch_unwind(move || -> Result<ImageData, DecodingError> {
+            #[cfg(unix)]
             let d = mozjpeg::Decompress::new_file(self.file)?;
+            #[cfg(not(unix))]
+            let buf = {
+                let metadata = self.file.metadata()?;
+                let mut buf = Vec::with_capacity(metadata.len() as usize);
+                self.file.read_to_end(&mut buf)?;
+                buf
+            };
+            #[cfg(not(unix))]
+            let d = mozjpeg::Decompress::new_mem(&buf)?;
+
             let mut image = d.rgba()?;
 
             let data: Vec<RGBA8> =
