@@ -16,7 +16,7 @@ impl ImageData {
     /// # Examples
     /// ```
     /// # use rimage::{ImageData, image};
-    /// let image = ImageData::new(100, 100, vec![0; 100 * 100 * 4]); // 100x100 RGBA image
+    /// let image = ImageData::new(100, 100, &[0; 100 * 100 * 4]); // 100x100 RGBA image
     /// ```
     pub fn new(width: usize, height: usize, data: &[u8]) -> Self {
         Self {
