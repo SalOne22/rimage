@@ -415,7 +415,8 @@ impl<'a> Decoder<'a> {
         let width = reader.info().width;
         let height = reader.info().height;
 
-        let mut buf = vec![0; reader.output_buffer_size()];
+        let buf_size = width as usize * height as usize * 4;
+        let mut buf = vec![0; buf_size];
 
         let info = reader.next_frame(&mut buf)?;
 
