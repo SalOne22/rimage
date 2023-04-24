@@ -62,3 +62,15 @@ harness = false
 [[bench]]
 name = "encode_png"
 harness = false
+
+[[bench]]
+name = "decode_webp"
+harness = false
+
+[[bench]]
+name = "encode_webp"
+harness = false
+
+[[bench]]
+name = "encode_browser_png"
+harness = false
