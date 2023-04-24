@@ -1,10 +1,21 @@
-use std::{fs, io, path, process};
+use std::{fs, io, path, process, sync::Arc};
 
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
+#[cfg(target_env = "msvc")]
+use mimalloc::MiMalloc;
 use rimage::{image::OutputFormat, Config, Decoder, Encoder};
 use threadpool::ThreadPool;
+#[cfg(not(target_env = "msvc"))]
+use tikv_jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+#[cfg(target_env = "msvc")]
+#[global_allocator]
+static GLOBAL: MiMalloc = MiMalloc;
 
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
@@ -47,7 +58,7 @@ struct Args {
 fn main() {
     pretty_env_logger::init();
     let mut args = Args::parse_from(wild::args_os());
-    let pb = ProgressBar::new(args.input.len() as u64);
+    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     info!("Using {} threads", pool.max_count());
 
@@ -64,17 +75,19 @@ fn main() {
         info!("{} files read from stdin", args.input.len());
     }
 
-    let conf = Config::build(
-        args.quality,
-        args.output_format,
-        args.width,
-        args.height,
-        args.filter,
-    )
-    .unwrap_or_else(|e| {
-        error!("{e}");
-        process::exit(1);
-    });
+    let conf = Arc::new(
+        Config::build(
+            args.quality,
+            args.output_format,
+            args.width,
+            args.height,
+            args.filter,
+        )
+        .unwrap_or_else(|e| {
+            error!("{e}");
+            process::exit(1);
+        }),
+    );
     info!("Using config: {:?}", conf);
 
     pb.set_style(
@@ -86,15 +99,15 @@ fn main() {
 
     if args.info {
         for path in args.input {
-            let data = match fs::read(&path) {
-                Ok(data) => data,
+            let file = match fs::File::open(&path) {
+                Ok(file) => file,
                 Err(e) => {
                     error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     continue;
                 }
             };
 
-            let d = Decoder::new(&path, &data);
+            let d = Decoder::new(&path, file);
 
             let img = match d.decode() {
                 Ok(img) => img,
@@ -129,17 +142,17 @@ fn main() {
                 pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
                 info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
 
-                let data = match fs::read(&path) {
-                    Ok(data) => data,
+                let file = match fs::File::open(&path) {
+                    Ok(file) => file,
                     Err(e) => {
                         error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                         return;
                     }
                 };
 
-                info!("read {} bytes", data.len());
+                info!("read {} bytes", file.metadata().unwrap().len());
 
-                let d = Decoder::new(&path, &data);
+                let d = Decoder::new(&path, file);
                 let e = Encoder::new(
                     &conf,
                     match d.decode() {
@@ -196,17 +209,17 @@ fn main() {
             info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
             pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
 
-            let data = match fs::read(&path) {
-                Ok(data) => data,
+            let file = match fs::File::open(&path) {
+                Ok(file) => file,
                 Err(e) => {
                     error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     return;
                 }
             };
 
-            info!("read {} bytes", data.len());
+            info!("read {} bytes", file.metadata().unwrap().len());
 
-            let d = Decoder::new(&path, &data);
+            let d = Decoder::new(&path, file);
             let e = Encoder::new(
                 &conf,
                 match d.decode() {

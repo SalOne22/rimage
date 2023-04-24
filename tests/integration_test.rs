@@ -6,8 +6,8 @@ use std::{fs, path};
 #[test]
 fn test_image_processing_jpeg() {
     let path = PathBuf::from("tests/files/basi0g01.jpg");
-    let data = fs::read(&path).unwrap();
-    let decoder = Decoder::new(&path, &data);
+    let file = fs::File::open(&path).unwrap();
+    let decoder = Decoder::new(&path, file);
     let image = decoder.decode().unwrap();
 
     let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
@@ -26,8 +26,8 @@ fn test_image_processing_jpeg() {
 #[test]
 fn test_image_processing_png() {
     let path = PathBuf::from("tests/files/basi0g01.png");
-    let data = fs::read(&path).unwrap();
-    let decoder = Decoder::new(&path, &data);
+    let file = fs::File::open(&path).unwrap();
+    let decoder = Decoder::new(&path, file);
     let image = decoder.decode().unwrap();
 
     let config = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
@@ -46,8 +46,8 @@ fn test_image_processing_png() {
 #[test]
 fn test_image_processing_oxipng() {
     let path = PathBuf::from("tests/files/basi0g01.png");
-    let data = fs::read(&path).unwrap();
-    let decoder = Decoder::new(&path, &data);
+    let file = fs::File::open(&path).unwrap();
+    let decoder = Decoder::new(&path, file);
     let image = decoder.decode().unwrap();
 
     let config = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
@@ -78,8 +78,8 @@ fn test_bulk_image_processing_jpeg() {
         .collect();
 
     for path in files {
-        let data = fs::read(&path).unwrap();
-        let decoder = Decoder::new(&path, &data);
+        let file = fs::File::open(&path).unwrap();
+        let decoder = Decoder::new(&path, file);
         let image = decoder.decode().unwrap();
 
         let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
@@ -113,8 +113,8 @@ fn test_bulk_image_processing_png() {
         .collect();
 
     for path in files {
-        let data = fs::read(&path).unwrap();
-        let decoder = Decoder::new(&path, &data);
+        let file = fs::File::open(&path).unwrap();
+        let decoder = Decoder::new(&path, file);
         let image = decoder.decode().unwrap();
 
         let config = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
@@ -148,8 +148,8 @@ fn test_bulk_image_processing_oxipng() {
         .collect();
 
     for path in files {
-        let data = fs::read(&path).unwrap();
-        let decoder = Decoder::new(&path, &data);
+        let file = fs::File::open(&path).unwrap();
+        let decoder = Decoder::new(&path, file);
         let image = decoder.decode().unwrap();
 
         let config = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
