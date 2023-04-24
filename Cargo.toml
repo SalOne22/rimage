@@ -45,7 +45,7 @@ mimalloc = "0.1.36"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
-regex = "1.7.3"
+regex = "1.8.1"
 
 [[bench]]
 name = "decode_jpg"
