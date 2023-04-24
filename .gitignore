@@ -2,3 +2,4 @@
 /.vscode
 cachegrind.*
 dhat.*
+heaptrack.*

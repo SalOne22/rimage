@@ -7,7 +7,7 @@ use std::{borrow::Cow, fmt, str::FromStr};
 pub struct ImageData {
     width: usize,
     height: usize,
-    data: Vec<u8>,
+    data: Box<[u8]>,
 }
 
 impl ImageData {
@@ -16,13 +16,13 @@ impl ImageData {
     /// # Examples
     /// ```
     /// # use rimage::{ImageData, image};
-    /// let image = ImageData::new(100, 100, vec![0; 100 * 100 * 4]); // 100x100 RGBA image
+    /// let image = ImageData::new(100, 100, &[0; 100 * 100 * 4]); // 100x100 RGBA image
     /// ```
-    pub fn new(width: usize, height: usize, data: Vec<u8>) -> Self {
+    pub fn new(width: usize, height: usize, data: &[u8]) -> Self {
         Self {
             width,
             height,
-            data,
+            data: data.into(),
         }
     }
     /// Get the width and height of the image

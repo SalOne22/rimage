@@ -29,8 +29,8 @@ use rimage::Decoder;
 
 // Create decoder from file path and data
 let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-let data = std::fs::read(&path).unwrap();
-let decoder = Decoder::new(&path, &data);
+let file = std::fs::File::open(&path).unwrap();
+let decoder = Decoder::new(&path, file);
 
 // Decode image to image data
 let image = match decoder.decode() {
@@ -54,8 +54,8 @@ println!("Data length: {:?}", image.data().len());
 # use rimage::Decoder;
 use rimage::{Config, Encoder, OutputFormat};
 # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-# let data = std::fs::read(&path).unwrap();
-# let decoder = Decoder::new(&path, &data);
+# let file = std::fs::File::open(&path).unwrap();
+# let decoder = Decoder::new(&path, file);
 # let image = decoder.decode().unwrap();
 
 // Build config for encoding
@@ -98,7 +98,7 @@ use rgb::{
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA, RGBA8,
 };
 use simple_error::SimpleError;
-use std::{panic, path};
+use std::{fs, io::Read, panic, path};
 
 pub use image::{ImageData, OutputFormat, ResizeType};
 
@@ -246,9 +246,9 @@ impl Default for Config {
 /// ```
 /// # use rimage::Decoder;
 /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-/// let data = std::fs::read(&path).unwrap();
+/// let file = std::fs::File::open(&path).unwrap();
 ///
-/// let decoder = Decoder::new(&path, &data);
+/// let decoder = Decoder::new(&path, file);
 ///
 /// // Decode image to image data
 /// let image = match decoder.decode() {
@@ -261,7 +261,7 @@ impl Default for Config {
 /// ```
 pub struct Decoder<'a> {
     path: &'a path::Path,
-    raw_data: &'a [u8],
+    file: fs::File,
 }
 
 impl<'a> Decoder<'a> {
@@ -271,13 +271,13 @@ impl<'a> Decoder<'a> {
     /// ```
     /// # use rimage::Decoder;
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// let data = std::fs::read(&path).unwrap();
+    /// let file = std::fs::File::open(&path).unwrap();
     ///
-    /// let decoder = Decoder::new(&path, &data);
+    /// let decoder = Decoder::new(&path, file);
     /// ```
     #[inline]
-    pub fn new(path: &'a path::Path, raw_data: &'a [u8]) -> Self {
-        Decoder { path, raw_data }
+    pub fn new(path: &'a path::Path, file: fs::File) -> Self {
+        Decoder { path, file }
     }
 
     /// Decode image
@@ -286,8 +286,8 @@ impl<'a> Decoder<'a> {
     /// ```
     /// # use rimage::Decoder;
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let data = std::fs::read(&path).unwrap();
-    /// # let decoder = Decoder::new(&path, &data);
+    /// # let file = std::fs::File::open(&path).unwrap();
+    /// # let decoder = Decoder::new(&path, file);
     /// // Decode image to image data
     /// let image = match decoder.decode() {
     ///     Ok(img) => img,
@@ -307,8 +307,9 @@ impl<'a> Decoder<'a> {
     /// ```
     /// # use rimage::Decoder;
     /// let path = std::path::PathBuf::from("tests/files/test.bmp");
-    /// let data = std::fs::read(&path).unwrap();
-    /// let decoder = Decoder::new(&path, &data);
+    /// let file = std::fs::File::open(&path).unwrap();
+    ///
+    /// let decoder = Decoder::new(&path, file);
     ///
     /// let result = decoder.decode();
     ///
@@ -321,15 +322,16 @@ impl<'a> Decoder<'a> {
     /// ```
     /// # use rimage::Decoder;
     /// let path = std::path::PathBuf::from("tests/files/test_corrupted.jpg");
-    /// let data = std::fs::read(&path).unwrap();
-    /// let decoder = Decoder::new(&path, &data);
+    /// let file = std::fs::File::open(&path).unwrap();
+    ///
+    /// let decoder = Decoder::new(&path, file);
     ///
     /// let result = decoder.decode();
     ///
     /// assert!(result.is_err());
     /// assert_eq!(result.unwrap_err().to_string(), "Parsing Error: Failed to decode jpeg");
     /// ```
-    pub fn decode(&self) -> Result<ImageData, DecodingError> {
+    pub fn decode(self) -> Result<ImageData, DecodingError> {
         let extension = match self.path.extension() {
             Some(ext) => ext,
             None => {
@@ -353,10 +355,23 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    fn decode_jpeg(&self) -> Result<ImageData, DecodingError> {
+    // mut for not unix case
+    #[allow(unused_mut)]
+    fn decode_jpeg(mut self) -> Result<ImageData, DecodingError> {
         info!("Processing jpeg decoding");
-        panic::catch_unwind(|| -> Result<ImageData, DecodingError> {
-            let d = mozjpeg::Decompress::new_mem(self.raw_data)?;
+        panic::catch_unwind(move || -> Result<ImageData, DecodingError> {
+            #[cfg(unix)]
+            let d = mozjpeg::Decompress::new_file(self.file)?;
+            #[cfg(not(unix))]
+            let buf = {
+                let metadata = self.file.metadata()?;
+                let mut buf = Vec::with_capacity(metadata.len() as usize);
+                self.file.read_to_end(&mut buf)?;
+                buf
+            };
+            #[cfg(not(unix))]
+            let d = mozjpeg::Decompress::new_mem(&buf)?;
+
             let mut image = d.rgba()?;
 
             let data: Vec<RGBA8> =
@@ -372,7 +387,7 @@ impl<'a> Decoder<'a> {
             Ok(ImageData::new(
                 image.width(),
                 image.height(),
-                data.as_bytes().to_owned(),
+                data.as_bytes(),
             ))
         })
         .unwrap_or(Err(DecodingError::Parsing(Box::new(SimpleError::new(
@@ -391,9 +406,9 @@ impl<'a> Decoder<'a> {
         }
     }
 
-    fn decode_png(&self) -> Result<ImageData, DecodingError> {
+    fn decode_png(self) -> Result<ImageData, DecodingError> {
         info!("Processing png decoding");
-        let mut d = png::Decoder::new(self.raw_data);
+        let mut d = png::Decoder::new(self.file);
         d.set_transformations(png::Transformations::normalize_to_color8());
 
         let mut reader = d.read_info()?;
@@ -401,7 +416,6 @@ impl<'a> Decoder<'a> {
         let height = reader.info().height;
 
         let buf_size = width as usize * height as usize * 4;
-
         let mut buf = vec![0; buf_size];
 
         let info = reader.next_frame(&mut buf)?;
@@ -421,17 +435,16 @@ impl<'a> Decoder<'a> {
             }
         }
 
-        Ok(ImageData::new(width as usize, height as usize, buf))
+        Ok(ImageData::new(width as usize, height as usize, &buf))
     }
 
-    fn decode_webp(&self) -> Result<ImageData, DecodingError> {
-        let (width, height, buf) = libwebp::WebPDecodeRGBA(self.raw_data)?;
+    fn decode_webp(mut self) -> Result<ImageData, DecodingError> {
+        let metadata = self.file.metadata()?;
+        let mut buf = Vec::with_capacity(metadata.len() as usize);
+        self.file.read_to_end(&mut buf)?;
+        let (width, height, buf) = libwebp::WebPDecodeRGBA(&buf)?;
 
-        Ok(ImageData::new(
-            width as usize,
-            height as usize,
-            buf.to_owned(),
-        ))
+        Ok(ImageData::new(width as usize, height as usize, &buf))
     }
 }
 
@@ -441,8 +454,8 @@ impl<'a> Decoder<'a> {
 /// ```
 /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
 /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-/// # let data = std::fs::read(&path).unwrap();
-/// # let decoder = rimage::Decoder::new(&path, &data);
+/// # let file = std::fs::File::open(&path).unwrap();
+/// # let decoder = rimage::Decoder::new(&path, file);
 /// # let image = decoder.decode().unwrap();
 /// let config = Config::default();
 ///
@@ -463,8 +476,8 @@ impl<'a> Encoder<'a> {
     /// ```
     /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let data = std::fs::read(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, &data);
+    /// # let file = std::fs::File::open(&path).unwrap();
+    /// # let decoder = rimage::Decoder::new(&path, file);
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -481,8 +494,8 @@ impl<'a> Encoder<'a> {
     /// ```
     /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let data = std::fs::read(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, &data);
+    /// # let file = std::fs::File::open(&path).unwrap();
+    /// # let decoder = rimage::Decoder::new(&path, file);
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -513,8 +526,8 @@ impl<'a> Encoder<'a> {
     /// ```
     /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let data = std::fs::read(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, &data);
+    /// # let file = std::fs::File::open(&path).unwrap();
+    /// # let decoder = rimage::Decoder::new(&path, file);
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -559,7 +572,7 @@ impl<'a> Encoder<'a> {
             data.extend_from_slice(&[color.r, color.g, color.b, color.a]);
         });
 
-        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, data);
+        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, &data);
 
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
@@ -617,7 +630,7 @@ impl<'a> Encoder<'a> {
 
         resizer.resize(self.image_data.data().as_rgba(), &mut dest)?;
 
-        self.image_data = ImageData::new(target_width, target_height, dest.as_bytes().to_vec());
+        self.image_data = ImageData::new(target_width, target_height, dest.as_bytes());
 
         Ok(())
     }
@@ -741,13 +754,11 @@ mod tests {
     fn decode_unsupported() {
         let path = path::Path::new("tests/files/test.bmp");
 
-        fs::read(path)
-            .map(|data| {
-                let decoder = Decoder::new(path, &data);
-                let result = decoder.decode();
-                assert!(result.is_err());
-            })
-            .unwrap();
+        let file = fs::File::open(path).unwrap();
+
+        let decoder = Decoder::new(path, file);
+        let result = decoder.decode();
+        assert!(result.is_err());
     }
 
     #[test]
@@ -766,8 +777,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -790,8 +801,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -814,8 +825,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -838,8 +849,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -862,8 +873,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -886,8 +897,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -910,8 +921,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             assert_ne!(image.data().len(), 0);
             assert_ne!(image.size(), (0, 0));
@@ -934,8 +945,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let d = Decoder::new(path, &data);
+            let file = fs::File::open(path).unwrap();
+            let d = Decoder::new(path, file);
 
             let img = d.decode();
             assert!(img.is_err());
@@ -958,8 +969,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let d = Decoder::new(path, &data);
+            let file = fs::File::open(path).unwrap();
+            let d = Decoder::new(path, file);
 
             let img = d.decode().unwrap();
             println!("{:?}", img.size());
@@ -986,8 +997,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
 
@@ -1016,8 +1027,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
 
@@ -1046,8 +1057,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
@@ -1076,8 +1087,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
 
@@ -1093,9 +1104,9 @@ mod tests {
     #[test]
     fn encode_quantized() {
         let path = path::PathBuf::from("tests/files/basi2c08.png");
+        let file = fs::File::open(&path).unwrap();
 
-        let data = fs::read(&path).unwrap();
-        let image = Decoder::new(&path, &data).decode().unwrap();
+        let image = Decoder::new(&path, file).decode().unwrap();
 
         let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
@@ -1110,9 +1121,9 @@ mod tests {
     #[test]
     fn encode_quantized_out_of_bounds() {
         let path = path::PathBuf::from("tests/files/basi2c08.png");
+        let file = fs::File::open(&path).unwrap();
 
-        let data = fs::read(&path).unwrap();
-        let image = Decoder::new(&path, &data).decode().unwrap();
+        let image = Decoder::new(&path, file).decode().unwrap();
 
         let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
@@ -1123,8 +1134,8 @@ mod tests {
 
     #[test]
     fn resize_image() {
-        let data = vec![255; 100 * 100 * 4];
-        let image = ImageData::new(100, 100, data);
+        let data = [255; 100 * 100 * 4];
+        let image = ImageData::new(100, 100, &data);
 
         let conf = Config::build(75.0, OutputFormat::Oxipng, Some(50), Some(50), None).unwrap();
 
