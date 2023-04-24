@@ -1,6 +1,9 @@
 ## v0.7.0
 
 - [Breaking Changes] Decoder now accept opened file as input
+- [Changed] ImageData now stores bytes as Box<[u8]>
+- [Changed] Global allocator now is Jemalloc on unix and MiMalloc on Windows
+- [Changed] Reduced memory usage twice!
 
 ## v0.6.0
 
