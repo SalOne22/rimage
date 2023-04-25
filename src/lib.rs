@@ -98,7 +98,7 @@ use rgb::{
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA, RGBA8,
 };
 use simple_error::SimpleError;
-use std::{fs, io::Read, panic, path};
+use std::{ffi::CString, fs, io::Read, panic, path};
 
 pub use image::{ImageData, OutputFormat, ResizeType};
 
@@ -454,7 +454,13 @@ impl<'a> Decoder<'a> {
         let image = unsafe { avifImageCreateEmpty() };
         let decoder = unsafe { avifDecoderCreate() };
         let decode_result = unsafe {
-            avifDecoderReadMemory(decoder, image, self.raw_data.as_ptr(), self.raw_data.len())
+            avifDecoderReadFile(
+                decoder,
+                image,
+                CString::new(self.path.to_str().unwrap())
+                    .map_err(|e| DecodingError::Parsing(Box::new(e)))?
+                    .as_ptr(),
+            )
         };
         unsafe { avifDecoderDestroy(decoder) };
 
@@ -473,17 +479,13 @@ impl<'a> Decoder<'a> {
             };
 
             let pixels = unsafe {
-                Vec::from_raw_parts(
-                    rgb.pixels as *mut u8,
-                    rgb.width as usize * rgb.height as usize * 4,
-                    rgb.width as usize * rgb.height as usize * 4,
-                )
+                std::slice::from_raw_parts(rgb.pixels, (rgb.width * rgb.height) as usize)
             };
 
             result = Ok(ImageData::new(
                 rgb.width as usize,
                 rgb.height as usize,
-                pixels.clone(),
+                pixels,
             ));
 
             std::mem::forget(pixels);
@@ -1064,8 +1066,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let d = Decoder::new(path, &data);
+            let file = fs::File::open(path).unwrap();
+            let d = Decoder::new(path, file);
 
             let img = d.decode().unwrap();
             println!("{:?}", img.size());
@@ -1212,8 +1214,8 @@ mod tests {
 
         files.iter().for_each(|path| {
             println!("{path:?}");
-            let data = fs::read(path).unwrap();
-            let image = Decoder::new(path, &data).decode().unwrap();
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
 

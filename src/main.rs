@@ -17,9 +17,6 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
-#[global_allocator]
-static GLOBAL: MiMalloc = MiMalloc;
-
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
 struct Args {
