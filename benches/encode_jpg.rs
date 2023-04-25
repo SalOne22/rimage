@@ -14,8 +14,8 @@ fn bench_encode_jpg(c: &mut Criterion) {
 
     let (pixels, width, height) = decode_image(&PathBuf::from("tests/files/basi6a08.jpg")).unwrap();
 
-    let data = fs::read(&Path::new("tests/files/basi6a08.jpg")).unwrap();
-    let image = Decoder::new(&Path::new("tests/files/basi6a08.jpg"), &data)
+    let file = fs::File::open(&Path::new("tests/files/basi6a08.jpg")).unwrap();
+    let image = Decoder::new(black_box(&Path::new("tests/files/basi6a08.jpg")), file)
         .decode()
         .unwrap();
 
