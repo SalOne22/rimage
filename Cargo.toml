@@ -23,14 +23,14 @@ debug = 1
 
 [dependencies]
 bytemuck = "1.13.1"
-clap = { version = "4.2.1", features = ["derive"] }
+clap = { version = "4.2.4", features = ["derive"] }
 imagequant = "4.1.1"
 indicatif = "0.17.3"
 log = "0.4.17"
 mozjpeg = "0.9.4"
 num_cpus = "1.15.0"
 oxipng = "8.0.0"
-png = "0.17.7"
+png = "0.17.8"
 pretty_env_logger = "0.4.0"
 rgb = "0.8.36"
 threadpool = "1.8.1"
@@ -40,11 +40,14 @@ resize = "0.7.4"
 libwebp = "0.1.2"
 libavif-sys = "0.14.3"
 ravif = "0.11.1"
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = "0.5"
+[target.'cfg(target_env = "msvc")'.dependencies]
 mimalloc = "0.1.36"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
-regex = "1.7.3"
+regex = "1.8.1"
 
 [[bench]]
 name = "decode_jpg"
@@ -60,4 +63,16 @@ harness = false
 
 [[bench]]
 name = "encode_png"
+harness = false
+
+[[bench]]
+name = "decode_webp"
+harness = false
+
+[[bench]]
+name = "encode_webp"
+harness = false
+
+[[bench]]
+name = "encode_browser_png"
 harness = false

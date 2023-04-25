@@ -16,8 +16,8 @@ fn bench_decode_jpg(c: &mut Criterion) {
     });
     group.bench_function("Decoder", |b| {
         b.iter(|| {
-            let data = fs::read(&Path::new("tests/files/basi6a08.jpg")).unwrap();
-            Decoder::new(black_box(&Path::new("tests/files/basi6a08.jpg")), &data).decode()
+            let file = fs::File::open(&Path::new("tests/files/basi6a08.jpg")).unwrap();
+            Decoder::new(black_box(&Path::new("tests/files/basi6a08.jpg")), file).decode()
         })
     });
     group.finish();
