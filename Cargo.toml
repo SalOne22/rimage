@@ -41,7 +41,7 @@ libwebp = "0.1.2"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"
 [target.'cfg(target_env = "msvc")'.dependencies]
-mimalloc = "0.1.36"
+mimalloc = "0.1.37"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
