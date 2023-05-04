@@ -207,9 +207,9 @@ dependencies = [
 
 [[package]]
 name = "clap"
-version = "4.2.4"
+version = "4.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "956ac1f6381d8d82ab4684768f89c0ea3afe66925ceadb4eeb3fc452ffc55d62"
+checksum = "8a1f23fa97e1d1641371b51f35535cb26959b8e27ab50d167a8b996b5bada819"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -218,9 +218,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.2.4"
+version = "4.2.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84080e799e54cff944f4b4a4b0e71630b0e0443b25b985175c7dddc1a859b749"
+checksum = "0fdc5d93c358224b4d6867ef1356d740de2303e9892edc06c5340daeccd96bab"
 dependencies = [
  "anstream",
  "anstyle",
@@ -549,12 +549,11 @@ dependencies = [
 
 [[package]]
 name = "imagequant"
-version = "4.1.1"
+version = "4.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f332f82fc531b53cffa3181c14f7beb5b6c33932d68bb0c2fa4fd583553fca64"
+checksum = "fc3c62f251799ae51bbd7a94fc00a83fcb796d8dd14876280e3063e8341138dc"
 dependencies = [
  "arrayvec",
- "noisy_float",
  "num_cpus",
  "once_cell",
  "rayon",
@@ -790,15 +789,6 @@ name = "nasm-rs"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ce095842aee9aa3ecbda7a5d2a4df680375fd128a8596b6b56f8e497e231f483"
-
-[[package]]
-name = "noisy_float"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "978fe6e6ebc0bf53de533cd456ca2d9de13de13856eda1518a285d7705a213af"
-dependencies = [
- "num-traits",
-]
 
 [[package]]
 name = "num-integer"
@@ -1053,7 +1043,7 @@ name = "rimage"
 version = "0.6.0"
 dependencies = [
  "bytemuck",
- "clap 4.2.4",
+ "clap 4.2.5",
  "criterion",
  "imagequant",
  "indicatif",
