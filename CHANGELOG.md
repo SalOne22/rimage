@@ -3,7 +3,7 @@
 - [Breaking Changes] Decoder now accept opened file as input
 - [Changed] ImageData now stores bytes as Box<[u8]>
 - [Changed] Global allocator now is Jemalloc on unix and MiMalloc on Windows
-- [Changed] Reduced peak memory usage twice!
+- [Changed] Reduced peak heap usage twice!
 - [Added] AVIF decoding and encoding
 
 ## v0.6.0
