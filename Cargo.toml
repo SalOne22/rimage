@@ -23,15 +23,15 @@ debug = 1
 
 [dependencies]
 bytemuck = "1.13.1"
-clap = { version = "4.2.4", features = ["derive"] }
-imagequant = "4.1.1"
+clap = { version = "4.3.0", features = ["derive"] }
+imagequant = "4.2.0"
 indicatif = "0.17.3"
 log = "0.4.17"
 mozjpeg = "0.9.4"
 num_cpus = "1.15.0"
 oxipng = "8.0.0"
 png = "0.17.8"
-pretty_env_logger = "0.4.0"
+pretty_env_logger = "0.5.0"
 rgb = "0.8.36"
 threadpool = "1.8.1"
 simple-error = "0.3.0"
@@ -43,11 +43,11 @@ ravif = "0.11.1"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"
 [target.'cfg(target_env = "msvc")'.dependencies]
-mimalloc = "0.1.36"
+mimalloc = "0.1.37"
 
 [dev-dependencies]
 criterion = { version = "0.4.0", features = ["html_reports"] }
-regex = "1.8.1"
+regex = "1.8.3"
 
 [[bench]]
 name = "decode_jpg"
