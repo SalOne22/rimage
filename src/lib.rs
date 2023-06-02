@@ -1225,9 +1225,6 @@ mod tests {
             assert!(result.is_ok());
             let result = result.unwrap();
             assert!(!result.is_empty());
-            let mut path = path.clone();
-            path.set_extension("avif");
-            fs::write(path, result).unwrap();
         })
     }
 
