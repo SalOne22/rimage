@@ -25,6 +25,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Install python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install meson / ninja
+      shell: bash
+      run: pip install meson ninja
+    
     - run: |
         rustup set auto-self-update disable
         rustup toolchain install stable --profile minimal
