@@ -27,7 +27,7 @@ struct Args {
     quality: f32,
     /// Output format of the output image
     #[arg(short, long, default_value = "jpg")]
-    output_format: OutputFormat,
+    format: OutputFormat,
     /// Print image info
     #[arg(short, long)]
     info: bool,
@@ -78,7 +78,7 @@ fn main() {
     let conf = Arc::new(
         Config::build(
             args.quality,
-            args.output_format,
+            args.format,
             args.width,
             args.height,
             args.filter,
@@ -165,7 +165,7 @@ fn main() {
                 );
 
                 let mut new_path = path.clone();
-                let ext = args.output_format.to_string();
+                let ext = args.format.to_string();
                 let suffix = suffix.clone().unwrap_or_default();
 
                 new_path.set_file_name(format!(
@@ -232,7 +232,7 @@ fn main() {
             );
 
             let mut new_path = path.clone();
-            let ext = args.output_format.to_string();
+            let ext = args.format.to_string();
             let suffix = suffix.clone().unwrap_or_default();
 
             new_path.set_file_name(format!(
