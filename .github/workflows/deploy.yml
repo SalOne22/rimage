@@ -14,6 +14,15 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Install python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install meson / ninja
+      shell: bash
+      run: pip install meson ninja
+    
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -70,6 +79,16 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+    
+    - name: Install python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install meson / ninja
+      shell: bash
+      run: pip install meson ninja
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -158,6 +177,16 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+      
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install meson / ninja
+        shell: bash
+        run: pip install meson ninja
     
       - name: Install Rust
         uses: actions-rs/toolchain@v1
