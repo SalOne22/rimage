@@ -14,6 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - uses: ilammy/setup-nasm@v1
+    
     - name: Install python
       uses: actions/setup-python@v4
       with:
@@ -79,6 +81,8 @@ jobs:
     
     steps:
     - uses: actions/checkout@v3
+    
+    - uses: ilammy/setup-nasm@v1
     
     - name: Install python
       uses: actions/setup-python@v4
@@ -177,6 +181,8 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+      
+      - uses: ilammy/setup-nasm@v1
       
       - name: Install python
         uses: actions/setup-python@v4
