@@ -6,7 +6,7 @@ pub fn common_path(paths: &[PathBuf]) -> Option<PathBuf> {
         return None;
     }
 
-    let mut iter = paths.into_iter();
+    let mut iter = paths.iter();
 
     let mut ret = iter.next()?.clone();
 
@@ -18,7 +18,7 @@ pub fn common_path(paths: &[PathBuf]) -> Option<PathBuf> {
         }
     }
 
-    Some(ret.to_owned())
+    Some(ret)
 }
 
 fn common<A: AsRef<Path>, B: AsRef<Path>>(a: A, b: B) -> Option<PathBuf> {
