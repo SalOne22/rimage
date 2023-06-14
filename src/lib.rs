@@ -479,7 +479,7 @@ impl<'a> Decoder<'a> {
             };
 
             let pixels = unsafe {
-                std::slice::from_raw_parts(rgb.pixels, (rgb.width * rgb.height) as usize)
+                std::slice::from_raw_parts(rgb.pixels, (rgb.width * rgb.height * 4) as usize)
             };
 
             result = Ok(ImageData::new(
