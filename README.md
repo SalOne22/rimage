@@ -19,7 +19,8 @@ rimage -q 75 *.jpg
 ```
 
 - Quality: `-q 0` through `-q 100`, higher is better
-- Output format: `-o png`, currently supported only jpg, png, oxipng and webp
+- Output format: `-f png`, currently supported only jpg, png, oxipng and webp
+- Output directory: `-o /somewhere`, saves all processed files in this directory, also saves files directory structure
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
 - Threads: `-t 4`, number of threads to use
