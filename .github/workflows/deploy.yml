@@ -9,21 +9,17 @@ env:
 
 jobs:
   build-win-binaries:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - uses: actions/checkout@v3
     
-    - uses: ilammy/setup-nasm@v1
+    - name: Install dependencies
+      run: |
+        choco install -y ninja
+        pip install meson
     
-    - name: Install python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install meson / ninja
-      shell: bash
-      run: pip install meson ninja
+    - uses: ilammy/setup-nasm@v1
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -37,7 +33,10 @@ jobs:
       uses: Swatinem/rust-cache@v2.2.1
     
     - name: Build rimage
-      run: cargo build --release --target x86_64-pc-windows-msvc --verbose
+      shell: cmd
+      run: |
+        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        cargo build --release --target x86_64-pc-windows-msvc --verbose
     
     - name: Get the version
       shell: bash
@@ -82,17 +81,16 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
-    - uses: ilammy/setup-nasm@v1
+    - name: Install dependencies (linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        DEBIAN_FRONTEND=noninteractive sudo apt-get update
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
     
-    - name: Install python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-        cache: 'pip'
-
-    - name: Install meson / ninja
-      shell: bash
-      run: pip install meson ninja
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macOS-latest'
+      run: |
+        brew install ninja nasm meson
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
