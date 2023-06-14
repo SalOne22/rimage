@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/crates/l/rimage?style=flat-square)](https://github.com/SalOne22/rimage)
 
 This is CLI tool inspired by [squoosh!](https://squoosh.app/)  
-Rimage currently supports three codecs, mozjpeg, oxipng and webp, and aims to add support for AVIF and JPEG XL in the future.
+Rimage currently supports several codecs - mozjpeg, oxipng, webp and avif. More will be added later.
 
 ## Installation
 
@@ -33,8 +33,7 @@ rimage -q 75 *.jpg
 
 ## To-Do
 
-- Support for AVIF and JPEG XL
-- And allot of bugfixes and optimizations
+- Support for JPEG XL
 
 ## Changelog
 
@@ -48,7 +47,7 @@ For building rimage from source you will need to run this command:
 cargo install rimage
 ```
 
-This app requires cmake, nasm and ninja/meson installed on system
+This app requires cmake, nasm, ninja and meson installed on system
 
 > note: On windows use Visual Studio build environment like developer PowerShell for VS 2019
 
