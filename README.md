@@ -10,13 +10,7 @@ Rimage currently supports three codecs, mozjpeg, oxipng and webp, and aims to ad
 
 ## Installation
 
-If you have cargo you can use this
-
-```
-cargo install rimage
-```
-
-or from [Releases](https://github.com/SalOne22/rimage/releases) on GitHub
+You can download latest release from [Releases](https://github.com/SalOne22/rimage/releases) tab on GitHub
 
 ## Usage
 
@@ -44,6 +38,18 @@ rimage -q 75 *.jpg
 ## Changelog
 
 Read changelog [here](CHANGELOG.md)
+
+## Building from source
+
+For building rimage from source you will need to run this command:
+
+```
+cargo install rimage
+```
+
+This app requires cmake, nasm and ninja/meson installed on system
+
+> note: On windows use Visual Studio build environment like developer PowerShell for VS 2019
 
 ## Development
 
