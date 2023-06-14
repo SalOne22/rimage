@@ -53,6 +53,8 @@ pub enum OutputFormat {
     Oxipng,
     /// WebP image
     WebP,
+    /// AVIF image
+    Avif,
 }
 
 impl std::str::FromStr for OutputFormat {
@@ -64,6 +66,7 @@ impl std::str::FromStr for OutputFormat {
             "png" => Ok(OutputFormat::Png),
             "oxipng" => Ok(OutputFormat::Oxipng),
             "webp" => Ok(OutputFormat::WebP),
+            "avif" => Ok(OutputFormat::Avif),
             _ => Err(format!("{} is not a valid output format", s).into()),
         }
     }
@@ -76,6 +79,7 @@ impl fmt::Display for OutputFormat {
             OutputFormat::Png => write!(f, "png"),
             OutputFormat::Oxipng => write!(f, "png"),
             OutputFormat::WebP => write!(f, "webp"),
+            OutputFormat::Avif => write!(f, "avif"),
         }
     }
 }
