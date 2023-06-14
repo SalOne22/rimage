@@ -115,9 +115,6 @@ pub mod error;
 /// Image data structs
 pub mod image;
 
-/// Some utils functions
-mod utils;
-
 /// Config for image encoding
 ///
 /// # Example

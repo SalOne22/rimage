@@ -1,21 +1,24 @@
 use std::path::{Path, PathBuf};
 
 /// Gets common path inside a array of paths
-pub fn common_path<I, P>(paths: I) -> Option<PathBuf>
-where
-    I: IntoIterator<Item = P>,
-    P: AsRef<Path>,
-{
+pub fn common_path(paths: &[PathBuf]) -> Option<PathBuf> {
+    if paths.len() < 2 {
+        return None;
+    }
+
     let mut iter = paths.into_iter();
-    let mut ret = iter.next()?.as_ref().to_path_buf();
+
+    let mut ret = iter.next()?.clone();
+
     for path in iter {
-        if let Some(r) = common(ret, path.as_ref()) {
+        if let Some(r) = common(ret, path) {
             ret = r;
         } else {
             return None;
         }
     }
-    Some(ret)
+
+    Some(ret.to_owned())
 }
 
 fn common<A: AsRef<Path>, B: AsRef<Path>>(a: A, b: B) -> Option<PathBuf> {

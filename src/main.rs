@@ -10,6 +10,8 @@ use threadpool::ThreadPool;
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
 
+use crate::utils::common_path;
+
 #[cfg(not(target_env = "msvc"))]
 #[global_allocator]
 static GLOBAL: Jemalloc = Jemalloc;
@@ -17,11 +19,17 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
+/// Some utils functions
+mod utils;
+
 #[derive(Parser)]
 #[command(author, about, version, long_about = None)]
 struct Args {
     /// Input file(s)
     input: Vec<path::PathBuf>,
+    /// Output directory
+    #[arg(short, long)]
+    output: Option<path::PathBuf>,
     /// Quality of the output image (0-100)
     #[arg(short, long, default_value = "75")]
     quality: f32,
@@ -90,6 +98,9 @@ fn main() {
     );
     info!("Using config: {:?}", conf);
 
+    let common_path = common_path(&args.input);
+    info!("Found common path: {:?}", common_path);
+
     pb.set_style(
         ProgressStyle::with_template("{bar:40.green/blue}  {pos}/{len}")
             .unwrap()
@@ -117,6 +128,15 @@ fn main() {
                 }
             };
 
+            println!("Full path: {:?}", &path);
+
+            if let Some(common_path) = &common_path {
+                println!(
+                    "Relative path: {:?}",
+                    &path.strip_prefix(common_path.parent().unwrap()).unwrap()
+                );
+            }
+
             println!("{:?}", &path.file_name().unwrap());
             println!("Size: {:?}", img.size());
             println!("Data length: {:?}", img.data().len());
@@ -138,6 +158,9 @@ fn main() {
             let pb = pb.clone();
             let conf = conf.clone();
             let suffix = args.suffix.clone();
+            let common_path = common_path.clone();
+            let destination_dir = args.output.clone();
+
             pool.execute(move || {
                 pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
                 info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
@@ -165,6 +188,21 @@ fn main() {
                 );
 
                 let mut new_path = path.clone();
+
+                if let Some(destination_dir) = &destination_dir {
+                    let empty_path = path::Path::new("");
+
+                    let relative_path = if let Some(common_path) = &common_path {
+                        new_path
+                            .strip_prefix(common_path.parent().unwrap_or(empty_path))
+                            .unwrap_or(empty_path)
+                    } else {
+                        empty_path
+                    };
+
+                    new_path = destination_dir.join(relative_path);
+                }
+
                 let ext = args.format.to_string();
                 let suffix = suffix.clone().unwrap_or_default();
 
@@ -176,7 +214,7 @@ fn main() {
                 new_path.set_extension(ext);
 
                 match fs::write(
-                    new_path,
+                    &new_path,
                     match e.encode_quantized(quantization, dithering) {
                         Ok(data) => data,
                         Err(e) => {
@@ -192,6 +230,7 @@ fn main() {
                     }
                 };
                 info!("{} done", &path.file_name().unwrap().to_str().unwrap());
+                info!("Saved to {:?}", new_path);
                 pb.inc(1);
             });
         }
@@ -205,6 +244,9 @@ fn main() {
         let pb = pb.clone();
         let conf = conf.clone();
         let suffix = args.suffix.clone();
+        let common_path = common_path.clone();
+        let destination_dir = args.output.clone();
+
         pool.execute(move || {
             info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
             pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
@@ -232,6 +274,25 @@ fn main() {
             );
 
             let mut new_path = path.clone();
+
+            if let Some(destination_dir) = &destination_dir {
+                let file_name = path::Path::new(new_path.file_name().unwrap());
+
+                let relative_path = if let Some(common_path) = &common_path {
+                    new_path.strip_prefix(common_path).unwrap_or(file_name)
+                } else {
+                    file_name
+                };
+
+                println!("Destination: {:?}", destination_dir);
+                println!("Common path: {:?}", common_path);
+                println!("Relative path: {:?}", relative_path);
+
+                new_path = destination_dir.join(relative_path);
+
+                println!("Final path: {:?}", new_path);
+            }
+
             let ext = args.format.to_string();
             let suffix = suffix.clone().unwrap_or_default();
 
@@ -242,8 +303,15 @@ fn main() {
             ));
             new_path.set_extension(ext);
 
+            match fs::create_dir_all(new_path.parent().unwrap()) {
+                Ok(_) => (),
+                Err(e) => {
+                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                }
+            }
+
             match fs::write(
-                new_path,
+                &new_path,
                 match e.encode() {
                     Ok(data) => data,
                     Err(e) => {
@@ -259,6 +327,7 @@ fn main() {
                 }
             };
             info!("{} done", &path.file_name().unwrap().to_str().unwrap());
+            info!("Saved to {:?}", new_path);
             pb.inc(1);
         });
     }
