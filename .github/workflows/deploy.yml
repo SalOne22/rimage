@@ -72,7 +72,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
+            target: x86_64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
 
@@ -99,11 +99,6 @@ jobs:
         toolchain: stable
         target: ${{ matrix.target }}
         override: true
-    
-    - name: Install musl
-      if: contains(matrix.target, 'linux-musl')
-      run: |
-        sudo apt-get install musl-tools
     
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.2.1
