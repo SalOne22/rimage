@@ -488,8 +488,6 @@ impl<'a> Decoder<'a> {
                 pixels,
             ));
 
-            std::mem::forget(pixels);
-
             unsafe { avifRGBImageFreePixels(&mut rgb) };
         }
 
