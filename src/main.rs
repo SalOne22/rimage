@@ -190,14 +190,12 @@ fn main() {
                 let mut new_path = path.clone();
 
                 if let Some(destination_dir) = &destination_dir {
-                    let empty_path = path::Path::new("");
+                    let file_name = path::Path::new(new_path.file_name().unwrap());
 
                     let relative_path = if let Some(common_path) = &common_path {
-                        new_path
-                            .strip_prefix(common_path.parent().unwrap_or(empty_path))
-                            .unwrap_or(empty_path)
+                        new_path.strip_prefix(common_path).unwrap_or(file_name)
                     } else {
-                        empty_path
+                        file_name
                     };
 
                     new_path = destination_dir.join(relative_path);
@@ -213,9 +211,16 @@ fn main() {
                 ));
                 new_path.set_extension(ext);
 
+                match fs::create_dir_all(new_path.parent().unwrap()) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                    }
+                }
+
                 match fs::write(
                     &new_path,
-                    match e.encode_quantized(quantization, dithering) {
+                    match e.encode() {
                         Ok(data) => data,
                         Err(e) => {
                             error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
@@ -284,13 +289,7 @@ fn main() {
                     file_name
                 };
 
-                println!("Destination: {:?}", destination_dir);
-                println!("Common path: {:?}", common_path);
-                println!("Relative path: {:?}", relative_path);
-
                 new_path = destination_dir.join(relative_path);
-
-                println!("Final path: {:?}", new_path);
             }
 
             let ext = args.format.to_string();
