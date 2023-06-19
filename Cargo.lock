@@ -340,7 +340,7 @@ version = "4.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a19591b2ab0e3c04b588a0e04ddde7b9eaa423646d1b4a8092879216bf47473"
 dependencies = [
- "clap 4.3.0",
+ "clap 4.3.3",
 ]
 
 [[package]]
@@ -1400,7 +1400,7 @@ dependencies = [
  "built",
  "cc",
  "cfg-if",
- "clap 4.3.0",
+ "clap 4.3.3",
  "clap_complete",
  "console",
  "const_fn_assert",
@@ -1436,9 +1436,9 @@ dependencies = [
 
 [[package]]
 name = "ravif"
-version = "0.11.1"
+version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26cda034bd7ec1f4e799b207ef0444dd28b2fb310877378a5bb5b8b6ef6c4158"
+checksum = "0cd36aa2bc280b60619e0c4386a73ff2ac343551dcf400168562ce08cc0c32e0"
 dependencies = [
  "avif-serialize",
  "imgref",
