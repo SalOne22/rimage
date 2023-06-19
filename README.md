@@ -6,17 +6,11 @@
 [![License](https://img.shields.io/crates/l/rimage?style=flat-square)](https://github.com/SalOne22/rimage)
 
 This is CLI tool inspired by [squoosh!](https://squoosh.app/)  
-Rimage currently supports three codecs, mozjpeg, oxipng and webp, and aims to add support for AVIF and JPEG XL in the future.
+Rimage currently supports several codecs - mozjpeg, oxipng, webp and avif. More will be added later.
 
 ## Installation
 
-If you have cargo you can use this
-
-```
-cargo install rimage
-```
-
-or from [Releases](https://github.com/SalOne22/rimage/releases) on GitHub
+You can download latest release from [Releases](https://github.com/SalOne22/rimage/releases) tab on GitHub
 
 ## Usage
 
@@ -25,7 +19,8 @@ rimage -q 75 *.jpg
 ```
 
 - Quality: `-q 0` through `-q 100`, higher is better
-- Output format: `-o png`, currently supported only jpg, png, oxipng and webp
+- Output format: `-f png`, currently supported only jpg, png, oxipng and webp
+- Output directory: `-o /somewhere`, saves all processed files in this directory, also saves files directory structure
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
 - Threads: `-t 4`, number of threads to use
@@ -38,12 +33,23 @@ rimage -q 75 *.jpg
 
 ## To-Do
 
-- Support for AVIF and JPEG XL
-- And allot of bugfixes and optimizations
+- Support for JPEG XL
 
 ## Changelog
 
 Read changelog [here](CHANGELOG.md)
+
+## Building from source
+
+For building rimage from source you will need to run this command:
+
+```
+cargo install rimage
+```
+
+This app requires cmake, nasm, ninja and meson installed on system
+
+> note: On windows use Visual Studio build environment like developer PowerShell for VS 2019
 
 ## Development
 
