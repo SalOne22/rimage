@@ -9,10 +9,17 @@ env:
 
 jobs:
   build-win-binaries:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        choco install -y ninja
+        pip install meson
+    
+    - uses: ilammy/setup-nasm@v1
     
     - name: Install Rust
       uses: actions-rs/toolchain@v1
@@ -26,7 +33,10 @@ jobs:
       uses: Swatinem/rust-cache@v2.2.1
     
     - name: Build rimage
-      run: cargo build --release --target x86_64-pc-windows-msvc --verbose
+      shell: cmd
+      run: |
+        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+        cargo build --release --target x86_64-pc-windows-msvc --verbose
     
     - name: Get the version
       shell: bash
@@ -62,7 +72,7 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
+            target: x86_64-unknown-linux-gnu
           - os: macos-latest
             target: x86_64-apple-darwin
 
@@ -71,6 +81,17 @@ jobs:
     steps:
     - uses: actions/checkout@v3
     
+    - name: Install dependencies (linux)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        DEBIAN_FRONTEND=noninteractive sudo apt-get update
+        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
+    
+    - name: Install dependencies (macOS)
+      if: matrix.os == 'macOS-latest'
+      run: |
+        brew install ninja nasm meson
+    
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -78,11 +99,6 @@ jobs:
         toolchain: stable
         target: ${{ matrix.target }}
         override: true
-    
-    - name: Install musl
-      if: contains(matrix.target, 'linux-musl')
-      run: |
-        sudo apt-get install musl-tools
     
     - name: Rust Cache
       uses: Swatinem/rust-cache@v2.2.1
@@ -158,6 +174,11 @@ jobs:
     
     steps:
       - uses: actions/checkout@v3
+      
+      - name: Install dependencies
+        run: |
+          DEBIAN_FRONTEND=noninteractive sudo apt-get update
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
     
       - name: Install Rust
         uses: actions-rs/toolchain@v1
