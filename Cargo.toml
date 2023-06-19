@@ -10,7 +10,7 @@ exclude = ["tests/*", ".*"]
 repository = "https://github.com/SalOne22/rimage"
 license = "MIT OR Apache-2.0"
 
-version = "0.6.0"
+version = "0.7.0"
 edition = "2021"
 
 [profile.release]
@@ -25,7 +25,7 @@ debug = 1
 bytemuck = "1.13.1"
 clap = { version = "4.3.3", features = ["derive"] }
 imagequant = "4.2.0"
-indicatif = "0.17.4"
+indicatif = "0.17.5"
 log = "0.4.18"
 mozjpeg = "0.9.4"
 num_cpus = "1.15.0"
@@ -38,6 +38,8 @@ simple-error = "0.3.0"
 wild = "2.1.0"
 resize = "0.7.4"
 libwebp = "0.1.2"
+libavif-sys = "0.14.3"
+ravif = "0.11.1"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"
 [target.'cfg(target_env = "msvc")'.dependencies]

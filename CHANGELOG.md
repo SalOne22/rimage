@@ -4,6 +4,9 @@
 - [Changed] ImageData now stores bytes as Box<[u8]>
 - [Changed] Global allocator now is Jemalloc on unix and MiMalloc on Windows
 - [Changed] Reduced peak heap usage twice!
+- [Changed] Now output format option is named just format
+- [Added] AVIF decoding and encoding
+- [Added] Output dir option for saving in different locations
 
 ## v0.6.0
 
