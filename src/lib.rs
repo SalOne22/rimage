@@ -98,7 +98,7 @@ use rgb::{
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA, RGBA8,
 };
 use simple_error::SimpleError;
-use std::{fs, io::Read, panic, path};
+use std::{ffi::CString, fs, io::Read, panic, path};
 
 pub use image::{ImageData, OutputFormat, ResizeType};
 
@@ -345,6 +345,7 @@ impl<'a> Decoder<'a> {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
             Some("webp") => self.decode_webp(),
+            Some("avif") => self.decode_avif(),
             Some(ext) => Err(DecodingError::Format(Box::new(SimpleError::new(format!(
                 "{} not supported",
                 ext
@@ -446,6 +447,56 @@ impl<'a> Decoder<'a> {
 
         Ok(ImageData::new(width as usize, height as usize, &buf))
     }
+
+    fn decode_avif(&self) -> Result<ImageData, DecodingError> {
+        use libavif_sys::*;
+
+        let image = unsafe { avifImageCreateEmpty() };
+        let decoder = unsafe { avifDecoderCreate() };
+        let decode_result = unsafe {
+            avifDecoderReadFile(
+                decoder,
+                image,
+                CString::new(self.path.to_str().unwrap())
+                    .map_err(|e| DecodingError::Parsing(Box::new(e)))?
+                    .as_ptr(),
+            )
+        };
+        unsafe { avifDecoderDestroy(decoder) };
+
+        let mut result = Err(DecodingError::Parsing(Box::new(SimpleError::new(
+            "Failed to decode avif",
+        ))));
+
+        if decode_result == AVIF_RESULT_OK {
+            let mut rgb: avifRGBImage = Default::default();
+            unsafe { avifRGBImageSetDefaults(&mut rgb, image) };
+            rgb.depth = 8;
+
+            unsafe {
+                avifRGBImageAllocatePixels(&mut rgb);
+                avifImageYUVToRGB(image, &mut rgb);
+            };
+
+            let pixels = unsafe {
+                std::slice::from_raw_parts(rgb.pixels, (rgb.width * rgb.height * 4) as usize)
+            };
+
+            result = Ok(ImageData::new(
+                rgb.width as usize,
+                rgb.height as usize,
+                pixels,
+            ));
+
+            unsafe { avifRGBImageFreePixels(&mut rgb) };
+        }
+
+        unsafe {
+            avifImageDestroy(image);
+        };
+
+        result
+    }
 }
 
 /// Encoder for images
@@ -517,6 +568,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
             OutputFormat::WebP => self.encode_webp(),
+            OutputFormat::Avif => self.encode_avif(),
         }
     }
 
@@ -579,6 +631,7 @@ impl<'a> Encoder<'a> {
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
             OutputFormat::WebP => self.encode_webp(),
+            OutputFormat::Avif => self.encode_avif(),
         }
     }
 
@@ -722,6 +775,20 @@ impl<'a> Encoder<'a> {
         .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
 
         Ok(data.to_owned())
+    }
+
+    fn encode_avif(&self) -> Result<Vec<u8>, EncodingError> {
+        info!("Encoding with AVIF");
+
+        let (width, height) = self.image_data.size();
+        let data = ravif::Img::new(self.image_data.data().as_rgba(), width, height);
+
+        Ok(ravif::Encoder::new()
+            .with_quality(self.config.quality)
+            .with_speed(6)
+            .encode_rgba(data)
+            .map_err(|e| EncodingError::Encoding(Box::new(e)))?
+            .avif_file)
     }
 }
 
@@ -982,6 +1049,34 @@ mod tests {
     }
 
     #[test]
+    fn decode_avif() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/.+.avif$").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let file = fs::File::open(path).unwrap();
+            let d = Decoder::new(path, file);
+
+            let img = d.decode().unwrap();
+            println!("{:?}", img.size());
+            println!("{:?}", img.data().len());
+
+            assert_ne!(img.data().len(), 0);
+            assert_ne!(img.size(), (0, 0));
+        })
+    }
+
+    #[test]
     fn encode_jpeg() {
         let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
             .unwrap()
@@ -1091,6 +1186,36 @@ mod tests {
             let image = Decoder::new(path, file).decode().unwrap();
 
             let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
+
+            let encoder = Encoder::new(&conf, image);
+            let result = encoder.encode();
+
+            assert!(result.is_ok());
+            let result = result.unwrap();
+            assert!(!result.is_empty());
+        })
+    }
+
+    #[test]
+    fn encode_avif() {
+        let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
+            .unwrap()
+            .map(|entry| {
+                let entry = entry.unwrap();
+                entry.path()
+            })
+            .filter(|path| {
+                let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
+                re.is_match(path.to_str().unwrap_or(""))
+            })
+            .collect();
+
+        files.iter().for_each(|path| {
+            println!("{path:?}");
+            let file = fs::File::open(path).unwrap();
+            let image = Decoder::new(path, file).decode().unwrap();
+
+            let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
 
             let encoder = Encoder::new(&conf, image);
             let result = encoder.encode();
