@@ -3,7 +3,7 @@ use std::{fs, io, path, process, sync::Arc};
 use clap::Parser;
 use glob::glob;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{debug, error, info};
+use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
 use rimage::{image::OutputFormat, Config, Decoder, Encoder};
@@ -23,7 +23,7 @@ static GLOBAL: MiMalloc = MiMalloc;
 /// Some utils functions
 mod utils;
 
-#[derive(Parser, Debug)]
+#[derive(Parser)]
 #[command(author, about, version, long_about = None)]
 struct Args {
     /// Input file(s)
@@ -69,7 +69,6 @@ fn main() {
     let mut args = Args::parse();
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     info!("Using {} threads", pool.max_count());
-    debug!("Args: {:?}", args);
 
     // Get all files from stdin if no input is given
     if args.input.is_empty() {
