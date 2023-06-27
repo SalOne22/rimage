@@ -42,6 +42,44 @@ impl ImageData {
     }
 }
 
+/// Image format for decoder
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputFormat {
+    /// Jpeg image
+    Jpeg,
+    /// Png image
+    Png,
+    /// WebP image
+    WebP,
+    /// AVIF image
+    Avif,
+}
+
+impl std::str::FromStr for InputFormat {
+    type Err = Cow<'static, str>;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "mozjpeg" | "jpg" | "jpeg" => Ok(InputFormat::Jpeg),
+            "png" => Ok(InputFormat::Png),
+            "webp" => Ok(InputFormat::WebP),
+            "avif" => Ok(InputFormat::Avif),
+            _ => Err(format!("{} is not a valid input format", s).into()),
+        }
+    }
+}
+
+impl fmt::Display for InputFormat {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            InputFormat::Jpeg => write!(f, "jpg"),
+            InputFormat::Png => write!(f, "png"),
+            InputFormat::WebP => write!(f, "webp"),
+            InputFormat::Avif => write!(f, "avif"),
+        }
+    }
+}
+
 /// Image format for output
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum OutputFormat {
