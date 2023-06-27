@@ -117,3 +117,4 @@ pub use decoder::Decoder;
 pub use encoder::Encoder;
 pub use memory_decoder::MemoryDecoder;
 pub use optimize::optimize;
+pub use optimize::optimize_from_memory;
