@@ -1,6 +1,7 @@
 use std::{fs, io, path, process, sync::Arc};
 
 use clap::Parser;
+use glob::glob;
 use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
@@ -28,7 +29,7 @@ struct Args {
     /// Input file(s)
     input: Vec<path::PathBuf>,
     /// Output directory
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "DIR", value_hint = clap::ValueHint::DirPath)]
     output: Option<path::PathBuf>,
     /// Quality of the output image (0-100)
     #[arg(short, long, default_value = "75")]
@@ -65,8 +66,7 @@ struct Args {
 
 fn main() {
     pretty_env_logger::init();
-    let mut args = Args::parse_from(wild::args_os());
-    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
+    let mut args = Args::parse();
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     info!("Using {} threads", pool.max_count());
 
@@ -81,7 +81,22 @@ fn main() {
             })
             .collect();
         info!("{} files read from stdin", args.input.len());
+    } else {
+        // Otherwise use glob pattern
+        let mut new_input = vec![];
+
+        for input_path in args.input {
+            let input_path = input_path.to_str().unwrap();
+            for path in glob(input_path).expect("Failed to read glob pattern") {
+                let path = path.unwrap();
+                new_input.push(path)
+            }
+        }
+
+        args.input = new_input;
     }
+
+    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
     let conf = Arc::new(
         Config::build(
