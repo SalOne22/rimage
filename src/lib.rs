@@ -18,7 +18,7 @@ cargo add rimage
 or add this to Cargo.toml:
 ```toml
 [dependencies]
-rimage = "0.2"
+rimage = "0.7"
 ```
 
 After that you can use this crate:
@@ -109,7 +109,9 @@ pub mod image;
 mod config;
 mod decoder;
 mod encoder;
+mod optimize;
 
 pub use config::Config;
 pub use decoder::Decoder;
 pub use encoder::Encoder;
+pub use optimize::optimize;
