@@ -33,6 +33,10 @@ pub struct Config {
     pub target_height: Option<usize>,
     /// Resize type for output image
     pub resize_type: Option<ResizeType>,
+    /// Quantization quality of output image
+    pub quantization_quality: Option<u8>,
+    /// Dithering level for output image
+    pub dithering_level: Option<f32>,
 }
 
 impl Config {
@@ -87,6 +91,8 @@ impl Config {
             target_width: width,
             target_height: height,
             resize_type,
+            quantization_quality: None,
+            dithering_level: None,
         })
     }
     /// Get quality
@@ -126,6 +132,8 @@ impl Default for Config {
             target_width: None,
             target_height: None,
             resize_type: Some(ResizeType::Lanczos3),
+            quantization_quality: None,
+            dithering_level: None,
         }
     }
 }
