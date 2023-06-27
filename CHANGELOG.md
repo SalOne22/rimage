@@ -1,3 +1,7 @@
+## v0.7.1
+
+- [Bugfix] Fixed extensions written in uppercase, now they are all normalized to lowercase
+
 ## v0.7.0
 
 - [Breaking Changes] Decoder now accept opened file as input
