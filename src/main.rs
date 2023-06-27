@@ -71,8 +71,8 @@ fn main() {
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
-    let conf = Arc::new(
-        Config::build(
+    let conf = Arc::new({
+        let mut temp = Config::build(
             args.quality,
             args.format,
             args.width,
@@ -82,8 +82,13 @@ fn main() {
         .unwrap_or_else(|e| {
             error!("{e}");
             process::exit(1);
-        }),
-    );
+        });
+
+        temp.quantization_quality = args.quantization;
+        temp.dithering_level = args.dithering;
+
+        temp
+    });
 
     let common_path = common_path(&args.input);
 
