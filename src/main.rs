@@ -65,7 +65,7 @@ struct Args {
 
 fn main() {
     pretty_env_logger::init();
-    let mut args = Args::parse_from(wild::args_os());
+    let mut args = Args::parse_from(wild::args());
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     info!("Using {} threads", pool.max_count());
