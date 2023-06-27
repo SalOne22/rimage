@@ -1,8 +1,9 @@
 use std::{fs, io, path, process, sync::Arc};
 
 use clap::Parser;
+use glob::glob;
 use indicatif::{ProgressBar, ProgressStyle};
-use log::{error, info};
+use log::{debug, error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
 use rimage::{image::OutputFormat, Config, Decoder, Encoder};
@@ -22,13 +23,13 @@ static GLOBAL: MiMalloc = MiMalloc;
 /// Some utils functions
 mod utils;
 
-#[derive(Parser)]
+#[derive(Parser, Debug)]
 #[command(author, about, version, long_about = None)]
 struct Args {
     /// Input file(s)
     input: Vec<path::PathBuf>,
     /// Output directory
-    #[arg(short, long)]
+    #[arg(short, long, value_name = "DIR", value_hint = clap::ValueHint::DirPath)]
     output: Option<path::PathBuf>,
     /// Quality of the output image (0-100)
     #[arg(short, long, default_value = "75")]
@@ -65,10 +66,10 @@ struct Args {
 
 fn main() {
     pretty_env_logger::init();
-    let mut args = Args::parse_from(wild::args());
-    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
+    let mut args = Args::parse();
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     info!("Using {} threads", pool.max_count());
+    debug!("Args: {:?}", args);
 
     // Get all files from stdin if no input is given
     if args.input.is_empty() {
@@ -81,7 +82,15 @@ fn main() {
             })
             .collect();
         info!("{} files read from stdin", args.input.len());
+    } else {
+        // Otherwise use glob pattern
+        args.input = glob(args.input[0].to_str().unwrap())
+            .expect("Failed to read glob pattern")
+            .map(|res| res.unwrap())
+            .collect();
     }
+
+    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
     let conf = Arc::new(
         Config::build(
