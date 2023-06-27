@@ -1523,6 +1523,7 @@ dependencies = [
  "bytemuck",
  "clap 4.3.8",
  "criterion",
+ "glob",
  "imagequant",
  "indicatif",
  "libavif-sys",
@@ -1541,7 +1542,6 @@ dependencies = [
  "simple-error",
  "threadpool",
  "tikv-jemallocator",
- "wild",
 ]
 
 [[package]]
