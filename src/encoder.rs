@@ -70,6 +70,18 @@ impl<'a> Encoder<'a> {
             self.resize()?;
         }
 
+        if self.config.quantization_quality.is_some() || self.config.dithering_level.is_some() {
+            let quantization = self.config.quantization_quality.unwrap_or(100);
+            let dithering = self.config.dithering_level.unwrap_or(1.0);
+
+            info!(
+                "Quantizing to {} with dithering {}",
+                quantization, dithering
+            );
+
+            self.quantize(quantization, dithering)?;
+        }
+
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
@@ -106,32 +118,7 @@ impl<'a> Encoder<'a> {
             self.resize()?;
         }
 
-        let mut liq = imagequant::new();
-
-        liq.set_speed(5)?;
-        liq.set_quality(0, quantization_quality)?;
-
-        let mut img = liq.new_image(
-            self.image_data.data().as_pixels(),
-            self.image_data.size().0,
-            self.image_data.size().1,
-            0.0,
-        )?;
-
-        let mut res = liq.quantize(&mut img)?;
-
-        res.set_dithering_level(dithering_level)?;
-
-        let (palette, pixels) = res.remapped(&mut img)?;
-
-        let mut data = Vec::with_capacity(pixels.len() * 4);
-
-        pixels.iter().for_each(|pix| {
-            let color = palette[*pix as usize];
-            data.extend_from_slice(&[color.r, color.g, color.b, color.a]);
-        });
-
-        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, &data);
+        self.quantize(quantization_quality, dithering_level)?;
 
         match self.config.output_format {
             OutputFormat::Png => self.encode_png(),
@@ -191,6 +178,41 @@ impl<'a> Encoder<'a> {
         resizer.resize(self.image_data.data().as_rgba(), &mut dest)?;
 
         self.image_data = ImageData::new(target_width, target_height, dest.as_bytes());
+
+        Ok(())
+    }
+
+    fn quantize(
+        &mut self,
+        quantization_quality: u8,
+        dithering_level: f32,
+    ) -> Result<(), EncodingError> {
+        let mut liq = imagequant::new();
+
+        liq.set_speed(5)?;
+        liq.set_quality(0, quantization_quality)?;
+
+        let mut img = liq.new_image(
+            self.image_data.data().as_pixels(),
+            self.image_data.size().0,
+            self.image_data.size().1,
+            0.0,
+        )?;
+
+        let mut res = liq.quantize(&mut img)?;
+
+        res.set_dithering_level(dithering_level)?;
+
+        let (palette, pixels) = res.remapped(&mut img)?;
+
+        let mut data = Vec::with_capacity(pixels.len() * 4);
+
+        pixels.iter().for_each(|pix| {
+            let color = palette[*pix as usize];
+            data.extend_from_slice(&[color.r, color.g, color.b, color.a]);
+        });
+
+        self.image_data = ImageData::new(self.image_data.size().0, self.image_data.size().1, &data);
 
         Ok(())
     }
