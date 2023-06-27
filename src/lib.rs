@@ -109,9 +109,11 @@ pub mod image;
 mod config;
 mod decoder;
 mod encoder;
+mod memory_decoder;
 mod optimize;
 
 pub use config::Config;
 pub use decoder::Decoder;
 pub use encoder::Encoder;
+pub use memory_decoder::MemoryDecoder;
 pub use optimize::optimize;
