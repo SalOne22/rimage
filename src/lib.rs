@@ -341,7 +341,7 @@ impl<'a> Decoder<'a> {
             }
         };
 
-        match extension.to_str() {
+        match extension.to_ascii_lowercase().to_str() {
             Some("jpg") | Some("jpeg") => self.decode_jpeg(),
             Some("png") => self.decode_png(),
             Some("webp") => self.decode_webp(),
