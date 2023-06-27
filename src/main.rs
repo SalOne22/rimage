@@ -83,10 +83,17 @@ fn main() {
         info!("{} files read from stdin", args.input.len());
     } else {
         // Otherwise use glob pattern
-        args.input = glob(args.input[0].to_str().unwrap())
-            .expect("Failed to read glob pattern")
-            .map(|res| res.unwrap())
-            .collect();
+        let mut new_input = vec![];
+
+        for input_path in args.input {
+            let input_path = input_path.to_str().unwrap();
+            for path in glob(input_path).expect("Failed to read glob pattern") {
+                let path = path.unwrap();
+                new_input.push(path)
+            }
+        }
+
+        args.input = new_input;
     }
 
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
