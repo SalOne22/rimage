@@ -92,7 +92,7 @@ impl Config {
     ///
     /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.quality(), 75.0);
-    /// ```
+    /// ```    
     #[inline]
     pub fn quality(&self) -> f32 {
         self.quality
@@ -108,6 +108,16 @@ impl Config {
     /// config.set_quality(80.0);
     ///
     /// assert_eq!(config.quality(), 80.0);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// If quality is not in range 0.0..=100.0
+    ///
+    /// ```
+    /// # use rimage::{Config, OutputFormat};
+    /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert!(config.set_quality(200.0).is_err());
     /// ```
     #[inline]
     pub fn set_quality(&mut self, quality: f32) -> Result<(), ConfigError> {
@@ -159,6 +169,16 @@ impl Config {
     ///
     /// assert_eq!(config.target_width(), Some(150));
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// If width is equals to 0
+    ///
+    /// ```
+    /// # use rimage::{Config, OutputFormat};
+    /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert!(config.set_target_width(Some(0)).is_err());
+    /// ```
     #[inline]
     pub fn set_target_width(&mut self, width: Option<usize>) -> Result<(), ConfigError> {
         if let Some(width) = width {
@@ -198,6 +218,16 @@ impl Config {
     ///
     /// assert_eq!(config.target_height(), Some(150));
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// If height is equals to 0
+    ///
+    /// ```
+    /// # use rimage::{Config, OutputFormat};
+    /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert!(config.set_target_height(Some(0)).is_err());
+    /// ```
     #[inline]
     pub fn set_target_height(&mut self, height: Option<usize>) -> Result<(), ConfigError> {
         if let Some(height) = height {
@@ -234,6 +264,16 @@ impl Config {
     ///
     /// assert_eq!(config.quantization_quality(), Some(80));
     /// ```
+    ///
+    /// # Errors
+    ///
+    /// If quantization quality is not in range 0..=100
+    ///
+    /// ```
+    /// # use rimage::{Config, OutputFormat};
+    /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert!(config.set_quantization_quality(Some(220)).is_err());
+    /// ```
     #[inline]
     pub fn set_quantization_quality(&mut self, quality: Option<u8>) -> Result<(), ConfigError> {
         if let Some(quality) = quality {
@@ -269,6 +309,16 @@ impl Config {
     /// config.set_quality(80.0);
     ///
     /// assert_eq!(config.quality(), 80.0);
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// If dithering level is not in range 0.0..=1.0
+    ///
+    /// ```
+    /// # use rimage::{Config, OutputFormat};
+    /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// assert!(config.set_dithering_level(Some(30.0)).is_err());
     /// ```
     #[inline]
     pub fn set_dithering_level(&mut self, dithering_level: Option<f32>) -> Result<(), ConfigError> {
