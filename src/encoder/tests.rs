@@ -118,8 +118,8 @@ fn resize_image() {
 
     let mut conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
-    conf.set_target_width(Some(150)).unwrap();
-    conf.set_target_height(Some(150)).unwrap();
+    conf.set_target_width(Some(50)).unwrap();
+    conf.set_target_height(Some(50)).unwrap();
 
     let mut encoder = Encoder::new(&conf, image);
 
