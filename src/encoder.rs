@@ -65,14 +65,14 @@ impl<'a> Encoder<'a> {
     ///
     /// Returns [`EncodingError`] if encoding failed
     pub fn encode(mut self) -> Result<Vec<u8>, EncodingError> {
-        if self.config.target_height.is_some() || self.config.target_width.is_some() {
+        if self.config.target_height().is_some() || self.config.target_width().is_some() {
             info!("Resizing image");
             self.resize()?;
         }
 
-        if self.config.quantization_quality.is_some() || self.config.dithering_level.is_some() {
-            let quantization = self.config.quantization_quality.unwrap_or(100);
-            let dithering = self.config.dithering_level.unwrap_or(1.0);
+        if self.config.quantization_quality().is_some() || self.config.dithering_level().is_some() {
+            let quantization = self.config.quantization_quality().unwrap_or(100);
+            let dithering = self.config.dithering_level().unwrap_or(1.0);
 
             info!(
                 "Quantizing to {} with dithering {}",
@@ -114,7 +114,7 @@ impl<'a> Encoder<'a> {
         quantization_quality: u8,
         dithering_level: f32,
     ) -> Result<Vec<u8>, EncodingError> {
-        if self.config.target_height.is_some() || self.config.target_width.is_some() {
+        if self.config.target_height().is_some() || self.config.target_width().is_some() {
             self.resize()?;
         }
 
@@ -137,15 +137,15 @@ impl<'a> Encoder<'a> {
 
         // If target width or height is not set, calculate it from the other
         // or use the original size
-        let target_width = self.config.target_width.unwrap_or(
+        let target_width = self.config.target_width().unwrap_or(
             self.config
-                .target_height
+                .target_height()
                 .map(|h| (h as f32 * aspect_ratio) as usize)
                 .unwrap_or(width),
         );
-        let target_height = self.config.target_height.unwrap_or(
+        let target_height = self.config.target_height().unwrap_or(
             self.config
-                .target_width
+                .target_width()
                 .map(|w| (w as f32 / aspect_ratio) as usize)
                 .unwrap_or(height),
         );
@@ -223,7 +223,7 @@ impl<'a> Encoder<'a> {
             let mut encoder = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
 
             encoder.set_size(self.image_data.size().0, self.image_data.size().1);
-            encoder.set_quality(self.config.quality);
+            encoder.set_quality(self.config.quality());
             encoder.set_progressive_mode();
             encoder.set_mem_dest();
             encoder.start_compress();
@@ -299,7 +299,7 @@ impl<'a> Encoder<'a> {
             width as u32,
             height as u32,
             (width * 4) as u32,
-            self.config.quality,
+            self.config.quality(),
         )
         .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
 
@@ -313,7 +313,7 @@ impl<'a> Encoder<'a> {
         let data = ravif::Img::new(self.image_data.data().as_rgba(), width, height);
 
         Ok(ravif::Encoder::new()
-            .with_quality(self.config.quality)
+            .with_quality(self.config.quality())
             .with_speed(6)
             .encode_rgba(data)
             .map_err(|e| EncodingError::Encoding(Box::new(e)))?

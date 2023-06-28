@@ -9,10 +9,10 @@ pub enum ConfigError {
     WidthIsZero,
     /// Height is 0
     HeightIsZero,
-    /// Size is 0
-    SizeIsZero,
-    /// Input is empty
-    InputIsEmpty,
+    /// Quantization quality is less than 0 or greater than 100
+    QuantizationQualityOutOfBounds,
+    /// Dithering level is less than 0 or greater than 1.0
+    DitheringLevelOutOfBounds,
 }
 
 impl Error for ConfigError {}
@@ -23,8 +23,12 @@ impl fmt::Display for ConfigError {
             ConfigError::QualityOutOfBounds => write!(f, "Quality is out of bounds"),
             ConfigError::WidthIsZero => write!(f, "Width cannot be zero"),
             ConfigError::HeightIsZero => write!(f, "Height cannot be zero"),
-            ConfigError::SizeIsZero => write!(f, "Size cannot be zero"),
-            ConfigError::InputIsEmpty => write!(f, "Input cannot be zero"),
+            ConfigError::QuantizationQualityOutOfBounds => {
+                write!(f, "Quantization quality is out of bounds")
+            }
+            ConfigError::DitheringLevelOutOfBounds => {
+                write!(f, "Dithering level is out of bounds")
+            }
         }
     }
 }

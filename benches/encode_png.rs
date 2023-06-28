@@ -34,10 +34,7 @@ fn bench_encode_png(c: &mut Criterion) {
     group.bench_function("Encoder", |b| {
         b.iter(|| {
             let data = rimage::Encoder::new(
-                black_box(
-                    &rimage::Config::build(75.0, rimage::OutputFormat::Oxipng, None, None, None)
-                        .unwrap(),
-                ),
+                black_box(&rimage::Config::build(75.0, rimage::OutputFormat::Oxipng).unwrap()),
                 black_box(image.clone()),
             )
             .encode()
