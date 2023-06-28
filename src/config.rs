@@ -7,10 +7,13 @@ use crate::{error::ConfigError, OutputFormat, ResizeType};
 /// use rimage::{Config, OutputFormat, ResizeType};
 ///
 /// // Without resize
-/// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+/// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
 ///
 /// // With resize
-/// let config_resize = Config::build(75.0, OutputFormat::MozJpeg, Some(200), Some(200), Some(ResizeType::Lanczos3)).unwrap();
+/// let mut config_resize = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+/// config_resize.set_target_width(Some(200)).unwrap();
+/// config_resize.set_target_height(Some(200)).unwrap();
+/// config_resize.resize_type = Some(ResizeType::Lanczos3);
 /// ```
 ///
 /// # Default
@@ -47,10 +50,13 @@ impl Config {
     /// use rimage::{Config, OutputFormat, ResizeType};
     ///
     /// // Without resize
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
     /// // With resize
-    /// let config_resize = Config::build(75.0, OutputFormat::MozJpeg, Some(200), Some(200), Some(ResizeType::Lanczos3)).unwrap();
+    /// let mut config_resize = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// config_resize.set_target_width(Some(200)).unwrap();
+    /// config_resize.set_target_height(Some(200)).unwrap();
+    /// config_resize.resize_type = Some(ResizeType::Lanczos3);
     /// ```
     ///
     /// # Errors
@@ -60,7 +66,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(200.0, OutputFormat::MozJpeg, None, None, None);
+    /// let config = Config::build(200.0, OutputFormat::MozJpeg);
     /// assert!(config.is_err());
     /// ```
     pub fn build(quality: f32, output_format: OutputFormat) -> Result<Self, ConfigError> {
@@ -84,7 +90,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.quality(), 75.0);
     /// ```
     #[inline]
@@ -97,7 +103,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
     /// config.set_quality(80.0);
     ///
@@ -118,7 +124,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
     /// ```
     #[inline]
@@ -131,7 +137,10 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, Some(175), Some(175), None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// config.set_target_width(Some(175)).unwrap();
+    /// config.set_target_height(Some(175)).unwrap();
+    ///
     /// assert_eq!(config.target_width(), Some(175));
     /// ```
     #[inline]
@@ -144,9 +153,9 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
-    /// config.set_target_width(150);
+    /// config.set_target_width(Some(150));
     ///
     /// assert_eq!(config.target_width(), Some(150));
     /// ```
@@ -167,7 +176,10 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, Some(175), Some(175), None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
+    /// config.set_target_width(Some(175)).unwrap();
+    /// config.set_target_height(Some(175)).unwrap();
+    ///
     /// assert_eq!(config.target_height(), Some(175));
     /// ```
     #[inline]
@@ -180,9 +192,9 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
-    /// config.set_target_height(150);
+    /// config.set_target_height(Some(150));
     ///
     /// assert_eq!(config.target_height(), Some(150));
     /// ```
@@ -203,7 +215,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.quantization_quality(), None);
     /// ```
     #[inline]
@@ -216,11 +228,11 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
-    /// config.set_quantization_quality(80.0);
+    /// config.set_quantization_quality(Some(80));
     ///
-    /// assert_eq!(config.quantization_quality(), Some(80.0));
+    /// assert_eq!(config.quantization_quality(), Some(80));
     /// ```
     #[inline]
     pub fn set_quantization_quality(&mut self, quality: Option<u8>) -> Result<(), ConfigError> {
@@ -239,7 +251,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.dithering_level(), None);
     /// ```
     #[inline]
@@ -252,7 +264,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, OutputFormat};
     ///
-    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
     /// config.set_quality(80.0);
     ///
