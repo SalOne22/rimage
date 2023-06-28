@@ -27,7 +27,7 @@ where
 
 #[test]
 fn encode_jpeg() {
-    let conf = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
 
     encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
@@ -38,7 +38,7 @@ fn encode_jpeg() {
 
 #[test]
 fn encode_png() {
-    let conf = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::Png).unwrap();
 
     encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
@@ -49,7 +49,7 @@ fn encode_png() {
 
 #[test]
 fn encode_oxipng() {
-    let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
     encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
@@ -60,7 +60,7 @@ fn encode_oxipng() {
 
 #[test]
 fn encode_webp() {
-    let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::WebP).unwrap();
 
     encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
@@ -71,7 +71,7 @@ fn encode_webp() {
 
 #[test]
 fn encode_avif() {
-    let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::Avif).unwrap();
 
     encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
@@ -87,7 +87,7 @@ fn encode_quantized() {
 
     let image = Decoder::new(&path, file).decode().unwrap();
 
-    let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
     let encoder = Encoder::new(&conf, image);
     let result = encoder.encode_quantized(50, 1.0);
@@ -104,7 +104,7 @@ fn encode_quantized_out_of_bounds() {
 
     let image = Decoder::new(&path, file).decode().unwrap();
 
-    let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+    let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
     let encoder = Encoder::new(&conf, image);
     let result = encoder.encode_quantized(120, 1.0);
@@ -116,7 +116,10 @@ fn resize_image() {
     let data = [255; 100 * 100 * 4];
     let image = ImageData::new(100, 100, &data);
 
-    let conf = Config::build(75.0, OutputFormat::Oxipng, Some(50), Some(50), None).unwrap();
+    let mut conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
+
+    conf.set_target_width(Some(150)).unwrap();
+    conf.set_target_height(Some(150)).unwrap();
 
     let mut encoder = Encoder::new(&conf, image);
 

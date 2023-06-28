@@ -12,10 +12,7 @@ fn bench_encode_webp(c: &mut Criterion) {
     c.bench_function("encode_webp", |b| {
         b.iter(|| {
             let data = rimage::Encoder::new(
-                black_box(
-                    &rimage::Config::build(75.0, rimage::OutputFormat::WebP, None, None, None)
-                        .unwrap(),
-                ),
+                black_box(&rimage::Config::build(75.0, rimage::OutputFormat::WebP).unwrap()),
                 black_box(image.clone()),
             )
             .encode()

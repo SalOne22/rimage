@@ -72,20 +72,34 @@ fn main() {
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
     let conf = Arc::new({
-        let mut temp = Config::build(
-            args.quality,
-            args.format,
-            args.width,
-            args.height,
-            args.filter.clone(),
-        )
-        .unwrap_or_else(|e| {
+        let mut temp = Config::build(args.quality, args.format).unwrap_or_else(|e| {
             error!("{e}");
             process::exit(1);
         });
 
-        temp.quantization_quality = args.quantization;
-        temp.dithering_level = args.dithering;
+        temp.set_target_width(args.width).unwrap_or_else(|e| {
+            error!("{e}");
+            process::exit(1);
+        });
+
+        temp.set_target_height(args.height).unwrap_or_else(|e| {
+            error!("{e}");
+            process::exit(1);
+        });
+
+        temp.resize_type = args.filter.clone();
+
+        temp.set_quantization_quality(args.quantization)
+            .unwrap_or_else(|e| {
+                error!("{e}");
+                process::exit(1);
+            });
+
+        temp.set_dithering_level(args.dithering)
+            .unwrap_or_else(|e| {
+                error!("{e}");
+                process::exit(1);
+            });
 
         temp
     });

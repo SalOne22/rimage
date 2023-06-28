@@ -26,9 +26,12 @@ fn display_config_error() {
         ConfigError::HeightIsZero.to_string(),
         "Height cannot be zero"
     );
-    assert_eq!(ConfigError::SizeIsZero.to_string(), "Size cannot be zero");
     assert_eq!(
-        ConfigError::InputIsEmpty.to_string(),
-        "Input cannot be zero"
-    )
+        ConfigError::QuantizationQualityOutOfBounds.to_string(),
+        "Quantization quality is out of bounds"
+    );
+    assert_eq!(
+        ConfigError::DitheringLevelOutOfBounds.to_string(),
+        "Dithering level is out of bounds"
+    );
 }
