@@ -1,159 +1,83 @@
 use std::{fs, path};
 
-use regex::Regex;
+use once_cell::sync::Lazy;
 
-use crate::Decoder;
+use crate::{test_utils::get_files_by_regex, Decoder};
 
 use super::*;
 
-#[test]
-fn encode_jpeg() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+static FILES: Lazy<Vec<path::PathBuf>> =
+    Lazy::new(|| get_files_by_regex(r"^tests/files/[^x].+\.png"));
 
+fn encode_files<F>(files: &[path::PathBuf], conf: &Config, callback: F)
+where
+    F: Fn(Result<Vec<u8>, EncodingError>),
+{
     files.iter().for_each(|path| {
         println!("{path:?}");
         let file = fs::File::open(path).unwrap();
         let image = Decoder::new(path, file).decode().unwrap();
 
-        let conf = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
+        let encoder = Encoder::new(conf, image);
         let result = encoder.encode();
 
+        callback(result);
+    })
+}
+
+#[test]
+fn encode_jpeg() {
+    let conf = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
+
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_png() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_oxipng() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_webp() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_avif() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]

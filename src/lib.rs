@@ -118,3 +118,6 @@ pub use encoder::Encoder;
 pub use memory_decoder::MemoryDecoder;
 pub use optimize::optimize;
 pub use optimize::optimize_from_memory;
+
+#[cfg(test)]
+pub mod test_utils;
