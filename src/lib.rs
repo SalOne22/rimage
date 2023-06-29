@@ -186,13 +186,6 @@ std::fs::write("output.jpg", data);
 */
 #![warn(missing_docs)]
 
-/// Decoders for images
-#[deprecated(since = "0.2.0", note = "use the Decoder struct instead")]
-pub mod decoders;
-/// Encoders for images
-#[deprecated(since = "0.2.0", note = "use the Encoder struct instead")]
-pub mod encoders;
-
 /// Errors that can occur during image processing
 pub mod error;
 
