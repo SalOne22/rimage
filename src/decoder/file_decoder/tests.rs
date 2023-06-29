@@ -1,6 +1,6 @@
-use std::fs;
+use std::{fs, path, str::FromStr};
 
-use crate::test_utils::get_files_by_regex;
+use crate::{image::ImageData, test_utils::get_files_by_regex};
 
 use super::*;
 
@@ -11,7 +11,15 @@ where
     files.iter().for_each(|path| {
         println!("{path:?}");
         let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode();
+        let extension = path
+            .extension()
+            .unwrap_or_default()
+            .to_str()
+            .unwrap_or_default();
+
+        let format = InputFormat::from_str(extension).unwrap();
+
+        let image = FileDecoder::new(file, format).decode();
 
         callback(image)
     });
@@ -22,8 +30,15 @@ fn decode_unsupported() {
     let path = path::Path::new("tests/files/test.bmp");
 
     let file = fs::File::open(path).unwrap();
+    let extension = path
+        .extension()
+        .unwrap_or_default()
+        .to_str()
+        .unwrap_or_default();
 
-    let decoder = Decoder::new(path, file);
+    let format = InputFormat::from_str(extension).unwrap();
+
+    let decoder = FileDecoder::new(file, format);
     let result = decoder.decode();
     assert!(result.is_err());
 }

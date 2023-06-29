@@ -1,10 +1,13 @@
-use crate::{error::ConfigError, OutputFormat, ResizeType};
+use crate::{
+    error::ConfigError,
+    image::{OutputFormat, ResizeType},
+};
 
 /// Config for image encoding
 ///
 /// # Example
 /// ```
-/// use rimage::{Config, OutputFormat, ResizeType};
+/// use rimage::{Config, image::{OutputFormat, ResizeType}};
 ///
 /// // Without resize
 /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
@@ -18,11 +21,11 @@ use crate::{error::ConfigError, OutputFormat, ResizeType};
 ///
 /// # Default
 /// ```
-/// use rimage::{Config, OutputFormat};
+/// use rimage::{Config, image::OutputFormat};
 ///
 /// let config = Config::default();
 /// assert_eq!(config.quality(), 75.0);
-/// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
+/// assert_eq!(config.output_format, OutputFormat::MozJpeg);
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -47,7 +50,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat, ResizeType};
+    /// use rimage::{Config, image::{OutputFormat, ResizeType}};
     ///
     /// // Without resize
     /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
@@ -64,7 +67,7 @@ impl Config {
     /// If quality is not in range 0.0..=100.0
     ///
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let config = Config::build(200.0, OutputFormat::MozJpeg);
     /// assert!(config.is_err());
@@ -88,7 +91,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.quality(), 75.0);
@@ -101,7 +104,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
@@ -115,7 +118,7 @@ impl Config {
     /// If quality is not in range 0.0..=100.0
     ///
     /// ```
-    /// # use rimage::{Config, OutputFormat};
+    /// # use rimage::{Config, image::OutputFormat};
     /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert!(config.set_quality(200.0).is_err());
     /// ```
@@ -132,7 +135,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// config.set_target_width(Some(175)).unwrap();
@@ -148,7 +151,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
@@ -162,7 +165,7 @@ impl Config {
     /// If width is equals to 0
     ///
     /// ```
-    /// # use rimage::{Config, OutputFormat};
+    /// # use rimage::{Config, image::OutputFormat};
     /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert!(config.set_target_width(Some(0)).is_err());
     /// ```
@@ -181,7 +184,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// config.set_target_width(Some(175)).unwrap();
@@ -197,7 +200,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
@@ -211,7 +214,7 @@ impl Config {
     /// If height is equals to 0
     ///
     /// ```
-    /// # use rimage::{Config, OutputFormat};
+    /// # use rimage::{Config, image::OutputFormat};
     /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert!(config.set_target_height(Some(0)).is_err());
     /// ```
@@ -230,7 +233,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.quantization_quality(), None);
@@ -243,7 +246,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
@@ -257,7 +260,7 @@ impl Config {
     /// If quantization quality is not in range 0..=100
     ///
     /// ```
-    /// # use rimage::{Config, OutputFormat};
+    /// # use rimage::{Config, image::OutputFormat};
     /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert!(config.set_quantization_quality(Some(220)).is_err());
     /// ```
@@ -276,7 +279,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert_eq!(config.dithering_level(), None);
@@ -289,7 +292,7 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, OutputFormat};
+    /// use rimage::{Config, image::OutputFormat};
     ///
     /// let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     ///
@@ -303,7 +306,7 @@ impl Config {
     /// If dithering level is not in range 0.0..=1.0
     ///
     /// ```
-    /// # use rimage::{Config, OutputFormat};
+    /// # use rimage::{Config, image::OutputFormat};
     /// # let mut config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
     /// assert!(config.set_dithering_level(Some(30.0)).is_err());
     /// ```

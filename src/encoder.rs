@@ -3,16 +3,19 @@ use std::panic;
 use log::info;
 use rgb::{AsPixels, ComponentBytes, FromSlice, RGBA};
 
-use crate::{error::EncodingError, Config, ImageData, OutputFormat, ResizeType};
+use crate::{
+    error::EncodingError,
+    image::{ImageData, OutputFormat, ResizeType},
+    Config,
+};
 
 /// Encoder for images
 ///
 /// # Example
 /// ```
-/// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+/// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
 /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-/// # let file = std::fs::File::open(&path).unwrap();
-/// # let decoder = rimage::Decoder::new(&path, file);
+/// # let decoder = rimage::Decoder::from_path(&path).unwrap();
 /// # let image = decoder.decode().unwrap();
 /// let config = Config::default();
 ///
@@ -31,10 +34,9 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let file = std::fs::File::open(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, file);
+    /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -49,10 +51,9 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let file = std::fs::File::open(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, file);
+    /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -94,10 +95,9 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let file = std::fs::File::open(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, file);
+    /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData

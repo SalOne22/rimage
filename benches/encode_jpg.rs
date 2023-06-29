@@ -4,9 +4,9 @@ use std::{
 };
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use rimage::Decoder;
 #[allow(deprecated)]
 use rimage::{decoders::decode_image, encoders::encode_image};
+use rimage::{image, Decoder};
 
 #[allow(deprecated)]
 fn bench_encode_jpg(c: &mut Criterion) {
@@ -14,8 +14,8 @@ fn bench_encode_jpg(c: &mut Criterion) {
 
     let (pixels, width, height) = decode_image(&PathBuf::from("tests/files/basi6a08.jpg")).unwrap();
 
-    let file = fs::File::open(&Path::new("tests/files/basi6a08.jpg")).unwrap();
-    let image = Decoder::new(black_box(&Path::new("tests/files/basi6a08.jpg")), file)
+    let image = Decoder::from_path(black_box(Path::new("tests/files/basi6a08.jpg")))
+        .unwrap()
         .decode()
         .unwrap();
 
@@ -34,7 +34,7 @@ fn bench_encode_jpg(c: &mut Criterion) {
     group.bench_function("Encoder", |b| {
         b.iter(|| {
             let data = rimage::Encoder::new(
-                black_box(&rimage::Config::build(75.0, rimage::OutputFormat::MozJpeg).unwrap()),
+                black_box(&rimage::Config::build(75.0, image::OutputFormat::MozJpeg).unwrap()),
                 black_box(image.clone()),
             )
             .encode()

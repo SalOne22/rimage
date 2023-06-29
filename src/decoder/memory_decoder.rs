@@ -3,104 +3,30 @@ use std::panic;
 use log::info;
 use rgb::{
     alt::{GRAY8, GRAYA8},
-    AsPixels, ComponentBytes, FromSlice, RGB8, RGBA8,
+    ComponentBytes, RGB8, RGBA8,
 };
 
-use crate::{error::DecodingError, image::InputFormat, ImageData};
+use crate::{
+    error::DecodingError,
+    image::{ImageData, InputFormat},
+};
 
-/// Decoder for images
-/// Takes input from memory
-///
-/// # Example
-/// ```
-/// # use std::io::Read;
-/// # use rimage::{MemoryDecoder, image::InputFormat};
-/// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-/// let mut file = std::fs::File::open(&path).unwrap();
-/// let metadata = file.metadata().unwrap();
-/// let mut data = Vec::with_capacity(metadata.len() as usize);
-/// file.read_to_end(&mut data);
-///
-/// let decoder = MemoryDecoder::new(&data, InputFormat::Jpeg);
-///
-/// // Decode image to image data
-/// let image = match decoder.decode() {
-///     Ok(img) => img,
-///     Err(e) => {
-///         eprintln!("Oh no there is error! {e}");
-///         std::process::exit(1);
-///     }
-/// };
-/// ```
+use super::Decode;
+
 pub struct MemoryDecoder<'a> {
     data: &'a [u8],
     format: InputFormat,
 }
 
 impl<'a> MemoryDecoder<'a> {
-    /// Create new decoder
-    ///
-    /// # Example
-    /// ```
-    /// # use std::io::Read;
-    /// # use rimage::{MemoryDecoder, image::InputFormat};
-    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// let mut file = std::fs::File::open(&path).unwrap();
-    /// let metadata = file.metadata().unwrap();
-    /// let mut data = Vec::with_capacity(metadata.len() as usize);
-    /// file.read_to_end(&mut data);
-    ///
-    /// let decoder = MemoryDecoder::new(&data, InputFormat::Jpeg);
-    /// ```
     #[inline]
     pub fn new(data: &'a [u8], format: InputFormat) -> Self {
         MemoryDecoder { data, format }
     }
+}
 
-    /// Decode image
-    ///
-    /// # Example
-    /// ```
-    /// # use std::io::Read;
-    /// # use rimage::{MemoryDecoder, image::InputFormat};
-    /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let mut file = std::fs::File::open(&path).unwrap();
-    /// # let metadata = file.metadata().unwrap();
-    /// # let mut data = Vec::with_capacity(metadata.len() as usize);
-    /// # file.read_to_end(&mut data);
-    /// # let decoder = MemoryDecoder::new(&data, InputFormat::Jpeg);
-    /// // Decode image to image data
-    /// let image = match decoder.decode() {
-    ///     Ok(img) => img,
-    ///     Err(e) => {
-    ///         eprintln!("Oh no there is error! {e}");
-    ///         std::process::exit(1);
-    ///     }
-    /// };
-    ///
-    /// // Do something with image data...
-    /// ```
-    ///
-    /// # Errors
-    ///
-    /// If image format is supported but there is error during decoding
-    ///
-    /// ```
-    /// # use std::io::Read;
-    /// # use rimage::{MemoryDecoder, image::InputFormat};
-    /// let path = std::path::PathBuf::from("tests/files/test_corrupted.jpg");
-    /// let mut file = std::fs::File::open(&path).unwrap();
-    /// let metadata = file.metadata().unwrap();
-    /// let mut data = Vec::with_capacity(metadata.len() as usize);
-    /// file.read_to_end(&mut data);
-    /// let decoder = MemoryDecoder::new(&data, InputFormat::Jpeg);
-    ///
-    /// let result = decoder.decode();
-    ///
-    /// assert!(result.is_err());
-    /// assert_eq!(result.unwrap_err().to_string(), "Parsing Error: Failed to decode jpeg");
-    /// ```
-    pub fn decode(self) -> Result<ImageData, DecodingError> {
+impl<'a> Decode for MemoryDecoder<'a> {
+    fn decode(self) -> Result<ImageData, DecodingError> {
         match self.format {
             InputFormat::Jpeg => self.decode_jpeg(),
             InputFormat::Png => self.decode_png(),
@@ -112,7 +38,7 @@ impl<'a> MemoryDecoder<'a> {
     fn decode_jpeg(self) -> Result<ImageData, DecodingError> {
         info!("Processing jpeg decoding");
         panic::catch_unwind(move || -> Result<ImageData, DecodingError> {
-            let d = mozjpeg::Decompress::new_mem(self.data)?;
+            let d = mozjpeg::Decompress::with_markers(mozjpeg::ALL_MARKERS).from_mem(self.data)?;
 
             let mut image = d.rgba()?;
 
@@ -132,17 +58,6 @@ impl<'a> MemoryDecoder<'a> {
         .unwrap_or(Err(DecodingError::Jpeg(
             "Failed to decode jpeg".to_string(),
         )))
-    }
-
-    fn expand_pixels<T: Copy>(buf: &mut [u8], to_rgba: impl Fn(T) -> RGBA8)
-    where
-        [u8]: AsPixels<T> + FromSlice<u8>,
-    {
-        assert!(std::mem::size_of::<T>() <= std::mem::size_of::<RGBA8>());
-        for i in (0..buf.len() / 4).rev() {
-            let src_pix = buf.as_pixels()[i];
-            buf.as_rgba_mut()[i] = to_rgba(src_pix);
-        }
     }
 
     fn decode_png(self) -> Result<ImageData, DecodingError> {
@@ -183,7 +98,7 @@ impl<'a> MemoryDecoder<'a> {
         Ok(ImageData::new(width as usize, height as usize, &buf))
     }
 
-    fn decode_avif(&self) -> Result<ImageData, DecodingError> {
+    fn decode_avif(self) -> Result<ImageData, DecodingError> {
         use libavif_sys::*;
 
         let image = unsafe { avifImageCreateEmpty() };

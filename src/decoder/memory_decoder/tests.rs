@@ -1,6 +1,6 @@
 use std::{fs, io::Read, path, str::FromStr};
 
-use crate::test_utils::get_files_by_regex;
+use crate::{image::ImageData, test_utils::get_files_by_regex};
 
 use super::*;
 

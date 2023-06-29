@@ -1,13 +1,13 @@
 use regex::Regex;
-use rimage::{Config, Decoder, Encoder, OutputFormat};
+use rimage::{image::OutputFormat, Config, Decoder, Encoder};
 use std::path::PathBuf;
 use std::{fs, path};
 
 #[test]
 fn test_image_processing_jpeg() {
     let path = PathBuf::from("tests/files/basi0g01.jpg");
-    let file = fs::File::open(&path).unwrap();
-    let decoder = Decoder::new(&path, file);
+
+    let decoder = Decoder::from_path(&path).unwrap();
     let image = decoder.decode().unwrap();
 
     let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
@@ -26,8 +26,8 @@ fn test_image_processing_jpeg() {
 #[test]
 fn test_image_processing_png() {
     let path = PathBuf::from("tests/files/basi0g01.png");
-    let file = fs::File::open(&path).unwrap();
-    let decoder = Decoder::new(&path, file);
+
+    let decoder = Decoder::from_path(&path).unwrap();
     let image = decoder.decode().unwrap();
 
     let config = Config::build(75.0, OutputFormat::Png).unwrap();
@@ -46,8 +46,8 @@ fn test_image_processing_png() {
 #[test]
 fn test_image_processing_oxipng() {
     let path = PathBuf::from("tests/files/basi0g01.png");
-    let file = fs::File::open(&path).unwrap();
-    let decoder = Decoder::new(&path, file);
+
+    let decoder = Decoder::from_path(&path).unwrap();
     let image = decoder.decode().unwrap();
 
     let config = Config::build(75.0, OutputFormat::Oxipng).unwrap();
@@ -78,8 +78,7 @@ fn test_bulk_image_processing_jpeg() {
         .collect();
 
     for path in files {
-        let file = fs::File::open(&path).unwrap();
-        let decoder = Decoder::new(&path, file);
+        let decoder = Decoder::from_path(&path).unwrap();
         let image = decoder.decode().unwrap();
 
         let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
@@ -113,8 +112,7 @@ fn test_bulk_image_processing_png() {
         .collect();
 
     for path in files {
-        let file = fs::File::open(&path).unwrap();
-        let decoder = Decoder::new(&path, file);
+        let decoder = Decoder::from_path(&path).unwrap();
         let image = decoder.decode().unwrap();
 
         let config = Config::build(75.0, OutputFormat::Png).unwrap();
@@ -148,8 +146,7 @@ fn test_bulk_image_processing_oxipng() {
         .collect();
 
     for path in files {
-        let file = fs::File::open(&path).unwrap();
-        let decoder = Decoder::new(&path, file);
+        let decoder = Decoder::from_path(&path).unwrap();
         let image = decoder.decode().unwrap();
 
         let config = Config::build(75.0, OutputFormat::Oxipng).unwrap();

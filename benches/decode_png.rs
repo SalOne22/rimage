@@ -1,7 +1,4 @@
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
 #[allow(deprecated)]
@@ -16,8 +13,9 @@ fn bench_decode_png(c: &mut Criterion) {
     });
     group.bench_function("Decoder", |b| {
         b.iter(|| {
-            let file = fs::File::open(&Path::new("tests/files/basi6a08.png")).unwrap();
-            Decoder::new(black_box(&Path::new("tests/files/basi6a08.png")), file).decode()
+            Decoder::from_path(black_box(Path::new("tests/files/basi6a08.png")))
+                .unwrap()
+                .decode()
         })
     });
     group.finish();
