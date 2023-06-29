@@ -71,38 +71,7 @@ fn main() {
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
-    let conf = Arc::new({
-        let mut temp = Config::build(args.quality, args.format).unwrap_or_else(|e| {
-            error!("{e}");
-            process::exit(1);
-        });
-
-        temp.set_target_width(args.width).unwrap_or_else(|e| {
-            error!("{e}");
-            process::exit(1);
-        });
-
-        temp.set_target_height(args.height).unwrap_or_else(|e| {
-            error!("{e}");
-            process::exit(1);
-        });
-
-        temp.resize_type = args.filter.clone();
-
-        temp.set_quantization_quality(args.quantization)
-            .unwrap_or_else(|e| {
-                error!("{e}");
-                process::exit(1);
-            });
-
-        temp.set_dithering_level(args.dithering)
-            .unwrap_or_else(|e| {
-                error!("{e}");
-                process::exit(1);
-            });
-
-        temp
-    });
+    let conf = Arc::new(get_config(&args));
 
     let common_path = common_path(&args.input);
 
@@ -193,6 +162,39 @@ fn get_info(args: Args, common_path: Option<path::PathBuf>) {
         println!("Data length: {:?}", img.data().len());
         println!();
     }
+}
+
+fn get_config(args: &Args) -> Config {
+    let mut conf = Config::build(args.quality, args.format).unwrap_or_else(|e| {
+        error!("{e}");
+        process::exit(1);
+    });
+
+    conf.set_target_width(args.width).unwrap_or_else(|e| {
+        error!("{e}");
+        process::exit(1);
+    });
+
+    conf.set_target_height(args.height).unwrap_or_else(|e| {
+        error!("{e}");
+        process::exit(1);
+    });
+
+    conf.resize_type = args.filter.clone();
+
+    conf.set_quantization_quality(args.quantization)
+        .unwrap_or_else(|e| {
+            error!("{e}");
+            process::exit(1);
+        });
+
+    conf.set_dithering_level(args.dithering)
+        .unwrap_or_else(|e| {
+            error!("{e}");
+            process::exit(1);
+        });
+
+    conf
 }
 
 fn bulk_optimize(
