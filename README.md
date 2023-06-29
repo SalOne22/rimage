@@ -21,6 +21,7 @@ rimage -q 75 *.jpg
 - Quality: `-q 0` through `-q 100`, higher is better
 - Output format: `-f png`, currently supported only jpg, png, oxipng and webp
 - Output directory: `-o /somewhere`, saves all processed files in this directory, also saves files directory structure
+   > Note: On windows, if you path contains spaces, please remove backslash before the closing quote. More info [here](https://stackoverflow.com/questions/75848743/how-to-handle-paths-with-spaces-when-passing-arguments-to-a-rust-cli-program-on)
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
 - Threads: `-t 4`, number of threads to use
