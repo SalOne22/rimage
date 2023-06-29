@@ -76,6 +76,3 @@ pub enum EncodingError {
     #[error(transparent)]
     Avif(#[from] ravif::Error),
 }
-
-#[cfg(test)]
-mod tests;
