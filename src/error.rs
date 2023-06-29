@@ -6,7 +6,7 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum ConfigError {
     /// Quality is less than 0 or greater than 100
-    #[error("{0} is out of range from 0 to 100")]
+    #[error("Quality {0} is out of range from 0 to 100")]
     QualityOutOfBounds(f32),
     /// Width is 0
     #[error("Width cannot be zero")]
@@ -15,10 +15,10 @@ pub enum ConfigError {
     #[error("Height cannot be zero")]
     HeightIsZero,
     /// Quantization quality is less than 0 or greater than 100
-    #[error("{0} is out of range from 0 to 100")]
+    #[error("Quantization quality {0} is out of range from 0 to 100")]
     QuantizationQualityOutOfBounds(u8),
     /// Dithering level is less than 0 or greater than 1.0
-    #[error("{0} is out of range from 0 to 1.0")]
+    #[error("Dithering level {0} is out of range from 0 to 1.0")]
     DitheringLevelOutOfBounds(f32),
 }
 
