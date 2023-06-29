@@ -5,7 +5,6 @@ use rgb::{
     alt::{GRAY8, GRAYA8},
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA8,
 };
-use simple_error::SimpleError;
 
 use crate::{error::DecodingError, image::InputFormat, ImageData};
 
@@ -117,12 +116,9 @@ impl<'a> MemoryDecoder<'a> {
 
             let mut image = d.rgba()?;
 
-            let data: Vec<RGBA8> =
-                image
-                    .read_scanlines()
-                    .ok_or(DecodingError::Parsing(Box::new(SimpleError::new(
-                        "Failed to read scanlines",
-                    ))))?;
+            let data: Vec<RGBA8> = image
+                .read_scanlines()
+                .ok_or(DecodingError::Jpeg("Failed to read scanlines".to_string()))?;
 
             info!("JPEG Color space: {:?}", image.color_space());
             info!("Dimensions: {}x{}", image.width(), image.height());
@@ -133,9 +129,9 @@ impl<'a> MemoryDecoder<'a> {
                 data.as_bytes(),
             ))
         })
-        .unwrap_or(Err(DecodingError::Parsing(Box::new(SimpleError::new(
-            "Failed to decode jpeg",
-        )))))
+        .unwrap_or(Err(DecodingError::Jpeg(
+            "Failed to decode jpeg".to_string(),
+        )))
     }
 
     fn expand_pixels<T: Copy>(buf: &mut [u8], to_rgba: impl Fn(T) -> RGBA8)
@@ -172,9 +168,9 @@ impl<'a> MemoryDecoder<'a> {
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
             png::ColorType::Rgba => {}
             png::ColorType::Indexed => {
-                return Err(DecodingError::Parsing(Box::new(SimpleError::new(
-                    "Indexed color type is not supported",
-                ))))
+                return Err(DecodingError::Parsing(
+                    "Indexed color type is not supported".to_string(),
+                ))
             }
         }
 
@@ -196,9 +192,7 @@ impl<'a> MemoryDecoder<'a> {
             unsafe { avifDecoderReadMemory(decoder, image, self.data.as_ptr(), self.data.len()) };
         unsafe { avifDecoderDestroy(decoder) };
 
-        let mut result = Err(DecodingError::Parsing(Box::new(SimpleError::new(
-            "Failed to decode avif",
-        ))));
+        let mut result = Err(DecodingError::Avif("Failed to decode avif".to_string()));
 
         if decode_result == AVIF_RESULT_OK {
             let mut rgb: avifRGBImage = Default::default();

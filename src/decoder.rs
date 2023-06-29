@@ -5,7 +5,6 @@ use rgb::{
     alt::{GRAY8, GRAYA8},
     AsPixels, ComponentBytes, FromSlice, RGB8, RGBA8,
 };
-use simple_error::SimpleError;
 
 use crate::{error::DecodingError, ImageData};
 
@@ -103,11 +102,7 @@ impl<'a> Decoder<'a> {
     pub fn decode(self) -> Result<ImageData, DecodingError> {
         let extension = match self.path.extension() {
             Some(ext) => ext,
-            None => {
-                return Err(DecodingError::Format(Box::new(SimpleError::new(
-                    "No extension",
-                ))))
-            }
+            None => return Err(DecodingError::Format("No extension".to_string())),
         };
 
         match extension.to_ascii_lowercase().to_str() {
@@ -115,13 +110,10 @@ impl<'a> Decoder<'a> {
             Some("png") => self.decode_png(),
             Some("webp") => self.decode_webp(),
             Some("avif") => self.decode_avif(),
-            Some(ext) => Err(DecodingError::Format(Box::new(SimpleError::new(format!(
-                "{} not supported",
-                ext
-            ))))),
-            None => Err(DecodingError::Parsing(Box::new(SimpleError::new(
-                "Failed to get extension",
-            )))),
+            Some(ext) => Err(DecodingError::Format(ext.to_string())),
+            None => Err(DecodingError::Parsing(
+                "Failed to get extension".to_string(),
+            )),
         }
     }
 
@@ -144,12 +136,9 @@ impl<'a> Decoder<'a> {
 
             let mut image = d.rgba()?;
 
-            let data: Vec<RGBA8> =
-                image
-                    .read_scanlines()
-                    .ok_or(DecodingError::Parsing(Box::new(SimpleError::new(
-                        "Failed to read scanlines",
-                    ))))?;
+            let data: Vec<RGBA8> = image
+                .read_scanlines()
+                .ok_or(DecodingError::Jpeg("Failed to read scanlines".to_string()))?;
 
             info!("JPEG Color space: {:?}", image.color_space());
             info!("Dimensions: {}x{}", image.width(), image.height());
@@ -160,9 +149,9 @@ impl<'a> Decoder<'a> {
                 data.as_bytes(),
             ))
         })
-        .unwrap_or(Err(DecodingError::Parsing(Box::new(SimpleError::new(
-            "Failed to decode jpeg",
-        )))))
+        .unwrap_or(Err(DecodingError::Jpeg(
+            "Failed to decode jpeg".to_string(),
+        )))
     }
 
     fn expand_pixels<T: Copy>(buf: &mut [u8], to_rgba: impl Fn(T) -> RGBA8)
@@ -199,9 +188,9 @@ impl<'a> Decoder<'a> {
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
             png::ColorType::Rgba => {}
             png::ColorType::Indexed => {
-                return Err(DecodingError::Parsing(Box::new(SimpleError::new(
-                    "Indexed color type is not supported",
-                ))))
+                return Err(DecodingError::Parsing(
+                    "Indexed color type is not supported".to_string(),
+                ))
             }
         }
 
@@ -227,15 +216,13 @@ impl<'a> Decoder<'a> {
                 decoder,
                 image,
                 CString::new(self.path.to_str().unwrap())
-                    .map_err(|e| DecodingError::Parsing(Box::new(e)))?
+                    .map_err(|e| DecodingError::Parsing(e.to_string()))?
                     .as_ptr(),
             )
         };
         unsafe { avifDecoderDestroy(decoder) };
 
-        let mut result = Err(DecodingError::Parsing(Box::new(SimpleError::new(
-            "Failed to decode avif",
-        ))));
+        let mut result = Err(DecodingError::Avif("Failed to decode avif".to_string()));
 
         if decode_result == AVIF_RESULT_OK {
             let mut rgb: avifRGBImage = Default::default();

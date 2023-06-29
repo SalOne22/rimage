@@ -1,25 +1,22 @@
-use simple_error::SimpleError;
-
 use super::*;
 
 #[test]
 fn display_decoder_error() {
     assert_eq!(
-        DecodingError::IoError(io::Error::new(io::ErrorKind::NotFound, "path not found"))
-            .to_string(),
-        "IO Error: path not found"
+        DecodingError::IO(io::Error::new(io::ErrorKind::NotFound, "path not found")).to_string(),
+        "path not found"
     );
     assert_eq!(
-        DecodingError::Format(Box::new(SimpleError::new("webp not supported"))).to_string(),
-        "Format Error: webp not supported"
+        DecodingError::Format("webp".to_string()).to_string(),
+        "webp is not supported"
     );
 }
 
 #[test]
 fn display_config_error() {
     assert_eq!(
-        ConfigError::QualityOutOfBounds.to_string(),
-        "Quality is out of bounds"
+        ConfigError::QualityOutOfBounds(200.0).to_string(),
+        "200 is out of range from 0 to 100"
     );
     assert_eq!(ConfigError::WidthIsZero.to_string(), "Width cannot be zero");
     assert_eq!(
@@ -27,11 +24,11 @@ fn display_config_error() {
         "Height cannot be zero"
     );
     assert_eq!(
-        ConfigError::QuantizationQualityOutOfBounds.to_string(),
-        "Quantization quality is out of bounds"
+        ConfigError::QuantizationQualityOutOfBounds(200).to_string(),
+        "200 is out of range from 0 to 100"
     );
     assert_eq!(
-        ConfigError::DitheringLevelOutOfBounds.to_string(),
-        "Dithering level is out of bounds"
+        ConfigError::DitheringLevelOutOfBounds(2.0).to_string(),
+        "2 is out of range from 0 to 1.0"
     );
 }
