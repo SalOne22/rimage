@@ -2,7 +2,6 @@ use std::panic;
 
 use log::info;
 use rgb::{AsPixels, ComponentBytes, FromSlice, RGBA};
-use simple_error::SimpleError;
 
 use crate::{error::EncodingError, Config, ImageData, OutputFormat, ResizeType};
 
@@ -230,14 +229,15 @@ impl<'a> Encoder<'a> {
             encoder.write_scanlines(self.image_data.data());
             encoder.finish_compress();
 
-            encoder.data_to_vec().map_err(|_| {
-                EncodingError::Encoding(Box::new(SimpleError::new("Failed to convert data to vec")))
-            })
+            encoder
+                .data_to_vec()
+                .map_err(|_| EncodingError::Jpeg("Failed to convert data to vec".to_string()))
         })
         .unwrap_or_else(|e| {
-            Err(EncodingError::Encoding(Box::new(SimpleError::new(
-                format!("Failed to encode image: {:?}", e),
-            ))))
+            Err(EncodingError::Jpeg(format!(
+                "Failed to decode jpeg: {:?}",
+                e
+            )))
         })
     }
 
@@ -286,8 +286,10 @@ impl<'a> Encoder<'a> {
 
         info!("Encoded {} bytes (Not optimized)", buf.len());
 
-        oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
-            .map_err(|e| EncodingError::Encoding(Box::new(e)))
+        Ok(oxipng::optimize_from_memory(
+            &buf,
+            &oxipng::Options::default(),
+        )?)
     }
 
     fn encode_webp(&self) -> Result<Vec<u8>, EncodingError> {
@@ -300,8 +302,7 @@ impl<'a> Encoder<'a> {
             height as u32,
             (width * 4) as u32,
             self.config.quality(),
-        )
-        .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
+        )?;
 
         Ok(data.to_owned())
     }
@@ -315,8 +316,7 @@ impl<'a> Encoder<'a> {
         Ok(ravif::Encoder::new()
             .with_quality(self.config.quality())
             .with_speed(6)
-            .encode_rgba(data)
-            .map_err(|e| EncodingError::Encoding(Box::new(e)))?
+            .encode_rgba(data)?
             .avif_file)
     }
 }

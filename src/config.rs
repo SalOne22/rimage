@@ -71,7 +71,7 @@ impl Config {
     /// ```
     pub fn build(quality: f32, output_format: OutputFormat) -> Result<Self, ConfigError> {
         if !(0.0..=100.0).contains(&quality) {
-            return Err(ConfigError::QualityOutOfBounds);
+            return Err(ConfigError::QualityOutOfBounds(quality));
         }
 
         Ok(Config {
@@ -122,7 +122,7 @@ impl Config {
     #[inline]
     pub fn set_quality(&mut self, quality: f32) -> Result<(), ConfigError> {
         if !(0.0..=100.0).contains(&quality) {
-            return Err(ConfigError::QualityOutOfBounds);
+            return Err(ConfigError::QualityOutOfBounds(quality));
         }
 
         self.quality = quality;
@@ -278,7 +278,7 @@ impl Config {
     pub fn set_quantization_quality(&mut self, quality: Option<u8>) -> Result<(), ConfigError> {
         if let Some(quality) = quality {
             if !(0..=100).contains(&quality) {
-                return Err(ConfigError::QuantizationQualityOutOfBounds);
+                return Err(ConfigError::QuantizationQualityOutOfBounds(quality));
             }
         }
 
@@ -324,7 +324,7 @@ impl Config {
     pub fn set_dithering_level(&mut self, dithering_level: Option<f32>) -> Result<(), ConfigError> {
         if let Some(dithering_level) = dithering_level {
             if !(0.0..=1.0).contains(&dithering_level) {
-                return Err(ConfigError::DitheringLevelOutOfBounds);
+                return Err(ConfigError::DitheringLevelOutOfBounds(dithering_level));
             }
         }
 
