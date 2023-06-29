@@ -128,19 +128,6 @@ impl Config {
         self.quality = quality;
         Ok(())
     }
-    /// Get output format
-    ///
-    /// # Example
-    /// ```
-    /// use rimage::{Config, OutputFormat};
-    ///
-    /// let config = Config::build(75.0, OutputFormat::MozJpeg).unwrap();
-    /// assert_eq!(config.output_format(), &OutputFormat::MozJpeg);
-    /// ```
-    #[inline]
-    pub fn output_format(&self) -> &OutputFormat {
-        &self.output_format
-    }
     /// Get target width
     ///
     /// # Example
