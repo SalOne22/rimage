@@ -1,4 +1,4 @@
-use std::{fs, path};
+use std::path;
 
 use once_cell::sync::Lazy;
 
@@ -15,8 +15,7 @@ where
 {
     files.iter().for_each(|path| {
         println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
+        let image = Decoder::from_path(path).unwrap().decode().unwrap();
 
         let encoder = Encoder::new(conf, image);
         let result = encoder.encode();
@@ -83,9 +82,8 @@ fn encode_avif() {
 #[test]
 fn encode_quantized() {
     let path = path::PathBuf::from("tests/files/basi2c08.png");
-    let file = fs::File::open(&path).unwrap();
 
-    let image = Decoder::new(&path, file).decode().unwrap();
+    let image = Decoder::from_path(&path).unwrap().decode().unwrap();
 
     let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 
@@ -100,9 +98,8 @@ fn encode_quantized() {
 #[test]
 fn encode_quantized_out_of_bounds() {
     let path = path::PathBuf::from("tests/files/basi2c08.png");
-    let file = fs::File::open(&path).unwrap();
 
-    let image = Decoder::new(&path, file).decode().unwrap();
+    let image = Decoder::from_path(&path).unwrap().decode().unwrap();
 
     let conf = Config::build(75.0, OutputFormat::Oxipng).unwrap();
 

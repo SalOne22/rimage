@@ -2,7 +2,7 @@ use std::{error::Error, fs, path};
 
 use log::info;
 
-use crate::{image::InputFormat, Config, Decoder, Encoder, MemoryDecoder};
+use crate::{decoder::Decoder, image::InputFormat, Config, Encoder};
 
 /// Optimizes one image with provided config
 ///
@@ -29,7 +29,7 @@ pub fn optimize(image_path: &path::Path, config: &Config) -> Result<Vec<u8>, Box
 
     info!("read {} bytes", file.metadata().unwrap().len());
 
-    let d = Decoder::new(image_path, file);
+    let d = Decoder::from_path(image_path)?;
     let e = Encoder::new(config, d.decode()?);
 
     Ok(e.encode()?)
@@ -66,7 +66,7 @@ pub fn optimize_from_memory(
     input_format: InputFormat,
     config: &Config,
 ) -> Result<Vec<u8>, Box<dyn Error>> {
-    let d = MemoryDecoder::new(data, input_format);
+    let d = Decoder::from_mem(data, input_format);
     let e = Encoder::new(config, d.decode()?);
 
     Ok(e.encode()?)

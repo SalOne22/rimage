@@ -130,15 +130,13 @@ fn get_args() -> Args {
 
 fn get_info(args: Args, common_path: Option<path::PathBuf>) {
     for path in args.input {
-        let file = match fs::File::open(&path) {
+        let d = match Decoder::from_path(&path) {
             Ok(file) => file,
             Err(e) => {
                 error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                 continue;
             }
         };
-
-        let d = Decoder::new(&path, file);
 
         let img = match d.decode() {
             Ok(img) => img,
