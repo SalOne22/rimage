@@ -54,7 +54,7 @@ impl Decoder {
     /// let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
     /// let file = std::fs::File::open(&path).unwrap();
     ///
-    /// let decoder = Decoder::new(&path, file).unwrap();
+    /// let decoder = Decoder::new(&path, file);
     /// ```
     ///
     /// # Panics
