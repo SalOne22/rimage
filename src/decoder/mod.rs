@@ -62,10 +62,7 @@ impl Decoder {
     /// Can return error if file format is not supported
     #[allow(clippy::new_ret_no_self)]
     #[deprecated(since = "0.8.0", note = "use the from_path function")]
-    pub fn new(
-        path: &path::Path,
-        file: fs::File,
-    ) -> Result<GenericDecoder<FileDecoder>, DecodingError> {
+    pub fn new(path: &path::Path, file: fs::File) -> GenericDecoder<FileDecoder> {
         let extension = path
             .extension()
             .unwrap_or_default()
@@ -73,9 +70,10 @@ impl Decoder {
             .unwrap_or_default();
 
         let format = InputFormat::from_str(extension)
-            .map_err(|_| DecodingError::Format(extension.to_string()))?;
+            .map_err(|_| DecodingError::Format(extension.to_string()))
+            .expect("Failed to get file format");
 
-        Ok(Self::from_file(file, format))
+        Self::from_file(file, format)
     }
     /// Builds Decoder from file path
     ///
