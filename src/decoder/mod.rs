@@ -57,9 +57,9 @@ impl Decoder {
     /// let decoder = Decoder::new(&path, file).unwrap();
     /// ```
     ///
-    /// # Errors
+    /// # Panics
     ///
-    /// Can return error if file format is not supported
+    /// Can panic if file format is not supported
     #[allow(clippy::new_ret_no_self)]
     #[deprecated(since = "0.8.0", note = "use the from_path function")]
     pub fn new(path: &path::Path, file: fs::File) -> GenericDecoder<FileDecoder> {
