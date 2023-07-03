@@ -27,7 +27,7 @@ clap = { version = "4.3.8", features = ["derive"] }
 imagequant = "4.2.0"
 indicatif = "0.17.5"
 log = "0.4.19"
-mozjpeg = "0.9.4"
+mozjpeg = "0.9.6"
 num_cpus = "1.15.0"
 oxipng = "8.0.0"
 png = "0.17.9"
