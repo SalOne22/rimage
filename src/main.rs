@@ -6,7 +6,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
-use rimage::{image::OutputFormat, optimize, Config, Decoder};
+use rimage::{error::ConfigError, image::OutputFormat, optimize, Config, Decoder};
 use threadpool::ThreadPool;
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
@@ -71,7 +71,10 @@ fn main() {
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
-    let conf = Arc::new(get_config(&args));
+    let conf = Arc::new(get_config(&args).unwrap_or_else(|err| {
+        error!("{err}");
+        process::exit(1);
+    }));
 
     let common_path = common_path(&args.input);
 
@@ -162,37 +165,15 @@ fn get_info(args: Args, common_path: Option<path::PathBuf>) {
     }
 }
 
-fn get_config(args: &Args) -> Config {
-    let mut conf = Config::build(args.quality, args.format).unwrap_or_else(|e| {
-        error!("{e}");
-        process::exit(1);
-    });
-
-    conf.set_target_width(args.width).unwrap_or_else(|e| {
-        error!("{e}");
-        process::exit(1);
-    });
-
-    conf.set_target_height(args.height).unwrap_or_else(|e| {
-        error!("{e}");
-        process::exit(1);
-    });
-
-    conf.resize_type = args.filter.clone();
-
-    conf.set_quantization_quality(args.quantization)
-        .unwrap_or_else(|e| {
-            error!("{e}");
-            process::exit(1);
-        });
-
-    conf.set_dithering_level(args.dithering)
-        .unwrap_or_else(|e| {
-            error!("{e}");
-            process::exit(1);
-        });
-
-    conf
+fn get_config(args: &Args) -> Result<Config, ConfigError> {
+    Ok(Config::new(args.format)
+        .quality(args.quality)?
+        .target_width(args.width)?
+        .target_height(args.height)?
+        .resize_type(args.filter)
+        .quantization_quality(args.quantization)?
+        .dithering_level(args.dithering)?
+        .build())
 }
 
 fn bulk_optimize(
