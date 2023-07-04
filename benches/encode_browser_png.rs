@@ -12,7 +12,7 @@ fn bench_encode_png(c: &mut Criterion) {
     c.bench_function("encode_browser_png", |b| {
         b.iter(|| {
             let data = rimage::Encoder::new(
-                black_box(&rimage::Config::build(75.0, image::OutputFormat::Png).unwrap()),
+                black_box(&rimage::Config::new(image::OutputFormat::Png).build()),
                 black_box(image.clone()),
             )
             .encode()

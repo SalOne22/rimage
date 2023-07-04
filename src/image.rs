@@ -123,7 +123,7 @@ impl fmt::Display for OutputFormat {
 }
 
 /// Wrapper around [`resize::Type`]
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Copy)]
 pub enum ResizeType {
     /// [`resize::Type::Point`]
     Point,

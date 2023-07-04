@@ -31,13 +31,7 @@ use rimage::{image::OutputFormat, optimize, Config};
 let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
 
 // Build config for encoding
-let config = match Config::build(75.0, OutputFormat::MozJpeg) {
-    Ok(config) => config,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let config = Config::new(OutputFormat::MozJpeg).build();
 
 // Get encoded image data from encoder
 let data = match optimize(&path, &config) {
@@ -66,13 +60,7 @@ let mut data = Vec::with_capacity(metadata.len() as usize);
 file.read_to_end(&mut data).unwrap();
 
 // Build config for encoding
-let config = match Config::build(75.0, OutputFormat::MozJpeg) {
-    Ok(config) => config,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let config = Config::new(OutputFormat::MozJpeg).build();
 
 // Get encoded image data from encoder
 let data = match optimize_from_memory(&data, InputFormat::Jpeg, &config) {
@@ -160,13 +148,7 @@ use rimage::{Config, Encoder, image::OutputFormat};
 # let image = decoder.decode().unwrap();
 
 // Build config for encoding
-let config = match Config::build(75.0, OutputFormat::MozJpeg) {
-    Ok(config) => config,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let config = Config::new(OutputFormat::MozJpeg).build();
 
 let encoder = Encoder::new(&config, image); // where image is image::ImageData
 

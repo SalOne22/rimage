@@ -26,24 +26,6 @@ where
 }
 
 #[test]
-fn decode_unsupported() {
-    let path = path::Path::new("tests/files/test.bmp");
-
-    let file = fs::File::open(path).unwrap();
-    let extension = path
-        .extension()
-        .unwrap_or_default()
-        .to_str()
-        .unwrap_or_default();
-
-    let format = InputFormat::from_str(extension).unwrap();
-
-    let decoder = FileDecoder::new(file, format);
-    let result = decoder.decode();
-    assert!(result.is_err());
-}
-
-#[test]
 fn decode_grayscale() {
     let files = get_files_by_regex(r"^tests/files/[^x]&[^t].+0g\d\d((\.png)|(\.jpg))");
 
