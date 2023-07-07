@@ -1,169 +1,91 @@
-use std::{fs, path};
+use std::path;
 
-use regex::Regex;
+use once_cell::sync::Lazy;
 
-use crate::Decoder;
+use crate::{test_utils::get_files_by_regex, Decoder};
 
 use super::*;
 
-#[test]
-fn encode_jpeg() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+static FILES: Lazy<Vec<path::PathBuf>> =
+    Lazy::new(|| get_files_by_regex(r"^tests/files/[^x].+\.png"));
 
+fn encode_files<F>(files: &[path::PathBuf], conf: &Config, callback: F)
+where
+    F: Fn(Result<Vec<u8>, EncodingError>),
+{
     files.iter().for_each(|path| {
         println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
+        let image = Decoder::from_path(path).unwrap().decode().unwrap();
 
-        let conf = Config::build(75.0, OutputFormat::MozJpeg, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
+        let encoder = Encoder::new(conf, image);
         let result = encoder.encode();
 
+        callback(result);
+    })
+}
+
+#[test]
+fn encode_jpeg() {
+    let conf = Config::builder(Codec::MozJpeg).build().unwrap();
+
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_png() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::builder(Codec::Png).build().unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::Png, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_oxipng() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::builder(Codec::Oxipng).build().unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_webp() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::builder(Codec::WebP).build().unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::WebP, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_avif() {
-    let files: Vec<path::PathBuf> = fs::read_dir("tests/files/")
-        .unwrap()
-        .map(|entry| {
-            let entry = entry.unwrap();
-            entry.path()
-        })
-        .filter(|path| {
-            let re = Regex::new(r"^tests/files/[^x].+\.png").unwrap();
-            re.is_match(path.to_str().unwrap_or(""))
-        })
-        .collect();
+    let conf = Config::builder(Codec::Avif).build().unwrap();
 
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let file = fs::File::open(path).unwrap();
-        let image = Decoder::new(path, file).decode().unwrap();
-
-        let conf = Config::build(75.0, OutputFormat::Avif, None, None, None).unwrap();
-
-        let encoder = Encoder::new(&conf, image);
-        let result = encoder.encode();
-
+    encode_files(&FILES, &conf, |result| {
         assert!(result.is_ok());
         let result = result.unwrap();
         assert!(!result.is_empty());
-    })
+    });
 }
 
 #[test]
 fn encode_quantized() {
     let path = path::PathBuf::from("tests/files/basi2c08.png");
-    let file = fs::File::open(&path).unwrap();
 
-    let image = Decoder::new(&path, file).decode().unwrap();
+    let image = Decoder::from_path(&path).unwrap().decode().unwrap();
 
-    let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+    let conf = Config::builder(Codec::Oxipng).build().unwrap();
 
     let encoder = Encoder::new(&conf, image);
     let result = encoder.encode_quantized(50, 1.0);
@@ -176,11 +98,10 @@ fn encode_quantized() {
 #[test]
 fn encode_quantized_out_of_bounds() {
     let path = path::PathBuf::from("tests/files/basi2c08.png");
-    let file = fs::File::open(&path).unwrap();
 
-    let image = Decoder::new(&path, file).decode().unwrap();
+    let image = Decoder::from_path(&path).unwrap().decode().unwrap();
 
-    let conf = Config::build(75.0, OutputFormat::Oxipng, None, None, None).unwrap();
+    let conf = Config::builder(Codec::Oxipng).build().unwrap();
 
     let encoder = Encoder::new(&conf, image);
     let result = encoder.encode_quantized(120, 1.0);
@@ -192,7 +113,11 @@ fn resize_image() {
     let data = [255; 100 * 100 * 4];
     let image = ImageData::new(100, 100, &data);
 
-    let conf = Config::build(75.0, OutputFormat::Oxipng, Some(50), Some(50), None).unwrap();
+    let conf = Config::builder(Codec::Oxipng)
+        .target_height(50)
+        .target_width(50)
+        .build()
+        .unwrap();
 
     let mut encoder = Encoder::new(&conf, image);
 
