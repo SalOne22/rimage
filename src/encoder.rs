@@ -2,18 +2,20 @@ use std::panic;
 
 use log::info;
 use rgb::{AsPixels, ComponentBytes, FromSlice, RGBA};
-use simple_error::SimpleError;
 
-use crate::{error::EncodingError, Config, ImageData, OutputFormat, ResizeType};
+use crate::{
+    error::EncodingError,
+    image::{Codec, ImageData, ResizeType},
+    Config,
+};
 
 /// Encoder for images
 ///
 /// # Example
 /// ```
-/// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+/// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
 /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-/// # let file = std::fs::File::open(&path).unwrap();
-/// # let decoder = rimage::Decoder::new(&path, file);
+/// # let decoder = rimage::Decoder::from_path(&path).unwrap();
 /// # let image = decoder.decode().unwrap();
 /// let config = Config::default();
 ///
@@ -32,10 +34,9 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let file = std::fs::File::open(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, file);
+    /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -50,10 +51,9 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let file = std::fs::File::open(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, file);
+    /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -65,14 +65,14 @@ impl<'a> Encoder<'a> {
     ///
     /// Returns [`EncodingError`] if encoding failed
     pub fn encode(mut self) -> Result<Vec<u8>, EncodingError> {
-        if self.config.target_height.is_some() || self.config.target_width.is_some() {
+        if self.config.target_height().is_some() || self.config.target_width().is_some() {
             info!("Resizing image");
             self.resize()?;
         }
 
-        if self.config.quantization_quality.is_some() || self.config.dithering_level.is_some() {
-            let quantization = self.config.quantization_quality.unwrap_or(100);
-            let dithering = self.config.dithering_level.unwrap_or(1.0);
+        if self.config.quantization_quality().is_some() || self.config.dithering_level().is_some() {
+            let quantization = self.config.quantization_quality().unwrap_or(100);
+            let dithering = self.config.dithering_level().unwrap_or(1.0);
 
             info!(
                 "Quantizing to {} with dithering {}",
@@ -82,12 +82,12 @@ impl<'a> Encoder<'a> {
             self.quantize(quantization, dithering)?;
         }
 
-        match self.config.output_format {
-            OutputFormat::Png => self.encode_png(),
-            OutputFormat::Oxipng => self.encode_oxipng(),
-            OutputFormat::MozJpeg => self.encode_mozjpeg(),
-            OutputFormat::WebP => self.encode_webp(),
-            OutputFormat::Avif => self.encode_avif(),
+        match self.config.output_format() {
+            Codec::Png => self.encode_png(),
+            Codec::Oxipng => self.encode_oxipng(),
+            Codec::MozJpeg => self.encode_mozjpeg(),
+            Codec::WebP => self.encode_webp(),
+            Codec::Avif => self.encode_avif(),
         }
     }
 
@@ -95,10 +95,9 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, ImageData, OutputFormat};
+    /// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// # let file = std::fs::File::open(&path).unwrap();
-    /// # let decoder = rimage::Decoder::new(&path, file);
+    /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
     /// let config = Config::default();
     /// let encoder = Encoder::new(&config, image); // where image is ImageData
@@ -114,18 +113,18 @@ impl<'a> Encoder<'a> {
         quantization_quality: u8,
         dithering_level: f32,
     ) -> Result<Vec<u8>, EncodingError> {
-        if self.config.target_height.is_some() || self.config.target_width.is_some() {
+        if self.config.target_height().is_some() || self.config.target_width().is_some() {
             self.resize()?;
         }
 
         self.quantize(quantization_quality, dithering_level)?;
 
-        match self.config.output_format {
-            OutputFormat::Png => self.encode_png(),
-            OutputFormat::Oxipng => self.encode_oxipng(),
-            OutputFormat::MozJpeg => self.encode_mozjpeg(),
-            OutputFormat::WebP => self.encode_webp(),
-            OutputFormat::Avif => self.encode_avif(),
+        match self.config.output_format() {
+            Codec::Png => self.encode_png(),
+            Codec::Oxipng => self.encode_oxipng(),
+            Codec::MozJpeg => self.encode_mozjpeg(),
+            Codec::WebP => self.encode_webp(),
+            Codec::Avif => self.encode_avif(),
         }
     }
 
@@ -137,15 +136,15 @@ impl<'a> Encoder<'a> {
 
         // If target width or height is not set, calculate it from the other
         // or use the original size
-        let target_width = self.config.target_width.unwrap_or(
+        let target_width = self.config.target_width().unwrap_or(
             self.config
-                .target_height
+                .target_height()
                 .map(|h| (h as f32 * aspect_ratio) as usize)
                 .unwrap_or(width),
         );
-        let target_height = self.config.target_height.unwrap_or(
+        let target_height = self.config.target_height().unwrap_or(
             self.config
-                .target_width
+                .target_width()
                 .map(|w| (w as f32 / aspect_ratio) as usize)
                 .unwrap_or(height),
         );
@@ -154,7 +153,7 @@ impl<'a> Encoder<'a> {
         info!(
             "Resize type: {:?}",
             self.config
-                .resize_type
+                .resize_type()
                 .as_ref()
                 .unwrap_or(&ResizeType::Lanczos3)
         );
@@ -169,7 +168,7 @@ impl<'a> Encoder<'a> {
             resize::Pixel::RGBA8,
             resize::Type::from(
                 self.config
-                    .resize_type
+                    .resize_type()
                     .as_ref()
                     .unwrap_or(&ResizeType::Lanczos3),
             ),
@@ -223,21 +222,22 @@ impl<'a> Encoder<'a> {
             let mut encoder = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
 
             encoder.set_size(self.image_data.size().0, self.image_data.size().1);
-            encoder.set_quality(self.config.quality);
+            encoder.set_quality(self.config.quality());
             encoder.set_progressive_mode();
             encoder.set_mem_dest();
             encoder.start_compress();
             encoder.write_scanlines(self.image_data.data());
             encoder.finish_compress();
 
-            encoder.data_to_vec().map_err(|_| {
-                EncodingError::Encoding(Box::new(SimpleError::new("Failed to convert data to vec")))
-            })
+            encoder
+                .data_to_vec()
+                .map_err(|_| EncodingError::Jpeg("Failed to convert data to vec".to_string()))
         })
         .unwrap_or_else(|e| {
-            Err(EncodingError::Encoding(Box::new(SimpleError::new(
-                format!("Failed to encode image: {:?}", e),
-            ))))
+            Err(EncodingError::Jpeg(format!(
+                "Failed to decode jpeg: {:?}",
+                e
+            )))
         })
     }
 
@@ -286,8 +286,10 @@ impl<'a> Encoder<'a> {
 
         info!("Encoded {} bytes (Not optimized)", buf.len());
 
-        oxipng::optimize_from_memory(&buf, &oxipng::Options::default())
-            .map_err(|e| EncodingError::Encoding(Box::new(e)))
+        Ok(oxipng::optimize_from_memory(
+            &buf,
+            &oxipng::Options::default(),
+        )?)
     }
 
     fn encode_webp(&self) -> Result<Vec<u8>, EncodingError> {
@@ -299,9 +301,8 @@ impl<'a> Encoder<'a> {
             width as u32,
             height as u32,
             (width * 4) as u32,
-            self.config.quality,
-        )
-        .map_err(|e| EncodingError::Encoding(Box::new(e)))?;
+            self.config.quality(),
+        )?;
 
         Ok(data.to_owned())
     }
@@ -313,10 +314,9 @@ impl<'a> Encoder<'a> {
         let data = ravif::Img::new(self.image_data.data().as_rgba(), width, height);
 
         Ok(ravif::Encoder::new()
-            .with_quality(self.config.quality)
+            .with_quality(self.config.quality())
             .with_speed(6)
-            .encode_rgba(data)
-            .map_err(|e| EncodingError::Encoding(Box::new(e)))?
+            .encode_rgba(data)?
             .avif_file)
     }
 }
