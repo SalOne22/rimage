@@ -1,3 +1,14 @@
+## v1.0.0
+
+- [Breaking Changes] `Decoder` now is builder for `GenericDecoder` that capable to decode byte slices and files
+- [Breaking Changes] `Config` now uses builder pattern
+- [Changed] `OutputFormat` is renamed to `Codec`
+- [Changed] Errors now is more declarative
+- [Removed] `decoders` and `encoders`
+- [Added] `optimize` and `optimize_from_memory` functions
+- [Added] `ImageFormat` for memory decoding
+- [Bugfix] Fixed jpeg decoding
+
 ## v0.7.1
 
 - [Bugfix] Fixed extensions written in uppercase, now they are all normalized to lowercase
