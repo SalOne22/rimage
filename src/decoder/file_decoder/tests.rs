@@ -17,7 +17,7 @@ where
             .to_str()
             .unwrap_or_default();
 
-        let format = InputFormat::from_str(extension).unwrap();
+        let format = ImageFormat::from_str(extension).unwrap();
 
         let image = FileDecoder::new(file, format).decode();
 

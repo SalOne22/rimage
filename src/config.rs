@@ -1,19 +1,19 @@
 use crate::{
     error::ConfigError,
-    image::{OutputFormat, ResizeType},
+    image::{Codec, ResizeType},
 };
 
 /// Config for image encoding
 ///
 /// # Example
 /// ```
-/// use rimage::{Config, image::{OutputFormat, ResizeType}};
+/// use rimage::{Config, image::{Codec, ResizeType}};
 ///
 /// // Without resize
-/// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+/// let config = Config::builder(Codec::MozJpeg).build().unwrap();
 ///
 /// // With resize
-/// let mut config_resize = Config::builder(OutputFormat::MozJpeg)
+/// let mut config_resize = Config::builder(Codec::MozJpeg)
 ///     .target_width(200)
 ///     .target_height(200)
 ///     .resize_type(ResizeType::Lanczos3)
@@ -23,18 +23,18 @@ use crate::{
 ///
 /// # Default
 /// ```
-/// use rimage::{Config, image::OutputFormat};
+/// use rimage::{Config, image::Codec};
 ///
 /// let config = Config::default();
 /// assert_eq!(config.quality(), 75.0);
-/// assert_eq!(config.output_format(), OutputFormat::MozJpeg);
+/// assert_eq!(config.output_format(), Codec::MozJpeg);
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
     /// Quality of output image
     quality: f32,
     /// Output format of image
-    output_format: OutputFormat,
+    output_format: Codec,
     /// Target width for output image
     target_width: Option<usize>,
     /// Target height for output image
@@ -51,7 +51,7 @@ pub struct ConfigBuilder {
     /// Quality of output image
     quality: f32,
     /// Output format of image
-    output_format: OutputFormat,
+    output_format: Codec,
     /// Target width for output image
     target_width: Option<usize>,
     /// Target height for output image
@@ -69,20 +69,20 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::{OutputFormat, ResizeType}};
+    /// use rimage::{Config, image::{Codec, ResizeType}};
     ///
     /// // Without resize
-    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+    /// let config = Config::builder(Codec::MozJpeg).build().unwrap();
     ///
     /// // With resize
-    /// let mut config_resize = Config::builder(OutputFormat::MozJpeg)
+    /// let mut config_resize = Config::builder(Codec::MozJpeg)
     ///     .target_width(200)
     ///     .target_height(200)
     ///     .resize_type(ResizeType::Lanczos3)
     ///     .build()
     ///     .unwrap();
     /// ```
-    pub fn builder(output_format: OutputFormat) -> ConfigBuilder {
+    pub fn builder(output_format: Codec) -> ConfigBuilder {
         ConfigBuilder {
             quality: 75.0,
             output_format,
@@ -98,9 +98,9 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat};
+    /// use rimage::{Config, image::Codec};
     ///
-    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+    /// let config = Config::builder(Codec::MozJpeg).build().unwrap();
     /// assert_eq!(config.quality(), 75.0);
     /// ```    
     #[inline]
@@ -112,13 +112,13 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat};
+    /// use rimage::{Config, image::Codec};
     ///
-    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
-    /// assert_eq!(config.output_format(), OutputFormat::MozJpeg);
+    /// let config = Config::builder(Codec::MozJpeg).build().unwrap();
+    /// assert_eq!(config.output_format(), Codec::MozJpeg);
     /// ```
     #[inline]
-    pub fn output_format(&self) -> OutputFormat {
+    pub fn output_format(&self) -> Codec {
         self.output_format
     }
 
@@ -126,9 +126,9 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat};
+    /// use rimage::{Config, image::Codec};
     ///
-    /// let mut config = Config::builder(OutputFormat::MozJpeg)
+    /// let mut config = Config::builder(Codec::MozJpeg)
     ///     .target_width(175)
     ///     .target_height(175)
     ///     .build()
@@ -145,9 +145,9 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat};
+    /// use rimage::{Config, image::Codec};
     ///
-    /// let mut config = Config::builder(OutputFormat::MozJpeg)
+    /// let mut config = Config::builder(Codec::MozJpeg)
     ///     .target_width(175)
     ///     .target_height(175)
     ///     .build()
@@ -164,9 +164,9 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat, image::ResizeType};
+    /// use rimage::{Config, image::Codec, image::ResizeType};
     ///
-    /// let mut config = Config::builder(OutputFormat::MozJpeg)
+    /// let mut config = Config::builder(Codec::MozJpeg)
     ///     .target_width(175)
     ///     .target_height(175)
     ///     .resize_type(ResizeType::Triangle)
@@ -184,9 +184,9 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat};
+    /// use rimage::{Config, image::Codec};
     ///
-    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+    /// let config = Config::builder(Codec::MozJpeg).build().unwrap();
     /// assert_eq!(config.quantization_quality(), None);
     /// ```
     #[inline]
@@ -198,9 +198,9 @@ impl Config {
     ///
     /// # Example
     /// ```
-    /// use rimage::{Config, image::OutputFormat};
+    /// use rimage::{Config, image::Codec};
     ///
-    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+    /// let config = Config::builder(Codec::MozJpeg).build().unwrap();
     /// assert_eq!(config.dithering_level(), None);
     /// ```
     #[inline]
@@ -292,7 +292,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             quality: 75.0,
-            output_format: OutputFormat::MozJpeg,
+            output_format: Codec::MozJpeg,
             target_width: None,
             target_height: None,
             resize_type: Some(ResizeType::Lanczos3),

@@ -4,7 +4,7 @@ use rgb::{AsPixels, FromSlice, RGBA8};
 
 use crate::{
     error::DecodingError,
-    image::{ImageData, InputFormat},
+    image::{ImageData, ImageFormat},
 };
 
 use self::{file_decoder::FileDecoder, memory_decoder::MemoryDecoder};
@@ -66,7 +66,7 @@ impl Decoder {
             .to_str()
             .unwrap_or_default();
 
-        let format = InputFormat::from_str(extension)
+        let format = ImageFormat::from_str(extension)
             .map_err(|_| DecodingError::Format(extension.to_string()))?;
 
         Ok(Self::from_file(fs::File::open(path)?, format))
@@ -77,14 +77,14 @@ impl Decoder {
     /// # Example
     ///
     /// ```
-    /// # use rimage::{Decoder, image::InputFormat};
+    /// # use rimage::{Decoder, image::ImageFormat};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
     /// let file = std::fs::File::open(path).unwrap();
     ///
-    /// let decoder = Decoder::from_file(file, InputFormat::Jpeg);
+    /// let decoder = Decoder::from_file(file, ImageFormat::Jpeg);
     /// ```
     #[inline]
-    pub fn from_file(file: fs::File, format: InputFormat) -> GenericDecoder<FileDecoder> {
+    pub fn from_file(file: fs::File, format: ImageFormat) -> GenericDecoder<FileDecoder> {
         GenericDecoder {
             inner: FileDecoder::new(file, format),
         }
@@ -95,17 +95,17 @@ impl Decoder {
     ///
     /// ```
     /// # use std::io::Read;
-    /// # use rimage::{Decoder, image::InputFormat};
+    /// # use rimage::{Decoder, image::ImageFormat};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
     /// # let mut file = std::fs::File::open(path).unwrap();
     /// let metadata = file.metadata().unwrap();
     /// let mut buf = Vec::with_capacity(metadata.len() as usize);
     /// file.read_to_end(&mut buf).unwrap();
     ///
-    /// let decoder = Decoder::from_mem(&buf, InputFormat::Jpeg);
+    /// let decoder = Decoder::from_mem(&buf, ImageFormat::Jpeg);
     /// ```
     #[inline]
-    pub fn from_mem(data: &[u8], format: InputFormat) -> GenericDecoder<MemoryDecoder> {
+    pub fn from_mem(data: &[u8], format: ImageFormat) -> GenericDecoder<MemoryDecoder> {
         GenericDecoder {
             inner: MemoryDecoder::new(data, format),
         }

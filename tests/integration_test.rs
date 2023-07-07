@@ -1,5 +1,5 @@
 use regex::Regex;
-use rimage::{image::OutputFormat, Config, Decoder, Encoder};
+use rimage::{image::Codec, Config, Decoder, Encoder};
 use std::path::PathBuf;
 use std::{fs, path};
 
@@ -10,7 +10,7 @@ fn test_image_processing_jpeg() {
     let decoder = Decoder::from_path(&path).unwrap();
     let image = decoder.decode().unwrap();
 
-    let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+    let config = Config::builder(Codec::MozJpeg).build().unwrap();
     let encoder = Encoder::new(&config, image);
     let encoded_data = encoder.encode().unwrap();
 
@@ -30,7 +30,7 @@ fn test_image_processing_png() {
     let decoder = Decoder::from_path(&path).unwrap();
     let image = decoder.decode().unwrap();
 
-    let config = Config::builder(OutputFormat::Png).build().unwrap();
+    let config = Config::builder(Codec::Png).build().unwrap();
     let encoder = Encoder::new(&config, image);
     let encoded_data = encoder.encode().unwrap();
 
@@ -50,7 +50,7 @@ fn test_image_processing_oxipng() {
     let decoder = Decoder::from_path(&path).unwrap();
     let image = decoder.decode().unwrap();
 
-    let config = Config::builder(OutputFormat::Oxipng).build().unwrap();
+    let config = Config::builder(Codec::Oxipng).build().unwrap();
     let encoder = Encoder::new(&config, image);
     let encoded_data = encoder.encode().unwrap();
 
@@ -81,7 +81,7 @@ fn test_bulk_image_processing_jpeg() {
         let decoder = Decoder::from_path(&path).unwrap();
         let image = decoder.decode().unwrap();
 
-        let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+        let config = Config::builder(Codec::MozJpeg).build().unwrap();
         let encoder = Encoder::new(&config, image);
         let encoded_data = encoder.encode().unwrap();
 
@@ -115,7 +115,7 @@ fn test_bulk_image_processing_png() {
         let decoder = Decoder::from_path(&path).unwrap();
         let image = decoder.decode().unwrap();
 
-        let config = Config::builder(OutputFormat::Png).build().unwrap();
+        let config = Config::builder(Codec::Png).build().unwrap();
         let encoder = Encoder::new(&config, image);
         let encoded_data = encoder.encode().unwrap();
 
@@ -149,7 +149,7 @@ fn test_bulk_image_processing_oxipng() {
         let decoder = Decoder::from_path(&path).unwrap();
         let image = decoder.decode().unwrap();
 
-        let config = Config::builder(OutputFormat::Oxipng).build().unwrap();
+        let config = Config::builder(Codec::Oxipng).build().unwrap();
         let encoder = Encoder::new(&config, image);
         let encoded_data = encoder.encode().unwrap();
 

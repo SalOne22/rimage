@@ -15,7 +15,7 @@ fn bench_encode_png(c: &mut Criterion) {
         b.iter(|| {
             let data = rimage::Encoder::new(
                 black_box(
-                    &rimage::Config::builder(image::OutputFormat::Oxipng)
+                    &rimage::Config::builder(image::Codec::Oxipng)
                         .build()
                         .unwrap(),
                 ),

@@ -44,7 +44,7 @@ impl ImageData {
 
 /// Image format for decoder
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum InputFormat {
+pub enum ImageFormat {
     /// Jpeg image
     Jpeg,
     /// Png image
@@ -55,69 +55,69 @@ pub enum InputFormat {
     Avif,
 }
 
-impl std::str::FromStr for InputFormat {
+impl std::str::FromStr for ImageFormat {
     type Err = Cow<'static, str>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "mozjpeg" | "jpg" | "jpeg" => Ok(InputFormat::Jpeg),
-            "png" => Ok(InputFormat::Png),
-            "webp" => Ok(InputFormat::WebP),
-            "avif" => Ok(InputFormat::Avif),
+            "mozjpeg" | "jpg" | "jpeg" => Ok(ImageFormat::Jpeg),
+            "png" => Ok(ImageFormat::Png),
+            "webp" => Ok(ImageFormat::WebP),
+            "avif" => Ok(ImageFormat::Avif),
             _ => Err(format!("{} is not a valid input format", s).into()),
         }
     }
 }
 
-impl fmt::Display for InputFormat {
+impl fmt::Display for ImageFormat {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            InputFormat::Jpeg => write!(f, "jpg"),
-            InputFormat::Png => write!(f, "png"),
-            InputFormat::WebP => write!(f, "webp"),
-            InputFormat::Avif => write!(f, "avif"),
+            ImageFormat::Jpeg => write!(f, "jpg"),
+            ImageFormat::Png => write!(f, "png"),
+            ImageFormat::WebP => write!(f, "webp"),
+            ImageFormat::Avif => write!(f, "avif"),
         }
     }
 }
 
-/// Image format for output
+/// Codec for processing output
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum OutputFormat {
-    /// MozJpeg image
+pub enum Codec {
+    /// MozJpeg codec, outputs .jpg
     MozJpeg,
-    /// Browser Png image
+    /// Browser Png codec, outputs .png
     Png,
-    /// OxiPng image
+    /// OxiPng codec, outputs .png
     Oxipng,
-    /// WebP image
+    /// WebP codec, outputs .webp
     WebP,
-    /// AVIF image
+    /// AVIF codec, outputs .avif
     Avif,
 }
 
-impl std::str::FromStr for OutputFormat {
+impl std::str::FromStr for Codec {
     type Err = Cow<'static, str>;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         match s {
-            "mozjpeg" | "jpg" | "jpeg" => Ok(OutputFormat::MozJpeg),
-            "png" => Ok(OutputFormat::Png),
-            "oxipng" => Ok(OutputFormat::Oxipng),
-            "webp" => Ok(OutputFormat::WebP),
-            "avif" => Ok(OutputFormat::Avif),
+            "mozjpeg" | "jpg" | "jpeg" => Ok(Codec::MozJpeg),
+            "png" => Ok(Codec::Png),
+            "oxipng" => Ok(Codec::Oxipng),
+            "webp" => Ok(Codec::WebP),
+            "avif" => Ok(Codec::Avif),
             _ => Err(format!("{} is not a valid output format", s).into()),
         }
     }
 }
 
-impl fmt::Display for OutputFormat {
+impl fmt::Display for Codec {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            OutputFormat::MozJpeg => write!(f, "jpg"),
-            OutputFormat::Png => write!(f, "png"),
-            OutputFormat::Oxipng => write!(f, "png"),
-            OutputFormat::WebP => write!(f, "webp"),
-            OutputFormat::Avif => write!(f, "avif"),
+            Codec::MozJpeg => write!(f, "jpg"),
+            Codec::Png => write!(f, "png"),
+            Codec::Oxipng => write!(f, "png"),
+            Codec::WebP => write!(f, "webp"),
+            Codec::Avif => write!(f, "avif"),
         }
     }
 }

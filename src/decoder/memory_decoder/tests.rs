@@ -15,7 +15,7 @@ where
         let mut buf = Vec::with_capacity(metadata.len() as usize);
         file.read_to_end(&mut buf).unwrap();
 
-        let format = InputFormat::from_str(path.extension().unwrap().to_str().unwrap()).unwrap();
+        let format = ImageFormat::from_str(path.extension().unwrap().to_str().unwrap()).unwrap();
 
         let image = MemoryDecoder::new(&buf, format).decode();
 
