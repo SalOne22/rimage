@@ -1531,7 +1531,7 @@ dependencies = [
 
 [[package]]
 name = "rimage"
-version = "0.7.1"
+version = "1.0.0"
 dependencies = [
  "bytemuck",
  "clap 4.3.8",
