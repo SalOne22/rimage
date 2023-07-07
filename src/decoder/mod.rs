@@ -45,36 +45,6 @@ pub trait Decode {
 pub struct Decoder;
 
 impl Decoder {
-    /// Builds Decoder from file path and file
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// # use rimage::Decoder;
-    /// let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-    /// let file = std::fs::File::open(&path).unwrap();
-    ///
-    /// let decoder = Decoder::new(&path, file);
-    /// ```
-    ///
-    /// # Panics
-    ///
-    /// Can panic if file format is not supported
-    #[allow(clippy::new_ret_no_self)]
-    #[deprecated(since = "0.8.0", note = "use the from_path function")]
-    pub fn new(path: &path::Path, file: fs::File) -> GenericDecoder<FileDecoder> {
-        let extension = path
-            .extension()
-            .unwrap_or_default()
-            .to_str()
-            .unwrap_or_default();
-
-        let format = InputFormat::from_str(extension)
-            .map_err(|_| DecodingError::Format(extension.to_string()))
-            .expect("Failed to get file format");
-
-        Self::from_file(file, format)
-    }
     /// Builds Decoder from file path
     ///
     /// # Example
