@@ -1,21 +1,18 @@
 use std::{fs, path::Path};
 
 use criterion::{black_box, criterion_group, criterion_main, Criterion};
-use rimage::Decoder;
+use rimage::{image, Decoder};
 
 fn bench_encode_png(c: &mut Criterion) {
-    let file = fs::File::open(&Path::new("tests/files/basi6a08.png")).unwrap();
-    let image = Decoder::new(black_box(&Path::new("tests/files/basi6a08.png")), file)
+    let image = Decoder::from_path(black_box(Path::new("tests/files/basi6a08.png")))
+        .unwrap()
         .decode()
         .unwrap();
 
     c.bench_function("encode_browser_png", |b| {
         b.iter(|| {
             let data = rimage::Encoder::new(
-                black_box(
-                    &rimage::Config::build(75.0, rimage::OutputFormat::Png, None, None, None)
-                        .unwrap(),
-                ),
+                black_box(&rimage::Config::builder(image::Codec::Png).build().unwrap()),
                 black_box(image.clone()),
             )
             .encode()

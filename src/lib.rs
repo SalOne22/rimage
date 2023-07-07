@@ -4,9 +4,9 @@ Similar to [squoosh!](https://squoosh.app/) using same codecs,
 but fully written on rust and with bulk processing support.
 
 Current features:
-- Decoding jpeg and png
+- Decoding jpeg, png, webp and avif
 - Encoding with optimizations
-- Get image information
+- Getting image information
 
 # Usage
 
@@ -23,14 +23,104 @@ rimage = "0.7"
 
 After that you can use this crate:
 
+## Easy way
+```
+use rimage::{image::Codec, optimize, Config};
+
+// Get file path
+let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
+
+// Build config for encoding (Please process errors when build config)
+let config = Config::builder(Codec::MozJpeg).build().unwrap();
+
+// Get encoded image data from encoder
+let data = match optimize(&path, &config) {
+    Ok(data) => data,
+    Err(e) => {
+        eprintln!("Oh no, there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Write image to file
+std::fs::write("output.jpg", data);
+# std::fs::remove_file("output.jpg").unwrap();
+```
+
+### Get optimized image from memory
+```
+use std::{io::Read, path, fs};
+use rimage::{image::{Codec, ImageFormat}, optimize_from_memory, Config};
+
+// Get file data from path
+let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
+let mut file = fs::File::open(path).unwrap();
+let metadata = file.metadata().unwrap();
+let mut data = Vec::with_capacity(metadata.len() as usize);
+file.read_to_end(&mut data).unwrap();
+
+// Build config for encoding (Please process errors when build config)
+let config = Config::builder(Codec::MozJpeg).build().unwrap();
+
+// Get encoded image data from encoder
+let data = match optimize_from_memory(&data, ImageFormat::Jpeg, &config) {
+    Ok(data) => data,
+    Err(e) => {
+        eprintln!("Oh no, there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Write image to file
+fs::write("output.jpg", data);
+# fs::remove_file("output.jpg").unwrap();
+```
+
 ## Decoding
 ```
 use rimage::Decoder;
 
 // Create decoder from file path and data
 let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-let file = std::fs::File::open(&path).unwrap();
-let decoder = Decoder::new(&path, file);
+
+let decoder = match Decoder::from_path(&path) {
+    Ok(img) => img,
+    Err(e) => {
+        eprintln!("Oh no, there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Decode image to image data
+let image = match decoder.decode() {
+    Ok(img) => img,
+    Err(e) => {
+        eprintln!("Oh no, there is error! {e}");
+        std::process::exit(1);
+    }
+};
+
+// Get image data
+println!("Size: {:?}", image.size());
+println!("Data length: {:?}", image.data().len());
+
+// Do something with image...
+```
+
+### Decoding from memory
+```
+use std::{io::Read, path, fs};
+use rimage::{Decoder, image::ImageFormat};
+
+// Get file data
+let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
+let mut file = fs::File::open(path).unwrap();
+let metadata = file.metadata().unwrap();
+let mut data = Vec::with_capacity(metadata.len() as usize);
+file.read_to_end(&mut data).unwrap();
+
+// Create decoder from file data and input format
+let decoder = Decoder::from_mem(&data, ImageFormat::Jpeg);
 
 // Decode image to image data
 let image = match decoder.decode() {
@@ -52,26 +142,13 @@ println!("Data length: {:?}", image.data().len());
 
 ```
 # use rimage::Decoder;
-use rimage::{Config, Encoder, OutputFormat};
+use rimage::{Config, Encoder, image::Codec};
 # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-# let file = std::fs::File::open(&path).unwrap();
-# let decoder = Decoder::new(&path, file);
+# let decoder = Decoder::from_path(&path).unwrap();
 # let image = decoder.decode().unwrap();
 
-// Build config for encoding
-let config = match Config::build(
-    75.0,
-    OutputFormat::MozJpeg,
-    None,
-    None,
-    None,
-) {
-    Ok(config) => config,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+// Build config for encoding (Please process errors when build config)
+let config = Config::builder(Codec::MozJpeg).build().unwrap();
 
 let encoder = Encoder::new(&config, image); // where image is image::ImageData
 
@@ -91,15 +168,6 @@ std::fs::write("output.jpg", data);
 */
 #![warn(missing_docs)]
 
-pub use image::{ImageData, OutputFormat, ResizeType};
-
-/// Decoders for images
-#[deprecated(since = "0.2.0", note = "use the Decoder struct instead")]
-pub mod decoders;
-/// Encoders for images
-#[deprecated(since = "0.2.0", note = "use the Encoder struct instead")]
-pub mod encoders;
-
 /// Errors that can occur during image processing
 pub mod error;
 
@@ -109,12 +177,13 @@ pub mod image;
 mod config;
 mod decoder;
 mod encoder;
-mod memory_decoder;
 mod optimize;
 
 pub use config::Config;
 pub use decoder::Decoder;
 pub use encoder::Encoder;
-pub use memory_decoder::MemoryDecoder;
 pub use optimize::optimize;
 pub use optimize::optimize_from_memory;
+
+#[cfg(test)]
+pub mod test_utils;
