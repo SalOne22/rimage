@@ -18,7 +18,7 @@ cargo add rimage
 or add this to Cargo.toml:
 ```toml
 [dependencies]
-rimage = "0.7"
+rimage = "1.0.0"
 ```
 
 After that you can use this crate:
