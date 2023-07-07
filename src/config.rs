@@ -10,16 +10,15 @@ use crate::{
 /// use rimage::{Config, image::{OutputFormat, ResizeType}};
 ///
 /// // Without resize
-/// let config = Config::new(OutputFormat::MozJpeg).build();
+/// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
 ///
 /// // With resize
-/// let mut config_resize = Config::new(OutputFormat::MozJpeg)
-///     .target_width(Some(200))
-///     .unwrap()
-///     .target_height(Some(200))
-///     .unwrap()
-///     .resize_type(Some(ResizeType::Lanczos3))
-///     .build();
+/// let mut config_resize = Config::builder(OutputFormat::MozJpeg)
+///     .target_width(200)
+///     .target_height(200)
+///     .resize_type(ResizeType::Lanczos3)
+///     .build()
+///     .unwrap();
 /// ```
 ///
 /// # Default
@@ -28,20 +27,20 @@ use crate::{
 ///
 /// let config = Config::default();
 /// assert_eq!(config.quality(), 75.0);
-/// assert_eq!(config.output_format, OutputFormat::MozJpeg);
+/// assert_eq!(config.output_format(), OutputFormat::MozJpeg);
 /// ```
 #[derive(Debug, Clone)]
 pub struct Config {
     /// Quality of output image
     quality: f32,
     /// Output format of image
-    pub output_format: OutputFormat,
+    output_format: OutputFormat,
     /// Target width for output image
     target_width: Option<usize>,
     /// Target height for output image
     target_height: Option<usize>,
     /// Resize type for output image
-    pub resize_type: Option<ResizeType>,
+    resize_type: Option<ResizeType>,
     /// Quantization quality of output image
     quantization_quality: Option<u8>,
     /// Dithering level for output image
@@ -73,30 +72,17 @@ impl Config {
     /// use rimage::{Config, image::{OutputFormat, ResizeType}};
     ///
     /// // Without resize
-    /// let config = Config::new(OutputFormat::MozJpeg).build();
+    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
     ///
     /// // With resize
-    /// let mut config_resize = Config::new(OutputFormat::MozJpeg)
-    ///     .target_width(Some(200))
-    ///     .unwrap()
-    ///     .target_height(Some(200))
-    ///     .unwrap()
-    ///     .resize_type(Some(ResizeType::Lanczos3))
-    ///     .build();
+    /// let mut config_resize = Config::builder(OutputFormat::MozJpeg)
+    ///     .target_width(200)
+    ///     .target_height(200)
+    ///     .resize_type(ResizeType::Lanczos3)
+    ///     .build()
+    ///     .unwrap();
     /// ```
-    ///
-    /// # Errors
-    ///
-    /// If quality is not in range 0.0..=100.0
-    ///
-    /// ```
-    /// use rimage::{Config, image::OutputFormat};
-    ///
-    /// let mut config = Config::new(OutputFormat::MozJpeg);
-    /// assert!(config.quality(200.0).is_err());
-    /// ```
-    #[allow(clippy::new_ret_no_self)]
-    pub fn new(output_format: OutputFormat) -> ConfigBuilder {
+    pub fn builder(output_format: OutputFormat) -> ConfigBuilder {
         ConfigBuilder {
             quality: 75.0,
             output_format,
@@ -114,12 +100,26 @@ impl Config {
     /// ```
     /// use rimage::{Config, image::OutputFormat};
     ///
-    /// let config = Config::new(OutputFormat::MozJpeg).build();
+    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
     /// assert_eq!(config.quality(), 75.0);
     /// ```    
     #[inline]
     pub fn quality(&self) -> f32 {
         self.quality
+    }
+
+    /// Get output format
+    ///
+    /// # Example
+    /// ```
+    /// use rimage::{Config, image::OutputFormat};
+    ///
+    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+    /// assert_eq!(config.output_format(), OutputFormat::MozJpeg);
+    /// ```
+    #[inline]
+    pub fn output_format(&self) -> OutputFormat {
+        self.output_format
     }
 
     /// Get target width
@@ -128,12 +128,11 @@ impl Config {
     /// ```
     /// use rimage::{Config, image::OutputFormat};
     ///
-    /// let mut config = Config::new(OutputFormat::MozJpeg)
-    ///     .target_width(Some(175))
-    ///     .unwrap()
-    ///     .target_height(Some(175))
-    ///     .unwrap()
-    ///     .build();
+    /// let mut config = Config::builder(OutputFormat::MozJpeg)
+    ///     .target_width(175)
+    ///     .target_height(175)
+    ///     .build()
+    ///     .unwrap();
     ///
     /// assert_eq!(config.target_width(), Some(175));
     /// ```
@@ -148,12 +147,11 @@ impl Config {
     /// ```
     /// use rimage::{Config, image::OutputFormat};
     ///
-    /// let mut config = Config::new(OutputFormat::MozJpeg)
-    ///     .target_width(Some(175))
-    ///     .unwrap()
-    ///     .target_height(Some(175))
-    ///     .unwrap()
-    ///     .build();
+    /// let mut config = Config::builder(OutputFormat::MozJpeg)
+    ///     .target_width(175)
+    ///     .target_height(175)
+    ///     .build()
+    ///     .unwrap();
     ///
     /// assert_eq!(config.target_height(), Some(175));
     /// ```
@@ -162,13 +160,33 @@ impl Config {
         self.target_height
     }
 
+    /// Get target height
+    ///
+    /// # Example
+    /// ```
+    /// use rimage::{Config, image::OutputFormat, image::ResizeType};
+    ///
+    /// let mut config = Config::builder(OutputFormat::MozJpeg)
+    ///     .target_width(175)
+    ///     .target_height(175)
+    ///     .resize_type(ResizeType::Triangle)
+    ///     .build()
+    ///     .unwrap();
+    ///
+    /// assert_eq!(config.resize_type(), Some(ResizeType::Triangle));
+    /// ```
+    #[inline]
+    pub fn resize_type(&self) -> Option<ResizeType> {
+        self.resize_type
+    }
+
     /// Get target quantization quality
     ///
     /// # Example
     /// ```
     /// use rimage::{Config, image::OutputFormat};
     ///
-    /// let config = Config::new(OutputFormat::MozJpeg).build();
+    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
     /// assert_eq!(config.quantization_quality(), None);
     /// ```
     #[inline]
@@ -182,7 +200,7 @@ impl Config {
     /// ```
     /// use rimage::{Config, image::OutputFormat};
     ///
-    /// let config = Config::new(OutputFormat::MozJpeg).build();
+    /// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
     /// assert_eq!(config.dithering_level(), None);
     /// ```
     #[inline]
@@ -192,8 +210,36 @@ impl Config {
 }
 
 impl ConfigBuilder {
-    pub fn build(&mut self) -> Config {
-        Config {
+    pub fn build(&mut self) -> Result<Config, ConfigError> {
+        if !(0.0..=100.0).contains(&self.quality) {
+            return Err(ConfigError::QualityOutOfBounds(self.quality));
+        }
+
+        if let Some(width) = self.target_width {
+            if width == 0 {
+                return Err(ConfigError::WidthIsZero);
+            }
+        }
+
+        if let Some(height) = self.target_height {
+            if height == 0 {
+                return Err(ConfigError::HeightIsZero);
+            }
+        }
+
+        if let Some(quality) = self.quantization_quality {
+            if !(0..=100).contains(&quality) {
+                return Err(ConfigError::QuantizationQualityOutOfBounds(quality));
+            }
+        }
+
+        if let Some(dithering_level) = self.dithering_level {
+            if !(0.0..=1.0).contains(&dithering_level) {
+                return Err(ConfigError::DitheringLevelOutOfBounds(dithering_level));
+            }
+        }
+
+        Ok(Config {
             quality: self.quality,
             output_format: self.output_format,
             target_width: self.target_width,
@@ -201,74 +247,43 @@ impl ConfigBuilder {
             resize_type: self.resize_type,
             quantization_quality: self.quantization_quality,
             dithering_level: self.dithering_level,
-        }
+        })
     }
 
     #[inline]
-    pub fn quality(&mut self, quality: f32) -> Result<&mut Self, ConfigError> {
-        if !(0.0..=100.0).contains(&quality) {
-            return Err(ConfigError::QualityOutOfBounds(quality));
-        }
-
+    pub fn quality(&mut self, quality: f32) -> &mut Self {
         self.quality = quality;
-        Ok(self)
-    }
-
-    #[inline]
-    pub fn target_width(&mut self, width: Option<usize>) -> Result<&mut Self, ConfigError> {
-        if let Some(width) = width {
-            if width == 0 {
-                return Err(ConfigError::WidthIsZero);
-            }
-        }
-
-        self.target_width = width;
-        Ok(self)
-    }
-
-    #[inline]
-    pub fn target_height(&mut self, height: Option<usize>) -> Result<&mut Self, ConfigError> {
-        if let Some(height) = height {
-            if height == 0 {
-                return Err(ConfigError::HeightIsZero);
-            }
-        }
-
-        self.target_height = height;
-        Ok(self)
-    }
-
-    #[inline]
-    pub fn resize_type(&mut self, resize_type: Option<ResizeType>) -> &mut Self {
-        self.resize_type = resize_type;
         self
     }
 
     #[inline]
-    pub fn quantization_quality(&mut self, quality: Option<u8>) -> Result<&mut Self, ConfigError> {
-        if let Some(quality) = quality {
-            if !(0..=100).contains(&quality) {
-                return Err(ConfigError::QuantizationQualityOutOfBounds(quality));
-            }
-        }
-
-        self.quantization_quality = quality;
-        Ok(self)
+    pub fn target_width(&mut self, width: usize) -> &mut Self {
+        self.target_width = Some(width);
+        self
     }
 
     #[inline]
-    pub fn dithering_level(
-        &mut self,
-        dithering_level: Option<f32>,
-    ) -> Result<&mut Self, ConfigError> {
-        if let Some(dithering_level) = dithering_level {
-            if !(0.0..=1.0).contains(&dithering_level) {
-                return Err(ConfigError::DitheringLevelOutOfBounds(dithering_level));
-            }
-        }
+    pub fn target_height(&mut self, height: usize) -> &mut Self {
+        self.target_height = Some(height);
+        self
+    }
 
-        self.dithering_level = dithering_level;
-        Ok(self)
+    #[inline]
+    pub fn resize_type(&mut self, resize_type: ResizeType) -> &mut Self {
+        self.resize_type = Some(resize_type);
+        self
+    }
+
+    #[inline]
+    pub fn quantization_quality(&mut self, quality: u8) -> &mut Self {
+        self.quantization_quality = Some(quality);
+        self
+    }
+
+    #[inline]
+    pub fn dithering_level(&mut self, dithering_level: f32) -> &mut Self {
+        self.dithering_level = Some(dithering_level);
+        self
     }
 }
 

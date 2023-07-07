@@ -30,8 +30,8 @@ use rimage::{image::OutputFormat, optimize, Config};
 // Get file path
 let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
 
-// Build config for encoding
-let config = Config::new(OutputFormat::MozJpeg).build();
+// Build config for encoding (Please process errors when build config)
+let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
 
 // Get encoded image data from encoder
 let data = match optimize(&path, &config) {
@@ -59,8 +59,8 @@ let metadata = file.metadata().unwrap();
 let mut data = Vec::with_capacity(metadata.len() as usize);
 file.read_to_end(&mut data).unwrap();
 
-// Build config for encoding
-let config = Config::new(OutputFormat::MozJpeg).build();
+// Build config for encoding (Please process errors when build config)
+let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
 
 // Get encoded image data from encoder
 let data = match optimize_from_memory(&data, InputFormat::Jpeg, &config) {
@@ -147,8 +147,8 @@ use rimage::{Config, Encoder, image::OutputFormat};
 # let decoder = Decoder::from_path(&path).unwrap();
 # let image = decoder.decode().unwrap();
 
-// Build config for encoding
-let config = Config::new(OutputFormat::MozJpeg).build();
+// Build config for encoding (Please process errors when build config)
+let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
 
 let encoder = Encoder::new(&config, image); // where image is image::ImageData
 
