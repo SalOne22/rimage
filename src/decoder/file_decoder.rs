@@ -8,19 +8,19 @@ use rgb::{
 
 use crate::{
     error::DecodingError,
-    image::{ImageData, InputFormat},
+    image::{ImageData, ImageFormat},
 };
 
 use super::Decode;
 
 pub struct FileDecoder {
-    format: InputFormat,
+    format: ImageFormat,
     file: fs::File,
 }
 
 impl FileDecoder {
     #[inline]
-    pub fn new(file: fs::File, format: InputFormat) -> Self {
+    pub fn new(file: fs::File, format: ImageFormat) -> Self {
         FileDecoder { format, file }
     }
 }
@@ -28,10 +28,10 @@ impl FileDecoder {
 impl Decode for FileDecoder {
     fn decode(self) -> Result<ImageData, DecodingError> {
         match self.format {
-            InputFormat::Jpeg => self.decode_jpeg(),
-            InputFormat::Png => self.decode_png(),
-            InputFormat::WebP => self.decode_webp(),
-            InputFormat::Avif => self.decode_avif(),
+            ImageFormat::Jpeg => self.decode_jpeg(),
+            ImageFormat::Png => self.decode_png(),
+            ImageFormat::WebP => self.decode_webp(),
+            ImageFormat::Avif => self.decode_avif(),
         }
     }
 

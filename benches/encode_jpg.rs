@@ -15,7 +15,7 @@ fn bench_encode_jpg(c: &mut Criterion) {
         b.iter(|| {
             let data = rimage::Encoder::new(
                 black_box(
-                    &rimage::Config::builder(image::OutputFormat::MozJpeg)
+                    &rimage::Config::builder(image::Codec::MozJpeg)
                         .build()
                         .unwrap(),
                 ),

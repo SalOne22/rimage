@@ -8,19 +8,19 @@ use rgb::{
 
 use crate::{
     error::DecodingError,
-    image::{ImageData, InputFormat},
+    image::{ImageData, ImageFormat},
 };
 
 use super::Decode;
 
 pub struct MemoryDecoder<'a> {
     data: &'a [u8],
-    format: InputFormat,
+    format: ImageFormat,
 }
 
 impl<'a> MemoryDecoder<'a> {
     #[inline]
-    pub fn new(data: &'a [u8], format: InputFormat) -> Self {
+    pub fn new(data: &'a [u8], format: ImageFormat) -> Self {
         MemoryDecoder { data, format }
     }
 }
@@ -28,10 +28,10 @@ impl<'a> MemoryDecoder<'a> {
 impl<'a> Decode for MemoryDecoder<'a> {
     fn decode(self) -> Result<ImageData, DecodingError> {
         match self.format {
-            InputFormat::Jpeg => self.decode_jpeg(),
-            InputFormat::Png => self.decode_png(),
-            InputFormat::WebP => self.decode_webp(),
-            InputFormat::Avif => self.decode_avif(),
+            ImageFormat::Jpeg => self.decode_jpeg(),
+            ImageFormat::Png => self.decode_png(),
+            ImageFormat::WebP => self.decode_webp(),
+            ImageFormat::Avif => self.decode_avif(),
         }
     }
 

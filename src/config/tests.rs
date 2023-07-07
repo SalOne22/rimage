@@ -2,7 +2,7 @@ use super::*;
 
 #[test]
 fn quality_edge_cases() {
-    let mut conf = Config::builder(OutputFormat::MozJpeg);
+    let mut conf = Config::builder(Codec::MozJpeg);
 
     assert!(conf.quality(0.0).build().is_ok());
     assert!(conf.quality(50.0).build().is_ok());
@@ -13,7 +13,7 @@ fn quality_edge_cases() {
 
 #[test]
 fn target_width_edge_cases() {
-    let mut conf = Config::builder(OutputFormat::MozJpeg);
+    let mut conf = Config::builder(Codec::MozJpeg);
 
     assert!(conf.target_width(0).build().is_err());
     assert!(conf.target_width(50).build().is_ok());
@@ -22,7 +22,7 @@ fn target_width_edge_cases() {
 
 #[test]
 fn target_height_edge_cases() {
-    let mut conf = Config::builder(OutputFormat::MozJpeg);
+    let mut conf = Config::builder(Codec::MozJpeg);
 
     assert!(conf.target_height(0).build().is_err());
     assert!(conf.target_height(50).build().is_ok());
@@ -31,7 +31,7 @@ fn target_height_edge_cases() {
 
 #[test]
 fn quantization_quality_edge_cases() {
-    let mut conf = Config::builder(OutputFormat::MozJpeg);
+    let mut conf = Config::builder(Codec::MozJpeg);
 
     assert!(conf.quantization_quality(0).build().is_ok());
     assert!(conf.quantization_quality(50).build().is_ok());
@@ -41,7 +41,7 @@ fn quantization_quality_edge_cases() {
 
 #[test]
 fn dithering_level_edge_cases() {
-    let mut conf = Config::builder(OutputFormat::MozJpeg);
+    let mut conf = Config::builder(Codec::MozJpeg);
 
     assert!(conf.dithering_level(0.0).build().is_ok());
     assert!(conf.dithering_level(0.5).build().is_ok());

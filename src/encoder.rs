@@ -5,7 +5,7 @@ use rgb::{AsPixels, ComponentBytes, FromSlice, RGBA};
 
 use crate::{
     error::EncodingError,
-    image::{ImageData, OutputFormat, ResizeType},
+    image::{Codec, ImageData, ResizeType},
     Config,
 };
 
@@ -13,7 +13,7 @@ use crate::{
 ///
 /// # Example
 /// ```
-/// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
+/// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
 /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
 /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
 /// # let image = decoder.decode().unwrap();
@@ -34,7 +34,7 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
+    /// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
     /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
@@ -51,7 +51,7 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
+    /// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
     /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
@@ -83,11 +83,11 @@ impl<'a> Encoder<'a> {
         }
 
         match self.config.output_format() {
-            OutputFormat::Png => self.encode_png(),
-            OutputFormat::Oxipng => self.encode_oxipng(),
-            OutputFormat::MozJpeg => self.encode_mozjpeg(),
-            OutputFormat::WebP => self.encode_webp(),
-            OutputFormat::Avif => self.encode_avif(),
+            Codec::Png => self.encode_png(),
+            Codec::Oxipng => self.encode_oxipng(),
+            Codec::MozJpeg => self.encode_mozjpeg(),
+            Codec::WebP => self.encode_webp(),
+            Codec::Avif => self.encode_avif(),
         }
     }
 
@@ -95,7 +95,7 @@ impl<'a> Encoder<'a> {
     ///
     /// # Example
     /// ```
-    /// # use rimage::{Encoder, Config, image::{ImageData, OutputFormat}};
+    /// # use rimage::{Encoder, Config, image::{ImageData, Codec}};
     /// # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
     /// # let decoder = rimage::Decoder::from_path(&path).unwrap();
     /// # let image = decoder.decode().unwrap();
@@ -120,11 +120,11 @@ impl<'a> Encoder<'a> {
         self.quantize(quantization_quality, dithering_level)?;
 
         match self.config.output_format() {
-            OutputFormat::Png => self.encode_png(),
-            OutputFormat::Oxipng => self.encode_oxipng(),
-            OutputFormat::MozJpeg => self.encode_mozjpeg(),
-            OutputFormat::WebP => self.encode_webp(),
-            OutputFormat::Avif => self.encode_avif(),
+            Codec::Png => self.encode_png(),
+            Codec::Oxipng => self.encode_oxipng(),
+            Codec::MozJpeg => self.encode_mozjpeg(),
+            Codec::WebP => self.encode_webp(),
+            Codec::Avif => self.encode_avif(),
         }
     }
 

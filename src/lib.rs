@@ -25,13 +25,13 @@ After that you can use this crate:
 
 ## Easy way
 ```
-use rimage::{image::OutputFormat, optimize, Config};
+use rimage::{image::Codec, optimize, Config};
 
 // Get file path
 let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
 
 // Build config for encoding (Please process errors when build config)
-let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+let config = Config::builder(Codec::MozJpeg).build().unwrap();
 
 // Get encoded image data from encoder
 let data = match optimize(&path, &config) {
@@ -50,7 +50,7 @@ std::fs::write("output.jpg", data);
 ### Get optimized image from memory
 ```
 use std::{io::Read, path, fs};
-use rimage::{image::{OutputFormat, InputFormat}, optimize_from_memory, Config};
+use rimage::{image::{Codec, ImageFormat}, optimize_from_memory, Config};
 
 // Get file data from path
 let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
@@ -60,10 +60,10 @@ let mut data = Vec::with_capacity(metadata.len() as usize);
 file.read_to_end(&mut data).unwrap();
 
 // Build config for encoding (Please process errors when build config)
-let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+let config = Config::builder(Codec::MozJpeg).build().unwrap();
 
 // Get encoded image data from encoder
-let data = match optimize_from_memory(&data, InputFormat::Jpeg, &config) {
+let data = match optimize_from_memory(&data, ImageFormat::Jpeg, &config) {
     Ok(data) => data,
     Err(e) => {
         eprintln!("Oh no, there is error! {e}");
@@ -110,7 +110,7 @@ println!("Data length: {:?}", image.data().len());
 ### Decoding from memory
 ```
 use std::{io::Read, path, fs};
-use rimage::{Decoder, image::InputFormat};
+use rimage::{Decoder, image::ImageFormat};
 
 // Get file data
 let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
@@ -120,7 +120,7 @@ let mut data = Vec::with_capacity(metadata.len() as usize);
 file.read_to_end(&mut data).unwrap();
 
 // Create decoder from file data and input format
-let decoder = Decoder::from_mem(&data, InputFormat::Jpeg);
+let decoder = Decoder::from_mem(&data, ImageFormat::Jpeg);
 
 // Decode image to image data
 let image = match decoder.decode() {
@@ -142,13 +142,13 @@ println!("Data length: {:?}", image.data().len());
 
 ```
 # use rimage::Decoder;
-use rimage::{Config, Encoder, image::OutputFormat};
+use rimage::{Config, Encoder, image::Codec};
 # let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
 # let decoder = Decoder::from_path(&path).unwrap();
 # let image = decoder.decode().unwrap();
 
 // Build config for encoding (Please process errors when build config)
-let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
+let config = Config::builder(Codec::MozJpeg).build().unwrap();
 
 let encoder = Encoder::new(&config, image); // where image is image::ImageData
 

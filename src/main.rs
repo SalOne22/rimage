@@ -6,7 +6,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
-use rimage::{error::ConfigError, image::OutputFormat, optimize, Config, Decoder};
+use rimage::{error::ConfigError, image::Codec, optimize, Config, Decoder};
 use threadpool::ThreadPool;
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
@@ -36,7 +36,7 @@ struct Args {
     quality: f32,
     /// Output format of the output image
     #[arg(short, long, default_value = "jpg")]
-    format: OutputFormat,
+    format: Codec,
     /// Print image info
     #[arg(short, long)]
     info: bool,
