@@ -13,7 +13,7 @@ use crate::{decoder::Decoder, image::InputFormat, Config, Encoder};
 /// let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
 ///
 /// // Build config for encoding
-/// let config = Config::new(OutputFormat::MozJpeg).build();
+/// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
 ///
 /// // Get encoded image data from encoder
 /// let data = optimize(&path, &config).unwrap();
@@ -50,7 +50,7 @@ pub fn optimize(image_path: &path::Path, config: &Config) -> Result<Vec<u8>, Box
 /// file.read_to_end(&mut data).unwrap();
 ///
 /// // Build config for encoding
-/// let config = Config::new(OutputFormat::MozJpeg).build();
+/// let config = Config::builder(OutputFormat::MozJpeg).build().unwrap();
 ///
 /// // Get encoded image data from encoder
 /// let data = optimize_from_memory(&data, InputFormat::Jpeg, &config).unwrap();

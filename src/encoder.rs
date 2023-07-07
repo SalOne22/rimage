@@ -82,7 +82,7 @@ impl<'a> Encoder<'a> {
             self.quantize(quantization, dithering)?;
         }
 
-        match self.config.output_format {
+        match self.config.output_format() {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
@@ -119,7 +119,7 @@ impl<'a> Encoder<'a> {
 
         self.quantize(quantization_quality, dithering_level)?;
 
-        match self.config.output_format {
+        match self.config.output_format() {
             OutputFormat::Png => self.encode_png(),
             OutputFormat::Oxipng => self.encode_oxipng(),
             OutputFormat::MozJpeg => self.encode_mozjpeg(),
@@ -153,7 +153,7 @@ impl<'a> Encoder<'a> {
         info!(
             "Resize type: {:?}",
             self.config
-                .resize_type
+                .resize_type()
                 .as_ref()
                 .unwrap_or(&ResizeType::Lanczos3)
         );
@@ -168,7 +168,7 @@ impl<'a> Encoder<'a> {
             resize::Pixel::RGBA8,
             resize::Type::from(
                 self.config
-                    .resize_type
+                    .resize_type()
                     .as_ref()
                     .unwrap_or(&ResizeType::Lanczos3),
             ),

@@ -166,14 +166,27 @@ fn get_info(args: Args, common_path: Option<path::PathBuf>) {
 }
 
 fn get_config(args: &Args) -> Result<Config, ConfigError> {
-    Ok(Config::new(args.format)
-        .quality(args.quality)?
-        .target_width(args.width)?
-        .target_height(args.height)?
-        .resize_type(args.filter)
-        .quantization_quality(args.quantization)?
-        .dithering_level(args.dithering)?
-        .build())
+    let mut conf = Config::builder(args.format);
+
+    conf.quality(args.quality);
+
+    if let Some(width) = args.width {
+        conf.target_width(width);
+    }
+    if let Some(height) = args.height {
+        conf.target_height(height);
+    }
+    if let Some(filter) = args.filter {
+        conf.resize_type(filter);
+    }
+    if let Some(quantization) = args.quantization {
+        conf.quantization_quality(quantization);
+    }
+    if let Some(dithering) = args.dithering {
+        conf.dithering_level(dithering);
+    }
+
+    conf.build()
 }
 
 fn bulk_optimize(
