@@ -1,18 +1,51 @@
 use super::*;
 
 #[test]
-fn config_edge_cases() {
-    let config = Config::default();
-    assert_eq!(config.output_format, OutputFormat::MozJpeg);
-    assert_eq!(config.quality, 75.0);
-    let config = Config::build(100.0, OutputFormat::Png, None, None, None).unwrap();
-    assert_eq!(config.output_format, OutputFormat::Png);
-    assert_eq!(config.quality, 100.0);
-    let config = Config::build(0.0, OutputFormat::Oxipng, None, None, None).unwrap();
-    assert_eq!(config.output_format, OutputFormat::Oxipng);
-    assert_eq!(config.quality, 0.0);
-    let config_result = Config::build(101.0, OutputFormat::MozJpeg, None, None, None);
-    assert!(config_result.is_err());
-    let config_result = Config::build(-1.0, OutputFormat::MozJpeg, None, None, None);
-    assert!(config_result.is_err());
+fn quality_edge_cases() {
+    let mut conf = Config::builder(Codec::MozJpeg);
+
+    assert!(conf.quality(0.0).build().is_ok());
+    assert!(conf.quality(50.0).build().is_ok());
+    assert!(conf.quality(100.0).build().is_ok());
+    assert!(conf.quality(-10.0).build().is_err());
+    assert!(conf.quality(110.0).build().is_err());
+}
+
+#[test]
+fn target_width_edge_cases() {
+    let mut conf = Config::builder(Codec::MozJpeg);
+
+    assert!(conf.target_width(0).build().is_err());
+    assert!(conf.target_width(50).build().is_ok());
+    assert!(conf.target_width(usize::MAX).build().is_ok());
+}
+
+#[test]
+fn target_height_edge_cases() {
+    let mut conf = Config::builder(Codec::MozJpeg);
+
+    assert!(conf.target_height(0).build().is_err());
+    assert!(conf.target_height(50).build().is_ok());
+    assert!(conf.target_height(usize::MAX).build().is_ok());
+}
+
+#[test]
+fn quantization_quality_edge_cases() {
+    let mut conf = Config::builder(Codec::MozJpeg);
+
+    assert!(conf.quantization_quality(0).build().is_ok());
+    assert!(conf.quantization_quality(50).build().is_ok());
+    assert!(conf.quantization_quality(100).build().is_ok());
+    assert!(conf.quantization_quality(110).build().is_err());
+}
+
+#[test]
+fn dithering_level_edge_cases() {
+    let mut conf = Config::builder(Codec::MozJpeg);
+
+    assert!(conf.dithering_level(0.0).build().is_ok());
+    assert!(conf.dithering_level(0.5).build().is_ok());
+    assert!(conf.dithering_level(1.0).build().is_ok());
+    assert!(conf.dithering_level(-1.0).build().is_err());
+    assert!(conf.dithering_level(1.1).build().is_err());
 }

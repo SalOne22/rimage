@@ -6,7 +6,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
-use rimage::{image::OutputFormat, optimize, Config, Decoder};
+use rimage::{error::ConfigError, image::Codec, optimize, Config, Decoder};
 use threadpool::ThreadPool;
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
@@ -36,7 +36,7 @@ struct Args {
     quality: f32,
     /// Output format of the output image
     #[arg(short, long, default_value = "jpg")]
-    format: OutputFormat,
+    format: Codec,
     /// Print image info
     #[arg(short, long)]
     info: bool,
@@ -71,24 +71,10 @@ fn main() {
     let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
     let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
 
-    let conf = Arc::new({
-        let mut temp = Config::build(
-            args.quality,
-            args.format,
-            args.width,
-            args.height,
-            args.filter.clone(),
-        )
-        .unwrap_or_else(|e| {
-            error!("{e}");
-            process::exit(1);
-        });
-
-        temp.quantization_quality = args.quantization;
-        temp.dithering_level = args.dithering;
-
-        temp
-    });
+    let conf = Arc::new(get_config(&args).unwrap_or_else(|err| {
+        error!("{err}");
+        process::exit(1);
+    }));
 
     let common_path = common_path(&args.input);
 
@@ -147,15 +133,13 @@ fn get_args() -> Args {
 
 fn get_info(args: Args, common_path: Option<path::PathBuf>) {
     for path in args.input {
-        let file = match fs::File::open(&path) {
+        let d = match Decoder::from_path(&path) {
             Ok(file) => file,
             Err(e) => {
                 error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                 continue;
             }
         };
-
-        let d = Decoder::new(&path, file);
 
         let img = match d.decode() {
             Ok(img) => img,
@@ -179,6 +163,30 @@ fn get_info(args: Args, common_path: Option<path::PathBuf>) {
         println!("Data length: {:?}", img.data().len());
         println!();
     }
+}
+
+fn get_config(args: &Args) -> Result<Config, ConfigError> {
+    let mut conf = Config::builder(args.format);
+
+    conf.quality(args.quality);
+
+    if let Some(width) = args.width {
+        conf.target_width(width);
+    }
+    if let Some(height) = args.height {
+        conf.target_height(height);
+    }
+    if let Some(filter) = args.filter {
+        conf.resize_type(filter);
+    }
+    if let Some(quantization) = args.quantization {
+        conf.quantization_quality(quantization);
+    }
+    if let Some(dithering) = args.dithering {
+        conf.dithering_level(dithering);
+    }
+
+    conf.build()
 }
 
 fn bulk_optimize(
