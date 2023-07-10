@@ -21,8 +21,8 @@ rimage -q 75 *.jpg
 - Quality: `-q 0` through `-q 100`, higher is better
 - Output format: `-f png`, currently supported only jpg, png, oxipng and webp
 - Output directory: `-o /somewhere`, saves all processed files in this directory, also saves files directory structure
-   > Note: On windows cmd, if you path contains spaces, please remove backslash before the closing quote.
-   > This is because in cmd a backslash before a quote is recognized as an escape character. More info [here](https://stackoverflow.com/a/75849885)
+  > Note: On windows cmd, if you path contains spaces, please remove backslash before the closing quote.
+  > This is because in cmd a backslash before a quote is recognized as an escape character. More info [here](https://stackoverflow.com/a/75849885)
 - Suffix for output: `-s _updated`, adds suffix in file name ("input.jpg" -> "input_updated.jpg")
 - Info: `-i`, flag used to get info about images (size and data length)
 - Threads: `-t 4`, number of threads to use
@@ -40,6 +40,10 @@ rimage -q 75 *.jpg
 ## Changelog
 
 Read changelog [here](CHANGELOG.md)
+
+## Benchmarks
+
+You can see benchmarks and comparison with `@squoosh/cli` [here](./Benchmarks.md)
 
 ## Building from source
 
