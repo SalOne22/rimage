@@ -3,10 +3,11 @@ This crate provides a cli tool and library for image processing.
 Similar to [squoosh!](https://squoosh.app/) using same codecs,
 but fully written on rust and with bulk processing support.
 
+**Attention: Library in active development stage, all can be changed!**
+
 Current features:
 - Decoding jpeg, png, webp and avif
 - Encoding with optimizations
-- Getting image information
 
 # Usage
 
@@ -18,7 +19,7 @@ cargo add rimage
 or add this to Cargo.toml:
 ```toml
 [dependencies]
-rimage = "1.0.0"
+rimage = "0.8.0"
 ```
 
 After that you can use this crate:
