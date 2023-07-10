@@ -113,3 +113,5 @@ Squoosh **AVIF (596.16KB)**
 Rimage **AVIF (548.47MB)**
 
 ![After (squoosh!)](./assets/gustavo-zambelli-SIC3k8IMhhA-unsplash-rimage.avif)
+
+All images was taken from [Unsplash](https://unsplash.com/)
