@@ -1,4 +1,4 @@
-## v1.0.0
+## v0.8.0
 
 - [Breaking Changes] `Decoder` now is builder for `GenericDecoder` that capable to decode byte slices and files
 - [Breaking Changes] `Config` now uses builder pattern
