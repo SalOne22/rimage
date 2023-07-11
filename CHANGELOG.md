@@ -2,6 +2,7 @@
 
 - [Changed] Updated progress bar. ![Updated version](./assets/progress_bar.gif)
 - [Changed] Now rimage uses rayon crate for parallel optimizations
+- [Added] `--quiet` flag that disables progress bar
 
 ## v0.8.0
 
