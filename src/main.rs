@@ -3,7 +3,7 @@ use std::{fs, io, path, process};
 use clap::Parser;
 use console::{Emoji, Style};
 use glob::glob;
-use indicatif::{DecimalBytes, MultiProgress};
+use indicatif::{DecimalBytes, MultiProgress, ProgressDrawTarget};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
@@ -64,6 +64,9 @@ struct Args {
     /// Supported filters: point, triangle, catmull-rom, mitchell, lanczos3
     #[arg(long)]
     filter: Option<rimage::image::ResizeType>,
+    /// Disable progress bar
+    #[arg(long)]
+    quiet: bool,
 }
 
 fn main() {
@@ -78,6 +81,10 @@ fn main() {
     });
 
     let common_path = common_path(&args.input);
+
+    if args.quiet {
+        m.set_draw_target(ProgressDrawTarget::hidden());
+    }
 
     rayon::ThreadPoolBuilder::new()
         .num_threads(args.threads.unwrap_or(0))
@@ -190,13 +197,29 @@ fn get_config(args: &Args) -> Result<Config, ConfigError> {
 
 fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, m: &MultiProgress) {
     args.input.into_par_iter().for_each(|path| {
-        let file_name = path.file_name().unwrap().to_str().unwrap();
+        let file_name = match path.file_name() {
+            Some(name) => name.to_str().unwrap(),
+            None => {
+                error!("Path does not contain file name");
+                return;
+            }
+        };
         let spinner = create_spinner(file_name.to_owned(), m);
 
-        let file_size_before_optimization = fs::metadata(&path).unwrap().len();
-        let file_size_after_optimization;
+        let cyan = Style::new().cyan();
+        let red = Style::new().red();
+        let green = Style::new().green();
 
-        info!("Decoding {}", file_name);
+        let file_size_before_optimization = match fs::metadata(&path) {
+            Ok(meta) => meta.len(),
+            Err(e) => {
+                spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+                return;
+            }
+        };
+
+        let file_size_after_optimization;
 
         let mut new_path = path.clone();
 
@@ -225,7 +248,8 @@ fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, 
         match fs::create_dir_all(new_path.parent().unwrap()) {
             Ok(_) => (),
             Err(e) => {
-                error!("{} {e}", file_name);
+                spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
                 return;
             }
         }
@@ -238,14 +262,16 @@ fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, 
                     data
                 }
                 Err(e) => {
-                    error!("{} {e}", file_name);
+                    spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                    spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
                     return;
                 }
             },
         ) {
             Ok(_) => (),
             Err(e) => {
-                error!("{} {e}", file_name);
+                spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
                 return;
             }
         };
@@ -259,16 +285,12 @@ fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, 
             100.0 - abs_percent
         };
 
-        let cyan = Style::new().cyan();
-        let red = Style::new().red();
-        let green = Style::new().green();
-
         spinner.set_prefix(format!("{}", Emoji("✅", "Done")));
         spinner.finish_with_message(format!(
             "{file_name} completed {} -> {} {}",
             cyan.apply_to(DecimalBytes(file_size_before_optimization)),
             cyan.apply_to(DecimalBytes(file_size_after_optimization)),
-            if percent > 100.0 {
+            if file_size_after_optimization > file_size_before_optimization {
                 red.apply_to(format!("{} {:.1}%", Emoji("🔺", "^"), percent))
             } else {
                 green.apply_to(format!("{} {:.1}%", Emoji("🔻", "v"), percent))
