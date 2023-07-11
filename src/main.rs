@@ -1,4 +1,4 @@
-use std::{fs, io, path, process, sync::Arc};
+use std::{fs, io, path, process};
 
 use clap::Parser;
 use glob::glob;
@@ -6,8 +6,8 @@ use indicatif::{ProgressBar, ProgressStyle};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
+use rayon::prelude::*;
 use rimage::{error::ConfigError, image::Codec, optimize, Config, Decoder};
-use threadpool::ThreadPool;
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
 
@@ -68,17 +68,24 @@ fn main() {
     pretty_env_logger::init();
 
     let args = get_args();
-    let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
-    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
+    let pb = ProgressBar::new(args.input.len() as u64);
 
-    let conf = Arc::new(get_config(&args).unwrap_or_else(|err| {
+    let conf = get_config(&args).unwrap_or_else(|err| {
         error!("{err}");
         process::exit(1);
-    }));
+    });
 
     let common_path = common_path(&args.input);
 
-    info!("Using {} threads", pool.max_count());
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(args.threads.unwrap_or(0))
+        .build_global()
+        .unwrap_or_else(|err| {
+            error!("{err}");
+            process::exit(1);
+        });
+
+    info!("Using {} threads", rayon::current_num_threads());
     info!("Using config: {:?}", conf);
     info!("Found common path: {:?}", common_path);
 
@@ -94,9 +101,8 @@ fn main() {
         process::exit(0);
     }
 
-    bulk_optimize(args, &conf, common_path, &pb, &pool);
+    bulk_optimize(args, &conf, common_path, &pb);
 
-    pool.join();
     pb.finish();
 }
 
@@ -189,74 +195,60 @@ fn get_config(args: &Args) -> Result<Config, ConfigError> {
     conf.build()
 }
 
-fn bulk_optimize(
-    args: Args,
-    conf: &Config,
-    common_path: Option<path::PathBuf>,
-    pb: &ProgressBar,
-    pool: &ThreadPool,
-) {
-    for path in args.input {
-        let pb = pb.clone();
-        let conf = conf.clone();
-        let suffix = args.suffix.clone();
-        let common_path = common_path.clone();
-        let destination_dir = args.output.clone();
+fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, pb: &ProgressBar) {
+    args.input.into_par_iter().for_each(|path| {
+        info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
+        pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
 
-        pool.execute(move || {
-            info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
-            pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
+        let mut new_path = path.clone();
 
-            let mut new_path = path.clone();
+        if let Some(destination_dir) = &args.output {
+            let file_name = path::Path::new(new_path.file_name().unwrap());
 
-            if let Some(destination_dir) = &destination_dir {
-                let file_name = path::Path::new(new_path.file_name().unwrap());
+            let relative_path = if let Some(common_path) = &common_path {
+                new_path.strip_prefix(common_path).unwrap_or(file_name)
+            } else {
+                file_name
+            };
 
-                let relative_path = if let Some(common_path) = &common_path {
-                    new_path.strip_prefix(common_path).unwrap_or(file_name)
-                } else {
-                    file_name
-                };
+            new_path = destination_dir.join(relative_path);
+        }
 
-                new_path = destination_dir.join(relative_path);
+        let ext = args.format.to_string();
+        let suffix = args.suffix.clone().unwrap_or_default();
+
+        new_path.set_file_name(format!(
+            "{}{}",
+            path.file_stem().unwrap().to_str().unwrap(),
+            suffix,
+        ));
+        new_path.set_extension(ext);
+
+        match fs::create_dir_all(new_path.parent().unwrap()) {
+            Ok(_) => (),
+            Err(e) => {
+                error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
             }
+        }
 
-            let ext = args.format.to_string();
-            let suffix = suffix.clone().unwrap_or_default();
-
-            new_path.set_file_name(format!(
-                "{}{}",
-                path.file_stem().unwrap().to_str().unwrap(),
-                suffix,
-            ));
-            new_path.set_extension(ext);
-
-            match fs::create_dir_all(new_path.parent().unwrap()) {
-                Ok(_) => (),
-                Err(e) => {
-                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
-                }
-            }
-
-            match fs::write(
-                &new_path,
-                match optimize(&path, &conf) {
-                    Ok(data) => data,
-                    Err(e) => {
-                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
-                        return;
-                    }
-                },
-            ) {
-                Ok(_) => (),
+        match fs::write(
+            &new_path,
+            match optimize(&path, conf) {
+                Ok(data) => data,
                 Err(e) => {
                     error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
                     return;
                 }
-            };
-            info!("{} done", &path.file_name().unwrap().to_str().unwrap());
-            info!("Saved to {:?}", new_path);
-            pb.inc(1);
-        });
-    }
+            },
+        ) {
+            Ok(_) => (),
+            Err(e) => {
+                error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                return;
+            }
+        };
+        info!("{} done", &path.file_name().unwrap().to_str().unwrap());
+        info!("Saved to {:?}", new_path);
+        pb.inc(1);
+    });
 }
