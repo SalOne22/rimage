@@ -31,6 +31,7 @@ rimage -q 75 *.jpg
 - Resize: `--width 250` or `--height 100`, resizes image to specified width or height
 - Filter: `--filter mitchell`, filter used to resizing
 - Logging: `RUST_LOG=trace`, enables logging output, more information see [here](https://docs.rs/env_logger/latest/env_logger/)
+- Quiet mode: `--quiet` disables progress bar
 - More options will be added later
 
 ## To-Do
