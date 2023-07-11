@@ -1,4 +1,4 @@
-## Mozjpeg procession
+## Mozjpeg processing
 
 ```
 Benchmark 1: squoosh-cli --mozjpeg '{quality:50}' -d ../squoosh ./boliviainteligente-JUtc5Lu4BCQ-unsplash.jpg
@@ -26,7 +26,7 @@ Rimage **JPG (462.86KB)**
 
 ![After (Rimage!)](./assets/boliviainteligente-JUtc5Lu4BCQ-unsplash-rimage.jpg)
 
-## Oxipng procession
+## Oxipng processing
 
 ```
 Benchmark 1: squoosh-cli --oxipng '{level:2}' -d ../squoosh ./edwin-splisser-GC7FLmgU5Z4-unsplash.jpg
@@ -58,7 +58,7 @@ Rimage **PNG (7.84MB)**
 
 ![After (squoosh!)](./assets/edwin-splisser-GC7FLmgU5Z4-unsplash-rimage.png)
 
-## Webp procession
+## Webp processing
 
 ```
 Benchmark 1: squoosh-cli --webp '{quality:50}' -d ../squoosh ./felix-rottmann-n-Ky-79zeXM-unsplash.jpg
@@ -86,7 +86,7 @@ Rimage **WEBP (7.33MB)**
 
 ![After (squoosh!)](./assets/felix-rottmann-n-Ky-79zeXM-unsplash-rimage.webp)
 
-## AVIF procession
+## AVIF processing
 
 ```
 Benchmark 1: squoosh-cli --avif '{cqLevel:32}' -d ../squoosh ./gustavo-zambelli-SIC3k8IMhhA-unsplash.jpg
