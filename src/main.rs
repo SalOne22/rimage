@@ -1,8 +1,9 @@
 use std::{fs, io, path, process};
 
 use clap::Parser;
+use console::{Emoji, Style};
 use glob::glob;
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{DecimalBytes, MultiProgress};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
@@ -11,7 +12,7 @@ use rimage::{error::ConfigError, image::Codec, optimize, Config, Decoder};
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
 
-use crate::utils::common_path;
+use crate::{progress_bar::create_spinner, utils::common_path};
 
 #[cfg(not(target_env = "msvc"))]
 #[global_allocator]
@@ -20,6 +21,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
+mod progress_bar;
 /// Some utils functions
 mod utils;
 
@@ -68,7 +70,7 @@ fn main() {
     pretty_env_logger::init();
 
     let args = get_args();
-    let pb = ProgressBar::new(args.input.len() as u64);
+    let m = MultiProgress::new();
 
     let conf = get_config(&args).unwrap_or_else(|err| {
         error!("{err}");
@@ -89,21 +91,12 @@ fn main() {
     info!("Using config: {:?}", conf);
     info!("Found common path: {:?}", common_path);
 
-    pb.set_style(
-        ProgressStyle::with_template("{bar:40.green/blue}  {pos}/{len}")
-            .unwrap()
-            .progress_chars("##-"),
-    );
-    pb.set_position(0);
-
     if args.info {
         get_info(args, common_path);
         process::exit(0);
     }
 
-    bulk_optimize(args, &conf, common_path, &pb);
-
-    pb.finish();
+    bulk_optimize(args, &conf, common_path, &m);
 }
 
 fn get_args() -> Args {
@@ -195,10 +188,15 @@ fn get_config(args: &Args) -> Result<Config, ConfigError> {
     conf.build()
 }
 
-fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, pb: &ProgressBar) {
+fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, m: &MultiProgress) {
     args.input.into_par_iter().for_each(|path| {
-        info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
-        pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
+        let file_name = path.file_name().unwrap().to_str().unwrap();
+        let spinner = create_spinner(file_name.to_owned(), m);
+
+        let file_size_before_optimization = fs::metadata(&path).unwrap().len();
+        let file_size_after_optimization;
+
+        info!("Decoding {}", file_name);
 
         let mut new_path = path.clone();
 
@@ -227,28 +225,54 @@ fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, 
         match fs::create_dir_all(new_path.parent().unwrap()) {
             Ok(_) => (),
             Err(e) => {
-                error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                error!("{} {e}", file_name);
+                return;
             }
         }
 
         match fs::write(
             &new_path,
             match optimize(&path, conf) {
-                Ok(data) => data,
+                Ok(data) => {
+                    file_size_after_optimization = data.len() as u64;
+                    data
+                }
                 Err(e) => {
-                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                    error!("{} {e}", file_name);
                     return;
                 }
             },
         ) {
             Ok(_) => (),
             Err(e) => {
-                error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                error!("{} {e}", file_name);
                 return;
             }
         };
-        info!("{} done", &path.file_name().unwrap().to_str().unwrap());
         info!("Saved to {:?}", new_path);
-        pb.inc(1);
+
+        let diff = file_size_after_optimization as f64 / file_size_before_optimization as f64;
+        let abs_percent = diff.abs() * 100.0;
+        let percent = if diff > 1.0 {
+            abs_percent - 100.0
+        } else {
+            100.0 - abs_percent
+        };
+
+        let cyan = Style::new().cyan();
+        let red = Style::new().red();
+        let green = Style::new().green();
+
+        spinner.set_prefix(format!("{}", Emoji("✅", "Done")));
+        spinner.finish_with_message(format!(
+            "{file_name} completed {} -> {} {}",
+            cyan.apply_to(DecimalBytes(file_size_before_optimization)),
+            cyan.apply_to(DecimalBytes(file_size_after_optimization)),
+            if percent > 100.0 {
+                red.apply_to(format!("{} {:.1}%", Emoji("🔺", "^"), percent))
+            } else {
+                green.apply_to(format!("{} {:.1}%", Emoji("🔻", "v"), percent))
+            }
+        ));
     });
 }

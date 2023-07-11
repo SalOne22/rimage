@@ -39,6 +39,7 @@ ravif = "0.11.2"
 glob = "0.3.1"
 thiserror = "1.0.40"
 rayon = "1.7.0"
+console = "0.15.7"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = "0.5"
 [target.'cfg(target_env = "msvc")'.dependencies]
