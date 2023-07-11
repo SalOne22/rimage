@@ -1,3 +1,8 @@
+## v0.8.1
+
+- [Changed] Updated progress bar. ![Updated version](./assets/progress_bar.gif)
+- [Changed] Now rimage uses rayon crate for parallel optimizations
+
 ## v0.8.0
 
 - [Breaking Changes] `Decoder` now is builder for `GenericDecoder` that capable to decode byte slices and files

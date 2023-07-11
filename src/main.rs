@@ -1,17 +1,18 @@
-use std::{fs, io, path, process, sync::Arc};
+use std::{fs, io, path, process};
 
 use clap::Parser;
+use console::{Emoji, Style};
 use glob::glob;
-use indicatif::{ProgressBar, ProgressStyle};
+use indicatif::{DecimalBytes, MultiProgress, ProgressDrawTarget};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
 use mimalloc::MiMalloc;
+use rayon::prelude::*;
 use rimage::{error::ConfigError, image::Codec, optimize, Config, Decoder};
-use threadpool::ThreadPool;
 #[cfg(not(target_env = "msvc"))]
 use tikv_jemallocator::Jemalloc;
 
-use crate::utils::common_path;
+use crate::{progress_bar::create_spinner, utils::common_path};
 
 #[cfg(not(target_env = "msvc"))]
 #[global_allocator]
@@ -20,6 +21,7 @@ static GLOBAL: Jemalloc = Jemalloc;
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
 
+mod progress_bar;
 /// Some utils functions
 mod utils;
 
@@ -62,42 +64,46 @@ struct Args {
     /// Supported filters: point, triangle, catmull-rom, mitchell, lanczos3
     #[arg(long)]
     filter: Option<rimage::image::ResizeType>,
+    /// Disable progress bar
+    #[arg(long)]
+    quiet: bool,
 }
 
 fn main() {
     pretty_env_logger::init();
 
     let args = get_args();
-    let pool = ThreadPool::new(args.threads.unwrap_or(num_cpus::get()));
-    let pb = Arc::new(ProgressBar::new(args.input.len() as u64));
+    let m = MultiProgress::new();
 
-    let conf = Arc::new(get_config(&args).unwrap_or_else(|err| {
+    let conf = get_config(&args).unwrap_or_else(|err| {
         error!("{err}");
         process::exit(1);
-    }));
+    });
 
     let common_path = common_path(&args.input);
 
-    info!("Using {} threads", pool.max_count());
+    if args.quiet {
+        m.set_draw_target(ProgressDrawTarget::hidden());
+    }
+
+    rayon::ThreadPoolBuilder::new()
+        .num_threads(args.threads.unwrap_or(0))
+        .build_global()
+        .unwrap_or_else(|err| {
+            error!("{err}");
+            process::exit(1);
+        });
+
+    info!("Using {} threads", rayon::current_num_threads());
     info!("Using config: {:?}", conf);
     info!("Found common path: {:?}", common_path);
-
-    pb.set_style(
-        ProgressStyle::with_template("{bar:40.green/blue}  {pos}/{len}")
-            .unwrap()
-            .progress_chars("##-"),
-    );
-    pb.set_position(0);
 
     if args.info {
         get_info(args, common_path);
         process::exit(0);
     }
 
-    bulk_optimize(args, &conf, common_path, &pb, &pool);
-
-    pool.join();
-    pb.finish();
+    bulk_optimize(args, &conf, common_path, &m);
 }
 
 fn get_args() -> Args {
@@ -189,74 +195,106 @@ fn get_config(args: &Args) -> Result<Config, ConfigError> {
     conf.build()
 }
 
-fn bulk_optimize(
-    args: Args,
-    conf: &Config,
-    common_path: Option<path::PathBuf>,
-    pb: &ProgressBar,
-    pool: &ThreadPool,
-) {
-    for path in args.input {
-        let pb = pb.clone();
-        let conf = conf.clone();
-        let suffix = args.suffix.clone();
-        let common_path = common_path.clone();
-        let destination_dir = args.output.clone();
-
-        pool.execute(move || {
-            info!("Decoding {}", &path.file_name().unwrap().to_str().unwrap());
-            pb.set_message(path.file_name().unwrap().to_str().unwrap().to_owned());
-
-            let mut new_path = path.clone();
-
-            if let Some(destination_dir) = &destination_dir {
-                let file_name = path::Path::new(new_path.file_name().unwrap());
-
-                let relative_path = if let Some(common_path) = &common_path {
-                    new_path.strip_prefix(common_path).unwrap_or(file_name)
-                } else {
-                    file_name
-                };
-
-                new_path = destination_dir.join(relative_path);
+fn bulk_optimize(args: Args, conf: &Config, common_path: Option<path::PathBuf>, m: &MultiProgress) {
+    args.input.into_par_iter().for_each(|path| {
+        let file_name = match path.file_name() {
+            Some(name) => name.to_str().unwrap(),
+            None => {
+                error!("Path does not contain file name");
+                return;
             }
+        };
+        let spinner = create_spinner(file_name.to_owned(), m);
 
-            let ext = args.format.to_string();
-            let suffix = suffix.clone().unwrap_or_default();
+        let cyan = Style::new().cyan();
+        let red = Style::new().red();
+        let green = Style::new().green();
 
-            new_path.set_file_name(format!(
-                "{}{}",
-                path.file_stem().unwrap().to_str().unwrap(),
-                suffix,
-            ));
-            new_path.set_extension(ext);
+        let file_size_before_optimization = match fs::metadata(&path) {
+            Ok(meta) => meta.len(),
+            Err(e) => {
+                spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+                return;
+            }
+        };
 
-            match fs::create_dir_all(new_path.parent().unwrap()) {
-                Ok(_) => (),
-                Err(e) => {
-                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+        let file_size_after_optimization;
+
+        let mut new_path = path.clone();
+
+        if let Some(destination_dir) = &args.output {
+            let file_name = path::Path::new(new_path.file_name().unwrap());
+
+            let relative_path = if let Some(common_path) = &common_path {
+                new_path.strip_prefix(common_path).unwrap_or(file_name)
+            } else {
+                file_name
+            };
+
+            new_path = destination_dir.join(relative_path);
+        }
+
+        let ext = args.format.to_string();
+        let suffix = args.suffix.clone().unwrap_or_default();
+
+        new_path.set_file_name(format!(
+            "{}{}",
+            path.file_stem().unwrap().to_str().unwrap(),
+            suffix,
+        ));
+        new_path.set_extension(ext);
+
+        match fs::create_dir_all(new_path.parent().unwrap()) {
+            Ok(_) => (),
+            Err(e) => {
+                spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+                return;
+            }
+        }
+
+        match fs::write(
+            &new_path,
+            match optimize(&path, conf) {
+                Ok(data) => {
+                    file_size_after_optimization = data.len() as u64;
+                    data
                 }
-            }
-
-            match fs::write(
-                &new_path,
-                match optimize(&path, &conf) {
-                    Ok(data) => data,
-                    Err(e) => {
-                        error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
-                        return;
-                    }
-                },
-            ) {
-                Ok(_) => (),
                 Err(e) => {
-                    error!("{} {e}", &path.file_name().unwrap().to_str().unwrap());
+                    spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                    spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
                     return;
                 }
-            };
-            info!("{} done", &path.file_name().unwrap().to_str().unwrap());
-            info!("Saved to {:?}", new_path);
-            pb.inc(1);
-        });
-    }
+            },
+        ) {
+            Ok(_) => (),
+            Err(e) => {
+                spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+                spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+                return;
+            }
+        };
+        info!("Saved to {:?}", new_path);
+
+        let diff = file_size_after_optimization as f64 / file_size_before_optimization as f64;
+        let abs_percent = diff.abs() * 100.0;
+        let percent = if diff > 1.0 {
+            abs_percent - 100.0
+        } else {
+            100.0 - abs_percent
+        };
+
+        spinner.set_prefix(format!("{}", Emoji("✅", "Done")));
+        spinner.finish_with_message(format!(
+            "{file_name} completed {} -> {} {}",
+            cyan.apply_to(DecimalBytes(file_size_before_optimization)),
+            cyan.apply_to(DecimalBytes(file_size_after_optimization)),
+            if file_size_after_optimization > file_size_before_optimization {
+                red.apply_to(format!("{} {:.1}%", Emoji("🔺", "^"), percent))
+            } else {
+                green.apply_to(format!("{} {:.1}%", Emoji("🔻", "v"), percent))
+            }
+        ));
+    });
 }
