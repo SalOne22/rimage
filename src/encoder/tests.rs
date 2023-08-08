@@ -80,6 +80,17 @@ fn encode_avif() {
 }
 
 #[test]
+fn encode_jxl() {
+    let conf = Config::builder(Codec::Jxl).build().unwrap();
+
+    encode_files(&FILES, &conf, |result| {
+        assert!(result.is_ok());
+        let result = result.unwrap();
+        assert!(!result.is_empty());
+    });
+}
+
+#[test]
 fn encode_quantized() {
     let path = path::PathBuf::from("tests/files/basi2c08.png");
 

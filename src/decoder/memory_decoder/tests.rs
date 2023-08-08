@@ -137,3 +137,15 @@ fn decode_avif() {
         assert_ne!(image.size(), (0, 0));
     });
 }
+
+#[test]
+fn decode_jxl() {
+    let files = get_files_by_regex(r"^tests/files/.+.jxl$");
+
+    decode_files(&files, |image| {
+        let image = image.unwrap();
+
+        assert_ne!(image.data().len(), 0);
+        assert_ne!(image.size(), (0, 0));
+    });
+}
