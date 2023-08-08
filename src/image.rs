@@ -53,6 +53,8 @@ pub enum ImageFormat {
     WebP,
     /// AVIF image
     Avif,
+    /// Jpeg XL image
+    Jxl,
 }
 
 impl std::str::FromStr for ImageFormat {
@@ -64,6 +66,7 @@ impl std::str::FromStr for ImageFormat {
             "png" => Ok(ImageFormat::Png),
             "webp" => Ok(ImageFormat::WebP),
             "avif" => Ok(ImageFormat::Avif),
+            "jxl" => Ok(ImageFormat::Jxl),
             _ => Err(format!("{} is not a valid input format", s).into()),
         }
     }
@@ -76,6 +79,7 @@ impl fmt::Display for ImageFormat {
             ImageFormat::Png => write!(f, "png"),
             ImageFormat::WebP => write!(f, "webp"),
             ImageFormat::Avif => write!(f, "avif"),
+            ImageFormat::Jxl => write!(f, "jxl"),
         }
     }
 }
