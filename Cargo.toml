@@ -23,7 +23,7 @@ debug = 1
 
 [dependencies]
 bytemuck = "1.13.1"
-clap = { version = "4.3.10", features = ["derive"] }
+clap = { version = "4.3.19", features = ["derive"] }
 imagequant = "4.2.0"
 indicatif = "0.17.6"
 log = "0.4.19"
