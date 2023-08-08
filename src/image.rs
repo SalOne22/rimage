@@ -97,6 +97,8 @@ pub enum Codec {
     WebP,
     /// AVIF codec, outputs .avif
     Avif,
+    /// Jpeg XL codec, outputs .jxl
+    Jxl,
 }
 
 impl std::str::FromStr for Codec {
@@ -122,6 +124,7 @@ impl fmt::Display for Codec {
             Codec::Oxipng => write!(f, "png"),
             Codec::WebP => write!(f, "webp"),
             Codec::Avif => write!(f, "avif"),
+            Codec::Jxl => write!(f, "jxl"),
         }
     }
 }
