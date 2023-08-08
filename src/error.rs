@@ -46,6 +46,9 @@ pub enum DecodingError {
     /// A Avif decoding error
     #[error("{0}")]
     Avif(String),
+    /// A Jpeg XL decoding error
+    #[error(transparent)]
+    Jxl(#[from] jpegxl_rs::DecodeError),
 }
 
 /// An error that occurred during encoding a image
