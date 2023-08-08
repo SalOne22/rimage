@@ -78,4 +78,10 @@ pub enum EncodingError {
     /// A Avif encoding error
     #[error(transparent)]
     Avif(#[from] ravif::Error),
+    /// A Jpeg XL encoding error
+    #[error(transparent)]
+    Jxl(#[from] jpegxl_rs::EncodeError),
+    /// Int conversion error
+    #[error("{0}")]
+    Conversion(String),
 }
