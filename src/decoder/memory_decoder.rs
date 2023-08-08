@@ -1,5 +1,9 @@
 use std::panic;
 
+use jpegxl_rs::{
+    decode::{Metadata, PixelFormat},
+    decoder_builder, Endianness,
+};
 use log::info;
 use rgb::{
     alt::{GRAY8, GRAYA8},
@@ -32,6 +36,7 @@ impl<'a> Decode for MemoryDecoder<'a> {
             ImageFormat::Png => self.decode_png(),
             ImageFormat::WebP => self.decode_webp(),
             ImageFormat::Avif => self.decode_avif(),
+            ImageFormat::Jxl => self.decode_jxl(),
         }
     }
 
@@ -137,6 +142,20 @@ impl<'a> Decode for MemoryDecoder<'a> {
         };
 
         result
+    }
+
+    fn decode_jxl(self) -> Result<ImageData, DecodingError> {
+        let decoder = decoder_builder()
+            .pixel_format(PixelFormat {
+                num_channels: 4,
+                endianness: Endianness::Big,
+                align: 0,
+            })
+            .build()?;
+
+        let (Metadata { width, height, .. }, pixels) = decoder.decode_with::<u8>(self.data)?;
+
+        Ok(ImageData::new(width as usize, height as usize, &pixels))
     }
 }
 

@@ -30,6 +30,7 @@ pub trait Decode {
     fn decode_png(self) -> Result<ImageData, DecodingError>;
     fn decode_webp(self) -> Result<ImageData, DecodingError>;
     fn decode_avif(self) -> Result<ImageData, DecodingError>;
+    fn decode_jxl(self) -> Result<ImageData, DecodingError>;
 }
 
 /// Used to build Decoder
