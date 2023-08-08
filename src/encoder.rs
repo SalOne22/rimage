@@ -1,5 +1,6 @@
 use std::panic;
 
+use jpegxl_rs::{encode::EncoderResult, encoder_builder};
 use log::info;
 use rgb::{AsPixels, ComponentBytes, FromSlice, RGBA};
 
@@ -88,6 +89,7 @@ impl<'a> Encoder<'a> {
             Codec::MozJpeg => self.encode_mozjpeg(),
             Codec::WebP => self.encode_webp(),
             Codec::Avif => self.encode_avif(),
+            Codec::Jxl => self.encode_jxl(),
         }
     }
 
@@ -125,6 +127,7 @@ impl<'a> Encoder<'a> {
             Codec::MozJpeg => self.encode_mozjpeg(),
             Codec::WebP => self.encode_webp(),
             Codec::Avif => self.encode_avif(),
+            Codec::Jxl => self.encode_jxl(),
         }
     }
 
@@ -318,6 +321,25 @@ impl<'a> Encoder<'a> {
             .with_speed(6)
             .encode_rgba(data)?
             .avif_file)
+    }
+
+    fn encode_jxl(&self) -> Result<Vec<u8>, EncodingError> {
+        let mut encoder = encoder_builder().quality(self.config.quality()).build()?;
+
+        let data = self.image_data.data();
+        let (width, height) = self.image_data.size();
+
+        let width = width.try_into().map_err(|_| {
+            EncodingError::Conversion("Unable to convert {width} to u32".to_string())
+        })?;
+
+        let height = height.try_into().map_err(|_| {
+            EncodingError::Conversion("Unable to convert {height} to u32".to_string())
+        })?;
+
+        let buffer: EncoderResult<u8> = encoder.encode(data, width, height)?;
+
+        Ok(buffer.data)
     }
 }
 
