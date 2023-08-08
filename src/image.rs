@@ -111,6 +111,7 @@ impl std::str::FromStr for Codec {
             "oxipng" => Ok(Codec::Oxipng),
             "webp" => Ok(Codec::WebP),
             "avif" => Ok(Codec::Avif),
+            "jxl" | "jpegxl" => Ok(Codec::Jxl),
             _ => Err(format!("{} is not a valid output format", s).into()),
         }
     }

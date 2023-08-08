@@ -324,9 +324,13 @@ impl<'a> Encoder<'a> {
     }
 
     fn encode_jxl(&self) -> Result<Vec<u8>, EncodingError> {
-        let mut encoder = encoder_builder().quality(self.config.quality()).build()?;
+        let quality = 15.0 - self.config.quality() / 100.0 * 15.0;
+        dbg!(quality);
 
-        let data = self.image_data.data();
+        let mut encoder = encoder_builder().quality(quality).build()?;
+
+        let data = strip_alpha_channel(self.image_data.data());
+
         let (width, height) = self.image_data.size();
 
         let width = width.try_into().map_err(|_| {
@@ -337,10 +341,32 @@ impl<'a> Encoder<'a> {
             EncodingError::Conversion("Unable to convert {height} to u32".to_string())
         })?;
 
-        let buffer: EncoderResult<u8> = encoder.encode(data, width, height)?;
+        let buffer: EncoderResult<u8> = encoder.encode(&data, width, height)?;
 
         Ok(buffer.data)
     }
+}
+
+fn strip_alpha_channel(pixels: &[u8]) -> Vec<u8> {
+    assert_eq!(
+        pixels.len() % 4,
+        0,
+        "Input slice length must be a multiple of 4 (RGBA)"
+    );
+
+    let mut rgb_pixels = Vec::with_capacity(pixels.len() * 3 / 4);
+
+    for chunk in pixels.chunks_exact(4) {
+        let r = chunk[0];
+        let g = chunk[1];
+        let b = chunk[2];
+
+        rgb_pixels.push(r);
+        rgb_pixels.push(g);
+        rgb_pixels.push(b);
+    }
+
+    rgb_pixels
 }
 
 #[cfg(test)]
