@@ -110,7 +110,7 @@ Squoosh **AVIF (596.16KB)**
 
 ![After (squoosh!)](./assets/gustavo-zambelli-SIC3k8IMhhA-unsplash-squoosh.avif)
 
-Rimage **AVIF (548.47MB)**
+Rimage **AVIF (548.47KB)**
 
 ![After (squoosh!)](./assets/gustavo-zambelli-SIC3k8IMhhA-unsplash-rimage.avif)
 
