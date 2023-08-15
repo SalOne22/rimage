@@ -1,3 +1,7 @@
+## v0.8.2
+
+- [Bugfix] Fixed extensions written in uppercase (again 😅)
+
 ## v0.8.1
 
 - [Changed] Updated progress bar. ![Updated version](./assets/progress_bar.gif)
