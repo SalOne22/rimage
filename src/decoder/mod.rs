@@ -64,10 +64,11 @@ impl Decoder {
             .extension()
             .unwrap_or_default()
             .to_str()
-            .unwrap_or_default();
+            .unwrap_or_default()
+            .to_lowercase();
 
-        let format = ImageFormat::from_str(extension)
-            .map_err(|_| DecodingError::Format(extension.to_string()))?;
+        let format =
+            ImageFormat::from_str(&extension).map_err(|_| DecodingError::Format(extension))?;
 
         Ok(Self::from_file(fs::File::open(path)?, format))
     }
