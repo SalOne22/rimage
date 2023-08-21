@@ -26,7 +26,7 @@ bytemuck = "1.13.1"
 clap = { version = "4.3.21", features = ["derive"] }
 imagequant = "4.2.0"
 indicatif = "0.17.6"
-log = "0.4.19"
+log = "0.4.20"
 mozjpeg = "0.9.4"
 oxipng = { git = "https://github.com/shssoichiro/oxipng.git", rev = "4ae64c56" } # For parallel support
 png = "0.17.9"
