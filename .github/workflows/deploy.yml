@@ -20,25 +20,27 @@ jobs:
           - x86_64-apple-darwin
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - uses: ilammy/setup-nasm@v1
+      - uses: jwlawson/actions-setup-cmake@v1
 
       - name: Set up dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
-          sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
+          sudo apt-get install -y pkg-config libbrotli-dev
+          pip3 install meson ninja
 
       - name: Set up dependencies (MacOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install nasm ninja meson cmake pkg-config brotli
+          brew install pkg-config brotli
+          pip3 install meson ninja
 
       - name: Set up dependencies (Windows)
         if: matrix.os == 'windows-2019'
         run: |
-          choco install nasm ninja cmake
-          pip install meson
+          pip3 install meson ninja
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -96,8 +98,7 @@ jobs:
     needs: [build]
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v3
 
       - name: Get version and release description
         id: tagName
