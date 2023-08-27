@@ -23,21 +23,22 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Set up dependencies
+      - name: Set up dependencies (Linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
 
-      - name: Set up dependencies
+      - name: Set up dependencies (MacOS)
         if: matrix.os == 'macos-latest'
         run: |
           brew install nasm ninja meson cmake pkg-config brotli
 
-      - name: Set up dependencies
+      - name: Set up dependencies (Windows)
         if: matrix.os == 'windows-2019'
         run: |
-          choco install nasm ninja meson cmake
+          choco install nasm ninja cmake
+          pip install meson
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
