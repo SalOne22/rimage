@@ -29,22 +29,17 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson cmake pkg-config libbrotli-dev
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
 
       - name: Install dependencies (macOS)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install ninja nasm meson cmake pkg-config
+          brew install nasm ninja meson cmake pkg-config brotli
 
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-2019'
         run: |
-          choco install -y ninja
-          pip install meson
-
-      - name: Install nasm (windows)
-        if: matrix.os == 'windows-2019'
-        uses: ilammy/setup-nasm@v1
+          choco install nasm ninja meson cmake pkg-config
 
       - run: |
           rustup set auto-self-update disable
@@ -60,6 +55,8 @@ jobs:
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           cargo check --verbose
           cargo test --verbose
+        env:
+          DEP_JXL_LIB: some_path
 
       - name: Test (Linux, macOS)
         if: ${{ matrix.os != 'windows-2019' }}

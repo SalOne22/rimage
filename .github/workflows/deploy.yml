@@ -16,10 +16,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          choco install -y ninja
-          pip install meson
-
-      - uses: ilammy/setup-nasm@v1
+          choco install nasm ninja meson cmake pkg-config
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -85,12 +82,12 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson cmake pkg-config libbrotli-dev
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
 
       - name: Install dependencies (macOS)
         if: matrix.os == 'macOS-latest'
         run: |
-          brew install ninja nasm meson cmake pkg-config
+          brew install nasm ninja meson cmake pkg-config brotli
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -177,7 +174,7 @@ jobs:
       - name: Install dependencies
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
 
       - name: Install Rust
         uses: actions-rs/toolchain@v1
@@ -186,11 +183,6 @@ jobs:
           toolchain: stable
           target: x86_64-unknown-linux-musl
           override: true
-
-      - name: Install musl
-        if: contains(matrix.target, 'linux-musl')
-        run: |
-          sudo apt-get install musl-tools
 
       - name: Rust Cache
         uses: Swatinem/rust-cache@v2.2.1

@@ -11,12 +11,12 @@ name: rust-clippy analyze
 
 on:
   push:
-    branches: ["main"]
+    branches: ['main']
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: ["main"]
+    branches: ['main']
   schedule:
-    - cron: "18 14 * * 4"
+    - cron: '18 14 * * 4'
 
 jobs:
   rust-clippy-analyze:
@@ -33,7 +33,7 @@ jobs:
       - name: Install dependencies (linux)
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@16499b5e05bf2e26879000db0c1d13f7e13fa3af #@v1
