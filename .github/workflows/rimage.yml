@@ -16,55 +16,34 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-2019]
 
-    name: Test `cargo check/test` on ${{ matrix.os }}
+    name: Cargo test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
-
-    env:
-      CARGO_TERM_COLOR: always
 
     steps:
       - uses: actions/checkout@v3
 
-      - name: Install dependencies (linux)
+      - name: Set up dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
-          DEBIAN_FRONTEND=noninteractive sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
+          sudo apt-get update
+          sudo apt-get install -y nasm ninja-build meson cmake pkg-config libbrotli-dev
 
-      - name: Install dependencies (macOS)
+      - name: Set up dependencies
         if: matrix.os == 'macos-latest'
         run: |
           brew install nasm ninja meson cmake pkg-config brotli
 
-      - name: Install dependencies (windows)
+      - name: Set up dependencies
         if: matrix.os == 'windows-2019'
         run: |
           choco install nasm ninja meson cmake
-          vcpkg install gtest:x64-windows
-          vcpkg install giflib:x64-windows
-          vcpkg install libjpeg-turbo:x64-windows
-          vcpkg install libpng:x64-windows
-          vcpkg install zlib:x64-windows
 
-      - run: |
-          rustup set auto-self-update disable
-          rustup toolchain install stable --profile minimal
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
 
-      - name: Rust Cache
-        uses: Swatinem/rust-cache@v2.2.1
-
-      - name: Check/Test (Windows)
-        if: matrix.os == 'windows-2019'
-        shell: cmd
+      - name: Test
         run: |
-          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          cargo check --verbose
-          cargo test --verbose
-        env:
-          DEP_JXL_LIB: some_path
-
-      - name: Test (Linux, macOS)
-        if: ${{ matrix.os != 'windows-2019' }}
-        run: |
-          cargo check --verbose
           cargo test --verbose
