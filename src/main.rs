@@ -2,8 +2,6 @@ use std::{fs, io, path, process};
 
 use clap::Parser;
 use console::{Emoji, Style};
-#[cfg(windows)]
-use glob::glob;
 use indicatif::{DecimalBytes, MultiProgress, ProgressDrawTarget};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
@@ -123,15 +121,19 @@ fn get_args() -> Args {
         info!("{} files read from stdin", args.input.len());
     } else {
         // Otherwise use glob pattern
-
-        args.input = args.input.iter().flat_map(apply_glob_pattern).collect();
+        args.input = args
+            .input
+            .iter()
+            .cloned()
+            .flat_map(apply_glob_pattern)
+            .collect();
     }
 
     args
 }
 
 #[cfg(windows)]
-fn apply_glob_pattern(path: PathBuf) -> Vec<PathBuf> {
+fn apply_glob_pattern(path: path::PathBuf) -> Vec<path::PathBuf> {
     let matches = path
         .to_str()
         .and_then(|pattern| glob::glob(pattern).ok())
