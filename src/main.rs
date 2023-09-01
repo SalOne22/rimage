@@ -2,7 +2,6 @@ use std::{fs, io, path, process};
 
 use clap::Parser;
 use console::{Emoji, Style};
-use glob::glob;
 use indicatif::{DecimalBytes, MultiProgress, ProgressDrawTarget};
 use log::{error, info};
 #[cfg(target_env = "msvc")]
@@ -106,6 +105,7 @@ fn main() {
     bulk_optimize(args, &conf, common_path, &m);
 }
 
+#[cfg(windows)]
 fn get_args() -> Args {
     let mut args = Args::parse();
     // Get all files from stdin if no input is given
@@ -121,17 +121,44 @@ fn get_args() -> Args {
         info!("{} files read from stdin", args.input.len());
     } else {
         // Otherwise use glob pattern
-        let mut new_input = vec![];
+        args.input = args
+            .input
+            .iter()
+            .cloned()
+            .flat_map(apply_glob_pattern)
+            .collect();
+    }
 
-        for input_path in args.input {
-            let input_path = input_path.to_str().unwrap();
-            for path in glob(input_path).expect("Failed to read glob pattern") {
-                let path = path.unwrap();
-                new_input.push(path)
-            }
-        }
+    args
+}
 
-        args.input = new_input;
+#[cfg(windows)]
+fn apply_glob_pattern(path: path::PathBuf) -> Vec<path::PathBuf> {
+    let matches = path
+        .to_str()
+        .and_then(|pattern| glob::glob(pattern).ok())
+        .map(|paths| paths.flatten().collect::<Vec<_>>());
+
+    match matches {
+        Some(paths) if !paths.is_empty() => paths,
+        _ => vec![path],
+    }
+}
+
+#[cfg(not(windows))]
+fn get_args() -> Args {
+    let mut args = Args::parse();
+    // Get all files from stdin if no input is given
+    if args.input.is_empty() {
+        info!("Reading input from stdin");
+        args.input = io::stdin()
+            .lines()
+            .map(|res| {
+                let input_file = res.unwrap();
+                path::PathBuf::from(input_file.trim())
+            })
+            .collect();
+        info!("{} files read from stdin", args.input.len());
     }
 
     args
