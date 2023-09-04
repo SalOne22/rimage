@@ -36,7 +36,7 @@ resize = "0.7.4"
 libwebp = { version = "0.1.2", features = ["static"] }
 libavif-sys = "0.14.3"
 ravif = "0.11.2"
-thiserror = "1.0.47"
+thiserror = "1.0.48"
 rayon = "1.7.0"
 console = "0.15.7"
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
