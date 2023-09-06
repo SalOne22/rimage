@@ -13,9 +13,9 @@ To get started with contributing, you'll need to:
 1. Fork the repository on GitHub
 2. Clone your fork locally
 3. Install Rust and Cargo (if you haven't already)
-4. Also you will need to install cmake, nasm and ninja/meson for avif development
+4. Also you will need to install dav1d library version >= 1.1 for avif development
 5. Run `cargo build` to ensure everything builds properly
-> note: On windows use Visual Studio build environment like developer PowerShell for VS 2019
+   > note: On windows use Visual Studio build environment like developer PowerShell for VS 2019/2022
 
 ## Making Changes
 
