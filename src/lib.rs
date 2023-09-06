@@ -1,190 +1,39 @@
 /*!
-This crate provides a cli tool and library for image processing.
-Similar to [squoosh!](https://squoosh.app/) using same codecs,
-but fully written on rust and with bulk processing support.
+# Rimage
 
-**Attention: Library in active development stage, all can be changed!**
+Rimage is a powerful Rust image optimization library designed to simplify and enhance your image optimization workflows. With Rimage, you can effortlessly optimize images for various formats, set quality levels, and apply advanced image optimization techniques with ease. Whether you're building a web application, mobile app, or desktop software, Rimage empowers you to deliver visually stunning content with minimal effort.
 
-Current features:
-- Decoding jpeg, png, webp and avif
-- Encoding with optimizations
+## Features
 
-# Usage
-
-First add this crate to your dependencies:
-```text
-cargo add rimage
-```
-
-or add this to Cargo.toml:
-```toml
-[dependencies]
-rimage = "0.8.0"
-```
-
-After that you can use this crate:
-
-## Easy way
-```
-use rimage::{image::Codec, optimize, Config};
-
-// Get file path
-let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-
-// Build config for encoding (Please process errors when build config)
-let config = Config::builder(Codec::MozJpeg).build().unwrap();
-
-// Get encoded image data from encoder
-let data = match optimize(&path, &config) {
-    Ok(data) => data,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Write image to file
-std::fs::write("output.jpg", data);
-# std::fs::remove_file("output.jpg").unwrap();
-```
-
-### Get optimized image from memory
-```
-use std::{io::Read, path, fs};
-use rimage::{image::{Codec, ImageFormat}, optimize_from_memory, Config};
-
-// Get file data from path
-let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-let mut file = fs::File::open(path).unwrap();
-let metadata = file.metadata().unwrap();
-let mut data = Vec::with_capacity(metadata.len() as usize);
-file.read_to_end(&mut data).unwrap();
-
-// Build config for encoding (Please process errors when build config)
-let config = Config::builder(Codec::MozJpeg).build().unwrap();
-
-// Get encoded image data from encoder
-let data = match optimize_from_memory(&data, ImageFormat::Jpeg, &config) {
-    Ok(data) => data,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Write image to file
-fs::write("output.jpg", data);
-# fs::remove_file("output.jpg").unwrap();
-```
-
-## Decoding
-```
-use rimage::Decoder;
-
-// Create decoder from file path and data
-let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-
-let decoder = match Decoder::from_path(&path) {
-    Ok(img) => img,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Decode image to image data
-let image = match decoder.decode() {
-    Ok(img) => img,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Get image data
-println!("Size: {:?}", image.size());
-println!("Data length: {:?}", image.data().len());
-
-// Do something with image...
-```
-
-### Decoding from memory
-```
-use std::{io::Read, path, fs};
-use rimage::{Decoder, image::ImageFormat};
-
-// Get file data
-let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-let mut file = fs::File::open(path).unwrap();
-let metadata = file.metadata().unwrap();
-let mut data = Vec::with_capacity(metadata.len() as usize);
-file.read_to_end(&mut data).unwrap();
-
-// Create decoder from file data and input format
-let decoder = Decoder::from_mem(&data, ImageFormat::Jpeg);
-
-// Decode image to image data
-let image = match decoder.decode() {
-    Ok(img) => img,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Get image data
-println!("Size: {:?}", image.size());
-println!("Data length: {:?}", image.data().len());
-
-// Do something with image...
-```
+1. **Flexible Format Conversion**: Rimage supports all modern image formats, including JPEG, PNG, AVIF, and WebP.
+2. **Quality Control**: Fine-tune the quality of your images using a simple and intuitive interface.
+3. **Parallel Optimization**: Harness the power of parallel processing to optimize multiple images simultaneously.
+4. **Quantization and Dithering**: For advanced users, Rimage offers control over quantization and dithering.
+5. **Image Resizing**: Resize images with ease using `resize` crate.
 
 ## Encoding
 
+Basic usage:
+
 ```
-# use rimage::Decoder;
-use rimage::{Config, Encoder, image::Codec};
-# let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-# let decoder = Decoder::from_path(&path).unwrap();
-# let image = decoder.decode().unwrap();
+use rimage::config::{EncoderConfig, Codec};
 
-// Build config for encoding (Please process errors when build config)
-let config = Config::builder(Codec::MozJpeg).build().unwrap();
-
-let encoder = Encoder::new(&config, image); // where image is image::ImageData
-
-// Get encoded image data from encoder
-let data = match encoder.encode() {
-    Ok(data) => data,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Write image to file
-std::fs::write("output.jpg", data);
-# std::fs::remove_file("output.jpg").unwrap();
+let config = EncoderConfig::new(Codec::MozJpeg).with_quality(80.0).unwrap();
 ```
 */
+
 #![warn(missing_docs)]
 
-/// Errors that can occur during image processing
-pub mod error;
-
-/// Image data structs
-pub mod image;
-
-mod config;
+///  Module for configuring image processing settings.
+pub mod config;
 mod decoder;
 mod encoder;
-mod optimize;
+///  Module for library errors.
+pub mod error;
+mod image;
 
-pub use config::Config;
-pub use decoder::Decoder;
 pub use encoder::Encoder;
-pub use optimize::optimize;
-pub use optimize::optimize_from_memory;
+pub use image::Image;
 
-#[cfg(test)]
-pub mod test_utils;
+pub use resize;
+pub use rgb;
