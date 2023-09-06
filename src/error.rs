@@ -1,78 +1,117 @@
-use libwebp::error::WebPSimpleError;
-use std::io;
 use thiserror::Error;
 
-/// An error that occurred if configuration is invalid
+/// Error type for invalid quantization configuration.
+///
+/// This error is returned when the input values for [`QuantizationConfig`] are out of the valid range.
 #[derive(Error, Debug)]
-pub enum ConfigError {
-    /// Quality is less than 0 or greater than 100
-    #[error("Quality {0} is out of range from 0 to 100")]
+pub enum InvalidQuantizationConfig {
+    /// Error indicating that the quality value is out of bounds.
+    #[error("Quality value {0} is out of bounds (0-100).")]
+    QualityOutOfBounds(u8),
+
+    /// Error indicating that the dithering level is out of bounds.
+    #[error("Dithering level {0} is out of bounds (0.0-1.0).")]
+    DitheringOutOfBounds(f32),
+}
+
+/// Error type for invalid encoder configuration.
+///
+/// This error is returned when the input values for [`EncoderConfig`] are out of the valid range.
+#[derive(Error, Debug)]
+pub enum InvalidEncoderConfig {
+    /// Error indicating that the quality value is out of bounds.
+    #[error("Quality value {0} is out of bounds (0.0-100.0).")]
     QualityOutOfBounds(f32),
-    /// Width is 0
-    #[error("Width cannot be zero")]
-    WidthIsZero,
-    /// Height is 0
-    #[error("Height cannot be zero")]
-    HeightIsZero,
-    /// Quantization quality is less than 0 or greater than 100
-    #[error("Quantization quality {0} is out of range from 0 to 100")]
-    QuantizationQualityOutOfBounds(u8),
-    /// Dithering level is less than 0 or greater than 1.0
-    #[error("Dithering level {0} is out of range from 0 to 1.0")]
-    DitheringLevelOutOfBounds(f32),
 }
 
-/// An error that occurred during decoding a image
+/// Enum representing various error types that can occur during image encoding.
 #[derive(Error, Debug)]
-pub enum DecodingError {
-    /// A [`io::Error`] if file failed to read, find, etc.
+pub enum EncoderError {
+    /// Error indicating an I/O (input/output) operation failure.
     #[error(transparent)]
-    IO(#[from] io::Error),
-    /// The format of file is not supported
-    #[error("{0} is not supported")]
-    Format(String),
-    /// A parsing error, color type is not supported, failed to read extension etc.
-    #[error("{0}")]
-    Parsing(String),
-    /// A Jpeg decoding error
-    #[error("{0}")]
-    Jpeg(String),
-    /// A Png decoding error
-    #[error(transparent)]
-    Png(#[from] png::DecodingError),
-    /// A Webp decoding error
-    #[error(transparent)]
-    Webp(#[from] WebPSimpleError),
-    /// A Avif decoding error
-    #[error("{0}")]
-    Avif(String),
-}
+    Io(#[from] std::io::Error),
 
-/// An error that occurred during encoding a image
-#[derive(Error, Debug)]
-pub enum EncodingError {
-    /// A [`io::Error`] if file failed to write, find, etc.
-    #[error(transparent)]
-    IO(#[from] io::Error),
-    /// A error that occurred during image resize
+    /// Error indicating a resizing operation failure.
     #[error(transparent)]
     Resize(#[from] resize::Error),
-    /// A error that occurred during image quantization
+
+    /// Error indicating a quantization operation failure.
     #[error(transparent)]
     Quantization(#[from] imagequant::Error),
-    /// A Jpeg encoding error
-    #[error("{0}")]
-    Jpeg(String),
-    /// A Png encoding error
+
+    /// Error indicating an overflow or conversion error.
+    #[error(transparent)]
+    Overflow(#[from] std::num::TryFromIntError),
+
+    /// Error indicating an encoding failure for the PNG format.
     #[error(transparent)]
     Png(#[from] png::EncodingError),
-    /// A OxiPNG encoding error
+
+    /// Error indicating an error during the encoding of PNG images with oxipng.
     #[error(transparent)]
     OxiPng(#[from] oxipng::PngError),
-    /// A Webp encoding error
+
+    /// Error indicating an error during the encoding of AVIF images with ravif.
     #[error(transparent)]
-    Webp(#[from] WebPSimpleError),
-    /// A Avif encoding error
-    #[error(transparent)]
-    Avif(#[from] ravif::Error),
+    Ravif(#[from] ravif::Error),
+
+    /// General error indicating that something went wrong during image encoding.
+    #[error("Something went wrong")]
+    General,
+}
+
+#[cfg(test)]
+mod tests {
+    // Import the necessary dependencies from the code
+    use super::*;
+
+    #[test]
+    fn invalid_quantization_config_errors() {
+        // Test QualityOutOfBounds error
+        let quality_error = InvalidQuantizationConfig::QualityOutOfBounds(120);
+        assert_eq!(
+            format!("{}", quality_error),
+            "Quality value 120 is out of bounds (0-100)."
+        );
+
+        // Test DitheringOutOfBounds error
+        let dithering_error = InvalidQuantizationConfig::DitheringOutOfBounds(1.5);
+        assert_eq!(
+            format!("{}", dithering_error),
+            "Dithering level 1.5 is out of bounds (0.0-1.0)."
+        );
+    }
+
+    #[test]
+    fn invalid_encoder_config_errors() {
+        // Test QualityOutOfBounds error
+        let quality_error = InvalidEncoderConfig::QualityOutOfBounds(120.0);
+        assert_eq!(
+            format!("{}", quality_error),
+            "Quality value 120 is out of bounds (0.0-100.0)."
+        );
+    }
+
+    #[test]
+    fn encoder_error_messages() {
+        // Test Io error message
+        let io_error = EncoderError::Io(std::io::Error::new(std::io::ErrorKind::Other, "IO error"));
+        assert_eq!(format!("{}", io_error), "IO error");
+
+        // Test Resize error message
+        let resize_error = EncoderError::Resize(resize::Error::OutOfMemory);
+        assert_eq!(
+            format!("{}", resize_error),
+            format!("{}", resize::Error::OutOfMemory)
+        );
+
+        // Test Quantization error message
+        let quantization_error = EncoderError::Quantization(imagequant::Error::OutOfMemory);
+        assert_eq!(
+            format!("{}", quantization_error),
+            format!("{}", imagequant::Error::OutOfMemory)
+        );
+
+        // no need to test others 🤷‍♀️
+    }
 }
