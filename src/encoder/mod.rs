@@ -209,4 +209,4 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 }
 
 #[cfg(test)]
-mod test;
+mod tests;
