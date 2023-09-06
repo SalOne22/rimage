@@ -160,7 +160,7 @@ impl Default for QuantizationConfig {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     // Import the necessary dependencies from the code
     use super::*;
 
