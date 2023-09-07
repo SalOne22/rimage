@@ -22,7 +22,7 @@ png = "0.17.10"
 rgb = "0.8.36"
 resize = "0.8.0"
 webp = "0.2.5"
-dav1d = { version = "0.9.4", features = ["v1_1"] }
+libavif-sys = { version = "0.14.3", features = ["codec-aom"], default-features = false }
 ravif = "0.11.2"
 thiserror = "1.0.47"
 rayon = "1.7.0"
