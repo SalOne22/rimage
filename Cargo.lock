@@ -229,6 +229,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cmake"
+version = "0.1.50"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a31c789563b815f77f4250caee12365734369f942439b7defd71e18a48197130"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "color_quant"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -321,26 +330,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a22b2d63d4d1dc0b7f1b6b2747dd0088008a9be28b6ddf0b1e7d335e3037294"
 dependencies = [
  "cfg-if",
-]
-
-[[package]]
-name = "dav1d"
-version = "0.9.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87ca43c8e58ee931086b5fd9a4b6a8cc40c1346592246c4fe3d299eca1684c75"
-dependencies = [
- "bitflags 2.4.0",
- "dav1d-sys",
-]
-
-[[package]]
-name = "dav1d-sys"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "615542bb14c18b795f46aba92258902168218d714090f5fff47e68c9a352ea2d"
-dependencies = [
- "libc",
- "system-deps",
 ]
 
 [[package]]
@@ -616,6 +605,26 @@ name = "lazy_static"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e2abad23fbc42b3700f2f279844dc832adb2b2eb069b2df918f455c4e18cc646"
+
+[[package]]
+name = "libaom-sys"
+version = "0.14.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "610241493fe5178968c3d3b27b6c397dd873244ca17539bb488ade05690fcd71"
+dependencies = [
+ "cmake",
+]
+
+[[package]]
+name = "libavif-sys"
+version = "0.14.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2c7b9293d221c7d4b4290d4479c491a09b877943208593f1563d8521c4b55930"
+dependencies = [
+ "cmake",
+ "libaom-sys",
+ "libc",
+]
 
 [[package]]
 name = "libc"
@@ -1150,8 +1159,8 @@ dependencies = [
 name = "rimage"
 version = "0.8.2"
 dependencies = [
- "dav1d",
  "imagequant",
+ "libavif-sys",
  "log",
  "mozjpeg",
  "oxipng",
