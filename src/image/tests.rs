@@ -61,3 +61,99 @@ fn quantize_image() {
     let quantization_config = QuantizationConfig::default().with_quality(50).unwrap();
     assert!(image.quantize(&quantization_config).is_ok());
 }
+
+#[test]
+fn flip_diagonally() {
+    #[rustfmt::skip]
+    let image_data = vec![
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+    ];
+
+    #[rustfmt::skip]
+    let test_image_data = vec![
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+    ];
+
+    let mut image = Image::new(image_data.clone(), 5, 3);
+
+    image.flip_diagonally();
+
+    assert_ne!(image.data, image_data);
+
+    assert_eq!(image.width, 3);
+    assert_eq!(image.height, 5);
+
+    assert_eq!(image.data, test_image_data);
+}
+
+#[test]
+fn flip_horizontally() {
+    #[rustfmt::skip]
+    let image_data = vec![
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255),
+    ];
+
+    #[rustfmt::skip]
+    let test_image_data = vec![
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+    ];
+
+    let mut image = Image::new(image_data.clone(), 3, 5);
+
+    image.flip_horizontally();
+
+    assert_ne!(image.data, image_data);
+
+    assert_eq!(image.width, 3);
+    assert_eq!(image.height, 5);
+
+    assert_eq!(image.data, test_image_data);
+}
+
+#[test]
+fn rotate_180() {
+    #[rustfmt::skip]
+    let image_data = vec![
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+    ];
+
+    #[rustfmt::skip]
+    let test_image_data = vec![
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+        RGBA8::new(0, 0, 0, 255), RGBA8::new(0, 0, 0, 0), RGBA8::new(0, 0, 0, 0),
+    ];
+
+    let mut image = Image::new(image_data.clone(), 3, 5);
+
+    image.rotate_180();
+
+    assert_ne!(image.data, image_data);
+
+    assert_eq!(image.width, 3);
+    assert_eq!(image.height, 5);
+
+    assert_eq!(image.data, test_image_data);
+}
