@@ -29,7 +29,7 @@ impl ImageFormat {
     /// # Examples
     ///
     /// ```
-    /// use rimage::{ImageFormat, ImageFormatError};
+    /// use rimage::{config::ImageFormat, error::ImageFormatError};
     ///
     /// let ext = "jpg";
     ///
@@ -64,7 +64,7 @@ impl ImageFormat {
     /// # Examples
     ///
     /// ```
-    /// use my_image_library::{ImageFormat, ImageFormatError};
+    /// use rimage::{config::ImageFormat, error::ImageFormatError};
     /// use std::path::Path;
     ///
     /// let file_path = Path::new("image.jpg");
