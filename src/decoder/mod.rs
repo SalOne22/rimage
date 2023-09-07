@@ -15,6 +15,7 @@ use crate::{config::ImageFormat, error::DecoderError, Image};
 pub struct Decoder<R: BufRead> {
     r: R,
     format: Option<ImageFormat>,
+    fix_orientation: Option<u32>,
 }
 
 impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
@@ -29,7 +30,11 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
     /// Returns a [`Decoder`] instance.
     #[inline]
     pub fn new(r: R) -> Self {
-        Self { r, format: None }
+        Self {
+            r,
+            format: None,
+            fix_orientation: None,
+        }
     }
 
     /// Sets the image format for the decoder.
@@ -47,13 +52,47 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         self
     }
 
+    /// Sets the fixed orientation for image decoding.
+    ///
+    /// This method allows you to specify a fixed orientation for decoding images that may have
+    /// incorrect orientation metadata. The specified orientation will be used during the decoding
+    /// process to ensure the image is correctly oriented.
+    ///
+    /// # Parameters
+    ///
+    /// - `orientation`: An integer value representing the fixed orientation for decoding. It should
+    ///   be a value between 1 and 8, inclusive. Use this to correct images with incorrect orientation
+    ///   metadata.
+    ///
+    /// # Returns
+    ///
+    /// Returns a modified [`Decoder`] instance with the specified fixed orientation.
+    ///
+    /// # Example
+    ///
+    /// ```no run
+    /// use your_crate::{Decoder, ImageFormat};
+    ///
+    /// let decoder = Decoder::new(/* ... */)
+    ///     .with_fixed_orientation(6); // Set a fixed orientation for decoding
+    ///
+    /// let decoded_image = decoder.decode().unwrap();
+    /// ```
+    #[inline]
+    pub fn with_fixed_orientation(mut self, orientation: u32) -> Self {
+        self.fix_orientation = Some(orientation);
+        self
+    }
+
     /// Decodes the image using the specified format and input data.
     ///
     /// # Returns
     ///
     /// Returns a [`Result`] containing the decoded [`Image`] on success or a [`DecoderError`] on failure.
     pub fn decode(self) -> Result<Image, DecoderError> {
-        match self.format {
+        let orientation = self.fix_orientation;
+
+        let mut image = match self.format {
             Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
             Some(ImageFormat::Jpeg) => self.decode_jpeg(),
             Some(ImageFormat::Png) => self.decode_png(),
@@ -61,7 +100,13 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
             None => Err(DecoderError::Format(
                 crate::error::ImageFormatError::Missing,
             )),
+        }?;
+
+        if let Some(orientation) = orientation {
+            image.fix_orientation(orientation)
         }
+
+        Ok(image)
     }
 
     unsafe fn decode_avif(mut self) -> Result<Image, DecoderError> {
@@ -199,7 +244,19 @@ impl Decoder<BufReader<File>> {
         Ok(Self {
             r: BufReader::new(File::open(path)?),
             format: Some(ImageFormat::from_path(path)?),
+            fix_orientation: Self::get_orientation(path),
         })
+    }
+
+    fn get_orientation(path: &Path) -> Option<u32> {
+        let exif_reader = exif::Reader::new();
+        let mut reader = BufReader::new(File::open(path).ok()?);
+
+        let exif = exif_reader.read_from_container(&mut reader).ok()?;
+
+        let orientation = exif.get_field(exif::Tag::Orientation, exif::In::PRIMARY)?;
+
+        orientation.value.get_uint(0)
     }
 }
 

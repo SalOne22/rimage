@@ -143,6 +143,118 @@ impl Image {
         Ok(())
     }
 
+    /// Fixes the orientation of the image based on the given orientation value.
+    ///
+    /// This method applies various transformations to correct the orientation of the image.
+    ///
+    /// # Parameters
+    ///
+    /// - `orientation`: An integer value representing the image orientation. It should be a value
+    ///   between 1 and 8, inclusive.
+    ///
+    /// # Example
+    ///
+    /// ```no run
+    /// use rimage::Image;
+    ///
+    /// let mut image = Image::new(/* ... */);
+    /// image.fix_orientation(3); // Fix the orientation of the image
+    /// ```
+    pub fn fix_orientation(&mut self, orientation: u32) {
+        if orientation > 8 {
+            return;
+        }
+
+        let orientation = orientation - 1;
+
+        if orientation & 0b100 != 0 {
+            self.flip_diagonally();
+        }
+
+        if orientation & 0b010 != 0 {
+            self.rotate_180();
+        }
+
+        if orientation & 0b001 != 0 {
+            self.flip_horizontally();
+        }
+    }
+
+    /// Flips the image diagonally.
+    ///
+    /// This method performs a diagonal flip (transpose) of the image data and updates the image dimensions accordingly.
+    ///
+    /// # Example
+    ///
+    /// ```no run
+    /// use rimage::Image;
+    ///
+    /// let mut image = Image::new(/* ... */);
+    /// image.flip_diagonally(); // Flip the image diagonally
+    /// ```
+    fn flip_diagonally(&mut self) {
+        let mut buf = vec![RGBA8::new(0, 0, 0, 0); self.data.len()];
+
+        transpose::transpose(&self.data, &mut buf, self.width, self.height);
+
+        self.data = buf;
+        (self.width, self.height) = (self.height, self.width);
+    }
+
+    /// Flips the image horizontally.
+    ///
+    /// This method performs a horizontal flip of the image data.
+    ///
+    /// # Example
+    ///
+    /// ```no run
+    /// use rimage::Image;
+    ///
+    /// let mut image = Image::new(/* ... */);
+    /// image.flip_horizontally(); // Flip the image horizontally
+    /// ```
+    pub fn flip_horizontally(&mut self) {
+        for y in 0..self.height {
+            let start = y * self.width;
+
+            self.data[start..start + self.width].reverse();
+        }
+    }
+
+    /// Rotates the image 90 degrees clockwise.
+    ///
+    /// This method rotates the image 90 degrees clockwise by performing a diagonal flip followed by a horizontal flip.
+    ///
+    /// # Example
+    ///
+    /// ```no run
+    /// use rimage::Image;
+    ///
+    /// let mut image = Image::new(/* ... */);
+    /// image.rotate_90(); // Rotate the image 90 degrees clockwise
+    /// ```
+    pub fn rotate_90(&mut self) {
+        self.flip_diagonally();
+        self.flip_horizontally();
+    }
+
+    /// Rotates the image 180 degrees clockwise.
+    ///
+    /// This method rotates the image 180 degrees clockwise by performing two consecutive 90-degree clockwise rotations.
+    ///
+    /// # Example
+    ///
+    /// ```no run
+    /// use rimage::Image;
+    ///
+    /// let mut image = Image::new(/* ... */);
+    /// image.rotate_180(); // Rotate the image 180 degrees clockwise
+    /// ```
+    pub fn rotate_180(&mut self) {
+        self.rotate_90();
+        self.rotate_90();
+    }
+
     /// Gets a reference to the pixel data of the image.
     ///
     /// # Returns
