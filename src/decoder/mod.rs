@@ -202,3 +202,6 @@ impl Decoder<BufReader<File>> {
         })
     }
 }
+
+#[cfg(test)]
+mod tests;
