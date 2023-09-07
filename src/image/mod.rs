@@ -192,6 +192,7 @@ impl Image {
     /// let mut image = Image::new(/* ... */);
     /// image.flip_diagonally(); // Flip the image diagonally
     /// ```
+    #[inline]
     fn flip_diagonally(&mut self) {
         let mut buf = vec![RGBA8::new(0, 0, 0, 0); self.data.len()];
 
@@ -213,6 +214,7 @@ impl Image {
     /// let mut image = Image::new(/* ... */);
     /// image.flip_horizontally(); // Flip the image horizontally
     /// ```
+    #[inline]
     pub fn flip_horizontally(&mut self) {
         for y in 0..self.height {
             let start = y * self.width;
@@ -233,6 +235,7 @@ impl Image {
     /// let mut image = Image::new(/* ... */);
     /// image.rotate_90(); // Rotate the image 90 degrees clockwise
     /// ```
+    #[inline]
     pub fn rotate_90(&mut self) {
         self.flip_diagonally();
         self.flip_horizontally();
@@ -250,6 +253,7 @@ impl Image {
     /// let mut image = Image::new(/* ... */);
     /// image.rotate_180(); // Rotate the image 180 degrees clockwise
     /// ```
+    #[inline]
     pub fn rotate_180(&mut self) {
         self.rotate_90();
         self.rotate_90();
