@@ -32,6 +32,7 @@ mod encoder;
 pub mod error;
 mod image;
 
+pub use decoder::Decoder;
 pub use encoder::Encoder;
 pub use image::Image;
 
