@@ -18,7 +18,7 @@ From path:
 ```
 use rimage::Decoder;
 
-let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
+let path = std::path::PathBuf::from("tests/files/jpg/f1t.jpg");
 
 let decoder = Decoder::from_path(&path)?;
 
@@ -33,7 +33,7 @@ From memory:
 # use std::fs::File;
 use rimage::{Decoder, config::ImageFormat};
 
-# let f = File::open("tests/files/basi0g01.jpg").unwrap();
+# let f = File::open("tests/files/jpg/f1t.jpg").unwrap();
 let reader = std::io::BufReader::new(f); // you can use any reader
 
 let decoder = Decoder::new(reader).with_format(ImageFormat::Jpeg);
@@ -61,7 +61,7 @@ let encoder = Encoder::new(file, image).with_config(config);
 
 encoder.encode()?;
 
-# std::fs::remove_file("output.jpg").unwrap();
+# std::fs::remove_file("output.jpg").unwrap_or(());
 # Ok::<(), rimage::error::EncoderError>(())
 ```
 */
