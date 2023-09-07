@@ -1,3 +1,5 @@
+use std::io;
+
 use thiserror::Error;
 
 /// Error type for invalid quantization configuration.
@@ -22,6 +24,18 @@ pub enum InvalidEncoderConfig {
     /// Error indicating that the quality value is out of bounds.
     #[error("Quality value {0} is out of bounds (0.0-100.0).")]
     QualityOutOfBounds(f32),
+}
+
+/// Enum representing errors related to parsing image formats.
+#[derive(Error, Debug)]
+pub enum ImageFormatError {
+    /// Error indicating an unknown or unsupported image format.
+    #[error("Unknown image format: {0}")]
+    Unknown(String),
+
+    /// Error indicating that the image format is missing or could not be determined.
+    #[error("Can't find image format")]
+    Missing,
 }
 
 /// Enum representing various error types that can occur during image encoding.
@@ -58,6 +72,34 @@ pub enum EncoderError {
     /// General error indicating that something went wrong during image encoding.
     #[error("Something went wrong")]
     General,
+}
+
+/// Enum representing errors that can occur during image decoding.
+#[derive(Error, Debug)]
+pub enum DecoderError {
+    /// An I/O error occurred during image decoding.
+    #[error(transparent)]
+    Io(#[from] io::Error),
+
+    /// An error occurred while parsing or detecting the image format.
+    #[error(transparent)]
+    Format(#[from] ImageFormatError),
+
+    /// An error occurred when decoding AVIF image format with a specific exit code.
+    #[error("Failed to decode AVIF with exit code: {0}")]
+    Avif(u32),
+
+    /// An error occurred when decoding JPEG image format with MozJPEG.
+    #[error("Failed to decode JPEG with MozJPEG")]
+    MozJpeg,
+
+    /// An error occurred during PNG image decoding.
+    #[error(transparent)]
+    Png(#[from] png::DecodingError),
+
+    /// An error occurred when decoding WebP image format with libwebp.
+    #[error("Failed to decode WebP with libwebp")]
+    WebP,
 }
 
 #[cfg(test)]
