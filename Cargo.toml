@@ -15,6 +15,7 @@ edition = "2021"
 
 [features]
 quantization = ["imagequant"]
+resizing = ["resize"]
 
 [dependencies]
 imagequant = {version = "4.2.0", optional = true}
@@ -22,7 +23,7 @@ mozjpeg = { version = "0.10.0", features = ["parallel", "with_simd"] }
 oxipng = { git = "https://github.com/shssoichiro/oxipng.git", rev = "02bd47b", version = "8.0.0", features = ["parallel", "zopfli", "filetime"], default-features = false }
 png = "0.17.10"
 rgb = "0.8.36"
-resize = "0.8.0"
+resize = {version = "0.8.0", optional = true}
 webp = "0.2.5"
 libavif-sys = { version = "0.14.3", features = ["codec-aom"], default-features = false }
 ravif = "0.11.2"

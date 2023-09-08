@@ -1,8 +1,10 @@
 use crate::error::InvalidEncoderConfig;
 
+use super::codec::Codec;
 #[cfg(feature = "quantization")]
 use super::quantization_config::QuantizationConfig;
-use super::{codec::Codec, resize_config::ResizeConfig};
+#[cfg(feature = "resizing")]
+use super::resize_config::ResizeConfig;
 
 /// Configuration struct for image encoding.
 ///
@@ -43,6 +45,7 @@ pub struct EncoderConfig {
     quantization: Option<QuantizationConfig>,
 
     /// Optional resizing configuration for adjusting image dimensions.
+    #[cfg(feature = "resizing")]
     resize: Option<ResizeConfig>,
 }
 
@@ -67,6 +70,7 @@ impl EncoderConfig {
             codec,
             #[cfg(feature = "quantization")]
             quantization: None,
+            #[cfg(feature = "resizing")]
             resize: None,
         }
     }
@@ -153,6 +157,7 @@ impl EncoderConfig {
     ///     .with_resize(resize_config);
     /// ```
     #[inline]
+    #[cfg(feature = "resizing")]
     pub fn with_resize(mut self, resize: ResizeConfig) -> Self {
         self.resize = Some(resize);
         self
@@ -246,6 +251,7 @@ impl EncoderConfig {
     /// }
     /// ```
     #[inline]
+    #[cfg(feature = "resizing")]
     pub fn resize_config(&self) -> Option<&ResizeConfig> {
         self.resize.as_ref()
     }
@@ -270,6 +276,7 @@ mod tests {
         assert_eq!(config.codec(), &Codec::WebP);
         #[cfg(feature = "quantization")]
         assert!(config.quantization_config().is_none());
+        #[cfg(feature = "resizing")]
         assert!(config.resize_config().is_none());
     }
 
@@ -302,6 +309,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "resizing")]
     fn configure_resize() {
         let resize_config = ResizeConfig::default();
 
@@ -318,6 +326,7 @@ mod tests {
         assert_eq!(config.codec(), &Codec::MozJpeg);
         #[cfg(feature = "quantization")]
         assert!(config.quantization_config().is_none());
+        #[cfg(feature = "resizing")]
         assert!(config.resize_config().is_none());
     }
 }

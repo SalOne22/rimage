@@ -2,6 +2,7 @@ use rgb::RGBA8;
 
 #[cfg(feature = "quantization")]
 use crate::config::QuantizationConfig;
+#[cfg(feature = "resizing")]
 use crate::config::ResizeConfig;
 
 /// Struct representing an image with RGBA8 pixel data.
@@ -63,6 +64,7 @@ impl Image {
     /// image.resize(&resize_config)?;
     /// # Ok::<(), rimage::resize::Error>(())
     /// ```
+    #[cfg(feature = "resizing")]
     pub fn resize(&mut self, resize_config: &ResizeConfig) -> Result<(), resize::Error> {
         let aspect_ratio = self.width as f64 / self.height as f64;
 

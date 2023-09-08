@@ -47,6 +47,7 @@ pub enum EncoderError {
 
     /// Error indicating a resizing operation failure.
     #[error(transparent)]
+    #[cfg(feature = "resizing")]
     Resize(#[from] resize::Error),
 
     /// Error indicating a quantization operation failure.
@@ -150,7 +151,9 @@ mod tests {
         assert_eq!(format!("{}", io_error), "IO error");
 
         // Test Resize error message
+        #[cfg(feature = "resizing")]
         let resize_error = EncoderError::Resize(resize::Error::OutOfMemory);
+        #[cfg(feature = "resizing")]
         assert_eq!(
             format!("{}", resize_error),
             format!("{}", resize::Error::OutOfMemory)

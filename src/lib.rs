@@ -80,5 +80,6 @@ pub use decoder::Decoder;
 pub use encoder::Encoder;
 pub use image::Image;
 
+#[cfg(feature = "resizing")]
 pub use resize;
 pub use rgb;

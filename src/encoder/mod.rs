@@ -105,7 +105,9 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     /// # fs::remove_file("output.jpg")?;
     /// # Ok::<(), rimage::error::EncoderError>(())
     /// ```
+    #[allow(unused_mut)]
     pub fn encode(mut self) -> Result<(), EncoderError> {
+        #[cfg(feature = "resizing")]
         if let Some(resize_config) = self.conf.resize_config() {
             self.data.resize(resize_config)?;
         }
