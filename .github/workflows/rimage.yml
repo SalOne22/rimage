@@ -54,7 +54,7 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all-features --all -- --check
+          args: --all -- --check
 
       - name: Clippy check 🔎
         uses: actions-rs/cargo@v1
