@@ -10,43 +10,43 @@ Rimage is committed to fostering a welcoming community. Everyone participating i
 
 To get started with contributing, you'll need to:
 
-1. Fork the repository on GitHub
-2. Clone your fork locally
-3. Install Rust and Cargo (if you haven't already)
-4. Also you will need to install cmake, nasm and ninja/meson for avif development
-5. Run `cargo build` to ensure everything builds properly
-> note: On windows use Visual Studio build environment like developer PowerShell for VS 2019
+1. Fork the repository on GitHub.
+2. Clone your fork locally.
+3. Install Rust and Cargo (if you haven't already).
+4. Install cmake for AVIF and JPEG XL development.
+5. Run `cargo build` to ensure everything builds properly.
+   > Note: On Windows, use a Visual Studio build environment like Developer PowerShell for VS 2019/2022.
 
 ## Making Changes
 
 Once you have a working environment set up, you can start making changes. Before you start, make sure to:
 
-1. Create a new branch for your changes
-2. Write tests for any new functionality
-3. Ensure that all tests pass before submitting a pull request
-4. Ensure that your code adheres to the project's style guidelines (run `cargo fmt` to automatically format your code)
-5. Ensure that your code passes Clippy's linter (run `cargo clippy`)
+1. Create a new branch for your changes.
+2. Write tests for any new functionality (optional, but recommended).
+3. Ensure that all tests pass before submitting a pull request.
+4. Ensure that your code adheres to the project's style guidelines (run `cargo fmt` to automatically format your code).
+5. Ensure that your code passes Clippy's linter (run `cargo clippy`).
 
 ## Submitting Changes
 
 Once you've made your changes and ensured that all tests pass, you can submit your changes by:
 
-1. Pushing your changes to your fork
-2. Creating a pull request against the `main` branch of the main repository
-3. Wait for feedback from the maintainers
+1. Pushing your changes to your fork.
+2. Creating a pull request against the `main` branch of the main repository.
+3. Wait for feedback from the maintainers.
 
 ## Pull Request Guidelines
 
 When submitting a pull request, please:
 
-1. Include a clear description of the changes you've made
-2. Include a reference to any relevant issues or pull requests
-3. Ensure that your code is well-documented and easy to understand
-4. Sign your work (for more information, see [the Developer Certificate of Origin](https://developercertificate.org/))
+1. Include a clear description of the changes you've made.
+2. Include a reference to any relevant issues or pull requests.
+3. Ensure that your code is well-documented and easy to understand.
+4. Sign your work (for more information, see [the Developer Certificate of Origin](https://developercertificate.org/)).
 
 ## Code Licensing
 
-All contributions to Rimage are dual licensed under either the Apache License 2.0 or the MIT license. Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.
+All contributions to Rimage are dual licensed under either the [Apache License 2.0](LICENSE-APACHE) or the [MIT license](LICENSE-MIT). Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in the work by you shall be dual licensed as above, without any additional terms or conditions.
 
 ## Conclusion
 

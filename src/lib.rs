@@ -1,190 +1,85 @@
 /*!
-This crate provides a cli tool and library for image processing.
-Similar to [squoosh!](https://squoosh.app/) using same codecs,
-but fully written on rust and with bulk processing support.
+# Rimage
 
-**Attention: Library in active development stage, all can be changed!**
+Rimage is a powerful Rust image optimization library designed to simplify and enhance your image optimization workflows. With Rimage, you can effortlessly optimize images for various formats, set quality levels, and apply advanced image optimization techniques with ease. Whether you're building a web application, mobile app, or desktop software, Rimage empowers you to deliver visually stunning content with minimal effort.
 
-Current features:
-- Decoding jpeg, png, webp and avif
-- Encoding with optimizations
+## Features
 
-# Usage
-
-First add this crate to your dependencies:
-```text
-cargo add rimage
-```
-
-or add this to Cargo.toml:
-```toml
-[dependencies]
-rimage = "0.8.0"
-```
-
-After that you can use this crate:
-
-## Easy way
-```
-use rimage::{image::Codec, optimize, Config};
-
-// Get file path
-let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-
-// Build config for encoding (Please process errors when build config)
-let config = Config::builder(Codec::MozJpeg).build().unwrap();
-
-// Get encoded image data from encoder
-let data = match optimize(&path, &config) {
-    Ok(data) => data,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Write image to file
-std::fs::write("output.jpg", data);
-# std::fs::remove_file("output.jpg").unwrap();
-```
-
-### Get optimized image from memory
-```
-use std::{io::Read, path, fs};
-use rimage::{image::{Codec, ImageFormat}, optimize_from_memory, Config};
-
-// Get file data from path
-let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-let mut file = fs::File::open(path).unwrap();
-let metadata = file.metadata().unwrap();
-let mut data = Vec::with_capacity(metadata.len() as usize);
-file.read_to_end(&mut data).unwrap();
-
-// Build config for encoding (Please process errors when build config)
-let config = Config::builder(Codec::MozJpeg).build().unwrap();
-
-// Get encoded image data from encoder
-let data = match optimize_from_memory(&data, ImageFormat::Jpeg, &config) {
-    Ok(data) => data,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
-
-// Write image to file
-fs::write("output.jpg", data);
-# fs::remove_file("output.jpg").unwrap();
-```
+1. **Flexible Format Conversion**: Rimage supports all modern image formats, including JPEG, JPEG XL, PNG, AVIF, and WebP.
+2. **Quality Control**: Fine-tune the quality of your images using a simple and intuitive interface.
+3. **Parallel Optimization**: Harness the power of parallel processing to optimize multiple images simultaneously.
+4. **Quantization and Dithering**: For advanced users, Rimage offers control over quantization and dithering.
+5. **Image Resizing**: Resize images with ease using `resize` crate.
 
 ## Decoding
+
+From path:
+
 ```
 use rimage::Decoder;
 
-// Create decoder from file path and data
-let path = std::path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
+let path = std::path::PathBuf::from("tests/files/jpg/f1t.jpg");
 
-let decoder = match Decoder::from_path(&path) {
-    Ok(img) => img,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let decoder = Decoder::from_path(&path)?;
 
-// Decode image to image data
-let image = match decoder.decode() {
-    Ok(img) => img,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let image = decoder.decode()?;
 
-// Get image data
-println!("Size: {:?}", image.size());
-println!("Data length: {:?}", image.data().len());
-
-// Do something with image...
+// do something with the image data...
+# Ok::<(), rimage::error::DecoderError>(())
 ```
 
-### Decoding from memory
+From memory:
 ```
-use std::{io::Read, path, fs};
-use rimage::{Decoder, image::ImageFormat};
+# use std::fs::File;
+use rimage::{Decoder, config::ImageFormat};
 
-// Get file data
-let path = path::PathBuf::from("tests/files/basi0g01.jpg"); // Or any other image
-let mut file = fs::File::open(path).unwrap();
-let metadata = file.metadata().unwrap();
-let mut data = Vec::with_capacity(metadata.len() as usize);
-file.read_to_end(&mut data).unwrap();
+# let f = File::open("tests/files/jpg/f1t.jpg").unwrap();
+let reader = std::io::BufReader::new(f); // you can use any reader
 
-// Create decoder from file data and input format
-let decoder = Decoder::from_mem(&data, ImageFormat::Jpeg);
+let decoder = Decoder::new(reader).with_format(ImageFormat::Jpeg);
 
-// Decode image to image data
-let image = match decoder.decode() {
-    Ok(img) => img,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let image = decoder.decode()?;
 
-// Get image data
-println!("Size: {:?}", image.size());
-println!("Data length: {:?}", image.data().len());
-
-// Do something with image...
+// do something with the image data...
+# Ok::<(), rimage::error::DecoderError>(())
 ```
 
 ## Encoding
 
 ```
-# use rimage::Decoder;
-use rimage::{Config, Encoder, image::Codec};
-# let path = std::path::PathBuf::from("tests/files/basi0g01.jpg");
-# let decoder = Decoder::from_path(&path).unwrap();
-# let image = decoder.decode().unwrap();
+use std::fs::File;
 
-// Build config for encoding (Please process errors when build config)
-let config = Config::builder(Codec::MozJpeg).build().unwrap();
+use rimage::{rgb::RGBA8, Encoder, Image, config::{EncoderConfig, Codec}};
 
-let encoder = Encoder::new(&config, image); // where image is image::ImageData
+let image_data = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
+let image = Image::new(image_data, 100, 50);
 
-// Get encoded image data from encoder
-let data = match encoder.encode() {
-    Ok(data) => data,
-    Err(e) => {
-        eprintln!("Oh no, there is error! {e}");
-        std::process::exit(1);
-    }
-};
+let config = EncoderConfig::new(Codec::MozJpeg).with_quality(80.0).unwrap();
+let file = File::create("output.jpg").expect("Failed to create file");
 
-// Write image to file
-std::fs::write("output.jpg", data);
-# std::fs::remove_file("output.jpg").unwrap();
+let encoder = Encoder::new(file, image).with_config(config);
+
+encoder.encode()?;
+
+# std::fs::remove_file("output.jpg").unwrap_or(());
+# Ok::<(), rimage::error::EncoderError>(())
 ```
 */
+
 #![warn(missing_docs)]
 
-/// Errors that can occur during image processing
-pub mod error;
-
-/// Image data structs
-pub mod image;
-
-mod config;
+///  Module for configuring image processing settings.
+pub mod config;
 mod decoder;
 mod encoder;
-mod optimize;
+///  Module for library errors.
+pub mod error;
+mod image;
 
-pub use config::Config;
 pub use decoder::Decoder;
 pub use encoder::Encoder;
-pub use optimize::optimize;
-pub use optimize::optimize_from_memory;
+pub use image::Image;
 
-#[cfg(test)]
-pub mod test_utils;
+#[cfg(feature = "resizing")]
+pub use resize;
+pub use rgb;

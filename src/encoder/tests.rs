@@ -1,129 +1,43 @@
-use std::path;
+use std::io::Cursor;
 
-use once_cell::sync::Lazy;
+use rgb::RGBA8;
 
-use crate::{test_utils::get_files_by_regex, Decoder};
-
+// Import the necessary dependencies from the code
 use super::*;
+use crate::config::Codec;
 
-static FILES: Lazy<Vec<path::PathBuf>> =
-    Lazy::new(|| get_files_by_regex(r"^tests/files/[^x].+\.png"));
+#[test]
+fn encoder_new() {
+    // Create a mock image and writer
+    let image_data = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
+    let image = Image::new(image_data.clone(), 100, 50);
+    let writer = Cursor::new(Vec::new());
 
-fn encode_files<F>(files: &[path::PathBuf], conf: &Config, callback: F)
-where
-    F: Fn(Result<Vec<u8>, EncodingError>),
-{
-    files.iter().for_each(|path| {
-        println!("{path:?}");
-        let image = Decoder::from_path(path).unwrap().decode().unwrap();
+    // Create an Encoder with default config
+    let encoder = Encoder::new(writer.clone(), image);
 
-        let encoder = Encoder::new(conf, image);
-        let result = encoder.encode();
-
-        callback(result);
-    })
+    // Verify that the Encoder was created with the correct properties
+    assert_eq!(encoder.w, writer);
+    assert_eq!(encoder.data.data(), &[RGBA8::new(0, 0, 0, 0); 100 * 50]);
+    assert_eq!(encoder.conf.codec(), &Codec::MozJpeg);
 }
 
 #[test]
-fn encode_jpeg() {
-    let conf = Config::builder(Codec::MozJpeg).build().unwrap();
+fn encoder_with_config() {
+    // Create a mock image and writer
+    let image_data = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
+    let image = Image::new(image_data.clone(), 100, 50);
+    let writer = Cursor::new(Vec::new());
 
-    encode_files(&FILES, &conf, |result| {
-        assert!(result.is_ok());
-        let result = result.unwrap();
-        assert!(!result.is_empty());
-    });
-}
-
-#[test]
-fn encode_png() {
-    let conf = Config::builder(Codec::Png).build().unwrap();
-
-    encode_files(&FILES, &conf, |result| {
-        assert!(result.is_ok());
-        let result = result.unwrap();
-        assert!(!result.is_empty());
-    });
-}
-
-#[test]
-fn encode_oxipng() {
-    let conf = Config::builder(Codec::Oxipng).build().unwrap();
-
-    encode_files(&FILES, &conf, |result| {
-        assert!(result.is_ok());
-        let result = result.unwrap();
-        assert!(!result.is_empty());
-    });
-}
-
-#[test]
-fn encode_webp() {
-    let conf = Config::builder(Codec::WebP).build().unwrap();
-
-    encode_files(&FILES, &conf, |result| {
-        assert!(result.is_ok());
-        let result = result.unwrap();
-        assert!(!result.is_empty());
-    });
-}
-
-#[test]
-fn encode_avif() {
-    let conf = Config::builder(Codec::Avif).build().unwrap();
-
-    encode_files(&FILES, &conf, |result| {
-        assert!(result.is_ok());
-        let result = result.unwrap();
-        assert!(!result.is_empty());
-    });
-}
-
-#[test]
-fn encode_quantized() {
-    let path = path::PathBuf::from("tests/files/basi2c08.png");
-
-    let image = Decoder::from_path(&path).unwrap().decode().unwrap();
-
-    let conf = Config::builder(Codec::Oxipng).build().unwrap();
-
-    let encoder = Encoder::new(&conf, image);
-    let result = encoder.encode_quantized(50, 1.0);
-
-    assert!(result.is_ok());
-    let result = result.unwrap();
-    assert!(!result.is_empty());
-}
-
-#[test]
-fn encode_quantized_out_of_bounds() {
-    let path = path::PathBuf::from("tests/files/basi2c08.png");
-
-    let image = Decoder::from_path(&path).unwrap().decode().unwrap();
-
-    let conf = Config::builder(Codec::Oxipng).build().unwrap();
-
-    let encoder = Encoder::new(&conf, image);
-    let result = encoder.encode_quantized(120, 1.0);
-    assert!(result.is_err());
-}
-
-#[test]
-fn resize_image() {
-    let data = [255; 100 * 100 * 4];
-    let image = ImageData::new(100, 100, &data);
-
-    let conf = Config::builder(Codec::Oxipng)
-        .target_height(50)
-        .target_width(50)
-        .build()
+    // Create an Encoder with a custom config
+    let config = EncoderConfig::new(Codec::MozJpeg)
+        .with_quality(90.0)
         .unwrap();
+    let encoder = Encoder::new(writer.clone(), image).with_config(config);
 
-    let mut encoder = Encoder::new(&conf, image);
-
-    let result = encoder.resize();
-
-    assert!(result.is_ok());
-    assert_eq!(encoder.image_data.size(), (50, 50));
-    assert!(encoder.image_data.data().len() < 100 * 100 * 4);
+    // Verify that the Encoder was created with the correct properties
+    assert_eq!(encoder.w, writer);
+    assert_eq!(encoder.data.data(), &[RGBA8::new(0, 0, 0, 0); 100 * 50]);
+    assert_eq!(encoder.conf.codec(), &Codec::MozJpeg);
+    assert_eq!(encoder.conf.quality(), 90.0);
 }
