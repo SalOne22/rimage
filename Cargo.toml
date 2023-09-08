@@ -15,7 +15,6 @@ edition = "2021"
 
 [dependencies]
 imagequant = "4.2.0"
-log = "0.4.20"
 mozjpeg = { version = "0.10.0", features = ["parallel", "with_simd"] }
 oxipng = { git = "https://github.com/shssoichiro/oxipng.git", rev = "02bd47b", version = "8.0.0", features = ["parallel", "zopfli", "filetime"], default-features = false }
 png = "0.17.10"
@@ -25,7 +24,6 @@ webp = "0.2.5"
 libavif-sys = { version = "0.14.3", features = ["codec-aom"], default-features = false }
 ravif = "0.11.2"
 thiserror = "1.0.47"
-rayon = "1.7.0"
 kamadak-exif = "0.5.5"
 transpose = "0.2.2"
 jpegxl-rs = { version = "0.8.2", default-features = false, features = ["vendored", "threads"] }
