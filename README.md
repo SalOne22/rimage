@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/crates/l/rimage?style=flat-square)](https://github.com/SalOne22/rimage)
 
 This is a library inspired by [squoosh!](https://squoosh.app/)  
-Rimage currently supports several codecs - mozjpeg, oxipng, webp and avif. More will be added later.
+Rimage currently supports several codecs - mozjpeg, jpegxl, oxipng, webp and avif. More will be added later.
 
 ## Changelog
 
