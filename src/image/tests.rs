@@ -11,6 +11,7 @@ fn new_image() {
 }
 
 #[test]
+#[cfg(feature = "resizing")]
 fn resize_image_smaller() {
     let image_data: Vec<RGBA8> = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
     let mut image = Image::new(image_data, 100, 50);
@@ -24,6 +25,7 @@ fn resize_image_smaller() {
 }
 
 #[test]
+#[cfg(feature = "resizing")]
 fn resize_image_bigger() {
     let image_data: Vec<RGBA8> = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
     let mut image = Image::new(image_data, 100, 50);
@@ -37,6 +39,7 @@ fn resize_image_bigger() {
 }
 
 #[test]
+#[cfg(feature = "resizing")]
 fn resize_image_width_and_height() {
     let image_data: Vec<RGBA8> = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
     let mut image = Image::new(image_data, 100, 50);
