@@ -17,6 +17,17 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
+      - name: Setup cache 💾
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
 
@@ -39,6 +50,17 @@ jobs:
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
+
+      - name: Setup cache 💾
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
