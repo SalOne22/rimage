@@ -67,6 +67,7 @@ fn quantize_image() {
 }
 
 #[test]
+#[cfg(feature = "transform")]
 fn flip_diagonally() {
     #[rustfmt::skip]
     let image_data = vec![
@@ -99,6 +100,7 @@ fn flip_diagonally() {
 }
 
 #[test]
+#[cfg(feature = "transform")]
 fn flip_horizontally() {
     #[rustfmt::skip]
     let image_data = vec![
@@ -131,6 +133,7 @@ fn flip_horizontally() {
 }
 
 #[test]
+#[cfg(feature = "transform")]
 fn rotate_180() {
     #[rustfmt::skip]
     let image_data = vec![
