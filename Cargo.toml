@@ -14,12 +14,14 @@ version = "0.8.2"
 edition = "2021"
 
 [features]
+default = ["quantization", "resizing", "exif", "oxipng"]
 quantization = ["imagequant"]
 resizing = ["resize"]
 transform = ["transpose"]
 avif = ["libavif-sys", "ravif"]
 exif = ["kamadak-exif", "transform"]
 jxl = ["jpegxl-rs"]
+
 
 [dependencies]
 rgb = "0.8.36"
