@@ -74,6 +74,7 @@ pub enum EncoderError {
 
     /// Error indicating an error during the encoding of AVIF images with ravif.
     #[error(transparent)]
+    #[cfg(feature = "avif")]
     Ravif(#[from] ravif::Error),
 
     /// General error indicating that something went wrong during image encoding.

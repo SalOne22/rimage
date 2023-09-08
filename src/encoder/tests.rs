@@ -30,12 +30,14 @@ fn encoder_with_config() {
     let writer = Cursor::new(Vec::new());
 
     // Create an Encoder with a custom config
-    let config = EncoderConfig::new(Codec::WebP).with_quality(90.0).unwrap();
+    let config = EncoderConfig::new(Codec::MozJpeg)
+        .with_quality(90.0)
+        .unwrap();
     let encoder = Encoder::new(writer.clone(), image).with_config(config);
 
     // Verify that the Encoder was created with the correct properties
     assert_eq!(encoder.w, writer);
     assert_eq!(encoder.data.data(), &[RGBA8::new(0, 0, 0, 0); 100 * 50]);
-    assert_eq!(encoder.conf.codec(), &Codec::WebP);
+    assert_eq!(encoder.conf.codec(), &Codec::MozJpeg);
     assert_eq!(encoder.conf.quality(), 90.0);
 }

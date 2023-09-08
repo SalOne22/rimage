@@ -93,6 +93,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         let orientation = self.fix_orientation;
 
         let mut image = match self.format {
+            #[cfg(feature = "avif")]
             Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
             Some(ImageFormat::Jpeg) => self.decode_jpeg(),
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
@@ -111,6 +112,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         Ok(image)
     }
 
+    #[cfg(feature = "avif")]
     unsafe fn decode_avif(mut self) -> Result<Image, DecoderError> {
         use libavif_sys::*;
 

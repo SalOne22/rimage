@@ -58,18 +58,20 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     /// # use rimage::rgb::RGBA8;
     /// use rimage::{Encoder, Image, config::{EncoderConfig, Codec}};
     /// # use std::fs::File;
+    /// # use std::fs;
     /// # let image_data = vec![RGBA8::new(0, 0, 0, 0); 800 * 600];
     ///
     /// let image = Image::new(image_data, 800, 600);
     ///
-    /// let file = File::create("output.jpg").expect("Failed to create file");
+    /// let file = File::create("output.png").expect("Failed to create file");
     ///
-    /// let config = EncoderConfig::new(Codec::WebP)
+    /// let config = EncoderConfig::new(Codec::Png)
     ///     .with_quality(90.0)
     ///     .unwrap();
     ///
     /// let encoder = Encoder::new(file, image).with_config(config);
     ///
+    /// # fs::remove_file("output.png").unwrap_or(());
     /// # Ok::<(), rimage::error::EncoderError>(())
     /// ```
     #[inline]
@@ -125,6 +127,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             crate::config::Codec::OxiPng => self.encode_oxipng(),
             #[cfg(feature = "webp")]
             crate::config::Codec::WebP => self.encode_webp(),
+            #[cfg(feature = "avif")]
             crate::config::Codec::Avif => self.encode_avif(),
         }
     }
@@ -220,6 +223,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         Ok(())
     }
 
+    #[cfg(feature = "avif")]
     fn encode_avif(mut self) -> Result<(), EncoderError> {
         let width = self.data.width();
         let height = self.data.height();
