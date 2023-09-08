@@ -27,6 +27,7 @@ pub enum Codec {
     Png,
 
     /// OxiPNG codec for better PNG image optimization.
+    #[cfg(feature = "oxipng")]
     OxiPng,
 
     /// WebP codec for image encoding and decoding with WebP format.

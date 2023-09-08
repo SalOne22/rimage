@@ -121,6 +121,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             crate::config::Codec::MozJpeg => self.encode_mozjpeg(),
             crate::config::Codec::JpegXl => self.encode_jpegxl(),
             crate::config::Codec::Png => self.encode_png(),
+            #[cfg(feature = "oxipng")]
             crate::config::Codec::OxiPng => self.encode_oxipng(),
             crate::config::Codec::WebP => self.encode_webp(),
             crate::config::Codec::Avif => self.encode_avif(),
@@ -185,6 +186,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         Ok(())
     }
 
+    #[cfg(feature = "oxipng")]
     fn encode_oxipng(mut self) -> Result<(), EncoderError> {
         let width: u32 = self.data.width().try_into()?;
         let height: u32 = self.data.height().try_into()?;

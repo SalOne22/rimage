@@ -69,6 +69,7 @@ pub enum EncoderError {
 
     /// Error indicating an error during the encoding of PNG images with oxipng.
     #[error(transparent)]
+    #[cfg(feature = "oxipng")]
     OxiPng(#[from] oxipng::PngError),
 
     /// Error indicating an error during the encoding of AVIF images with ravif.
