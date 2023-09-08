@@ -101,6 +101,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
             #[cfg(feature = "avif")]
             Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
             Some(ImageFormat::Jpeg) => self.decode_jpeg(),
+            #[cfg(feature = "jxl")]
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
             Some(ImageFormat::Png) => self.decode_png(),
             #[cfg(feature = "webp")]
@@ -170,6 +171,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         .map_err(|_| DecoderError::MozJpeg)?
     }
 
+    #[cfg(feature = "jxl")]
     fn decode_jpegxl(mut self) -> Result<Image, DecoderError> {
         let runner = jpegxl_rs::ThreadsRunner::default();
 

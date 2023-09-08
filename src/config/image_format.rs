@@ -10,6 +10,7 @@ pub enum ImageFormat {
     /// JPEG image format.
     Jpeg,
     /// JPEG XL image format.
+    #[cfg(feature = "jxl")]
     JpegXl,
     /// WebP image format.
     #[cfg(feature = "webp")]
@@ -48,6 +49,7 @@ impl ImageFormat {
             match ext.as_ref().to_str().ok_or(ImageFormatError::Missing)? {
                 "png" => Self::Png,
                 "jpg" | "jpeg" => Self::Jpeg,
+                #[cfg(feature = "jxl")]
                 "jxl" => Self::JpegXl,
                 #[cfg(feature = "webp")]
                 "webp" => Self::WebP,
