@@ -27,3 +27,31 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: test
+          args: --all-features
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup rust toolchain 🦀
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+
+      - name: Formatting check 🪄
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Clippy check 🔎
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: -- -D warnings
