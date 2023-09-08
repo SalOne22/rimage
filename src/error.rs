@@ -45,6 +45,10 @@ pub enum EncoderError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
+    /// Error indicating an overflow or conversion error.
+    #[error(transparent)]
+    Overflow(#[from] std::num::TryFromIntError),
+
     /// Error indicating a resizing operation failure.
     #[error(transparent)]
     #[cfg(feature = "resizing")]
@@ -55,18 +59,14 @@ pub enum EncoderError {
     #[cfg(feature = "quantization")]
     Quantization(#[from] imagequant::Error),
 
-    /// Error indicating an overflow or conversion error.
+    /// Error indicating an encoding failure for the PNG format.
     #[error(transparent)]
-    Overflow(#[from] std::num::TryFromIntError),
+    Png(#[from] png::EncodingError),
 
     /// Error indicating an encoding failure for the JPEG XL format.
     #[error(transparent)]
     #[cfg(feature = "jxl")]
     JpegXl(#[from] jpegxl_rs::EncodeError),
-
-    /// Error indicating an encoding failure for the PNG format.
-    #[error(transparent)]
-    Png(#[from] png::EncodingError),
 
     /// Error indicating an error during the encoding of PNG images with oxipng.
     #[error(transparent)]
@@ -94,25 +94,27 @@ pub enum DecoderError {
     #[error(transparent)]
     Format(#[from] ImageFormatError),
 
-    /// An error occurred when decoding AVIF image format with a specific exit code.
-    #[error("Failed to decode AVIF with exit code: {0}")]
-    Avif(u32),
-
     /// An error occurred when decoding JPEG image format with MozJPEG.
     #[error("Failed to decode JPEG with MozJPEG")]
     MozJpeg,
+
+    /// An error occurred during PNG image decoding.
+    #[error(transparent)]
+    Png(#[from] png::DecodingError),
+
+    /// An error occurred when decoding AVIF image format with a specific exit code.
+    #[error("Failed to decode AVIF with exit code: {0}")]
+    #[cfg(feature = "avif")]
+    Avif(u32),
 
     /// An error occurred during JPEG XL image decoding.
     #[error(transparent)]
     #[cfg(feature = "jxl")]
     JpegXl(#[from] jpegxl_rs::DecodeError),
 
-    /// An error occurred during PNG image decoding.
-    #[error(transparent)]
-    Png(#[from] png::DecodingError),
-
     /// An error occurred when decoding WebP image format with libwebp.
     #[error("Failed to decode WebP with libwebp")]
+    #[cfg(feature = "webp")]
     WebP,
 }
 

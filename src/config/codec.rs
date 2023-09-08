@@ -20,12 +20,12 @@ pub enum Codec {
     /// Mozilla JPEG codec for image encoding and decoding.
     MozJpeg,
 
+    /// PNG codec for image encoding and decoding.
+    Png,
+
     /// JPEG XL codec for image encoding and decoding.
     #[cfg(feature = "jxl")]
     JpegXl,
-
-    /// PNG codec for image encoding and decoding.
-    Png,
 
     /// OxiPNG codec for better PNG image optimization.
     #[cfg(feature = "oxipng")]

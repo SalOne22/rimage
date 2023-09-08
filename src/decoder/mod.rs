@@ -98,12 +98,12 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
         #[allow(unused_mut)]
         let mut image = match self.format {
+            Some(ImageFormat::Jpeg) => self.decode_jpeg(),
+            Some(ImageFormat::Png) => self.decode_png(),
             #[cfg(feature = "avif")]
             Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
-            Some(ImageFormat::Jpeg) => self.decode_jpeg(),
             #[cfg(feature = "jxl")]
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
-            Some(ImageFormat::Png) => self.decode_png(),
             #[cfg(feature = "webp")]
             Some(ImageFormat::WebP) => self.decode_webp(),
             None => Err(DecoderError::Format(
@@ -117,6 +117,48 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         }
 
         Ok(image)
+    }
+
+    fn decode_jpeg(self) -> Result<Image, DecoderError> {
+        std::panic::catch_unwind(|| -> Result<Image, DecoderError> {
+            let decoder =
+                mozjpeg::Decompress::with_markers(mozjpeg::ALL_MARKERS).from_reader(self.r)?;
+
+            let mut image = decoder.rgba()?;
+
+            let pixels = image.read_scanlines()?;
+
+            Ok(Image::new(pixels, image.width(), image.height()))
+        })
+        .map_err(|_| DecoderError::MozJpeg)?
+    }
+
+    fn decode_png(self) -> Result<Image, DecoderError> {
+        let mut decoder = png::Decoder::new(self.r);
+
+        decoder.set_transformations(png::Transformations::normalize_to_color8());
+
+        let mut reader = decoder.read_info()?;
+
+        let mut buf: Vec<u8> = vec![0; reader.output_buffer_size()];
+
+        let info = reader.next_frame(&mut buf)?;
+
+        match info.color_type {
+            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
+            png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
+            png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
+            png::ColorType::Rgba => {}
+            png::ColorType::Indexed => {
+                unreachable!("Indexed color type is expected to be expanded")
+            }
+        };
+
+        Ok(Image::new(
+            buf.as_rgba().to_owned(),
+            info.width as usize,
+            info.height as usize,
+        ))
     }
 
     #[cfg(feature = "avif")]
@@ -157,20 +199,6 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         }
     }
 
-    fn decode_jpeg(self) -> Result<Image, DecoderError> {
-        std::panic::catch_unwind(|| -> Result<Image, DecoderError> {
-            let decoder =
-                mozjpeg::Decompress::with_markers(mozjpeg::ALL_MARKERS).from_reader(self.r)?;
-
-            let mut image = decoder.rgba()?;
-
-            let pixels = image.read_scanlines()?;
-
-            Ok(Image::new(pixels, image.width(), image.height()))
-        })
-        .map_err(|_| DecoderError::MozJpeg)?
-    }
-
     #[cfg(feature = "jxl")]
     fn decode_jpegxl(mut self) -> Result<Image, DecoderError> {
         let runner = jpegxl_rs::ThreadsRunner::default();
@@ -192,34 +220,6 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
         Ok(Image::new(
             pixels.as_rgba().to_owned(),
-            info.width as usize,
-            info.height as usize,
-        ))
-    }
-
-    fn decode_png(self) -> Result<Image, DecoderError> {
-        let mut decoder = png::Decoder::new(self.r);
-
-        decoder.set_transformations(png::Transformations::normalize_to_color8());
-
-        let mut reader = decoder.read_info()?;
-
-        let mut buf: Vec<u8> = vec![0; reader.output_buffer_size()];
-
-        let info = reader.next_frame(&mut buf)?;
-
-        match info.color_type {
-            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
-            png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
-            png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
-            png::ColorType::Rgba => {}
-            png::ColorType::Indexed => {
-                unreachable!("Indexed color type is expected to be expanded")
-            }
-        };
-
-        Ok(Image::new(
-            buf.as_rgba().to_owned(),
             info.width as usize,
             info.height as usize,
         ))

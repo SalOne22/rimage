@@ -121,9 +121,9 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
         match self.conf.codec() {
             crate::config::Codec::MozJpeg => self.encode_mozjpeg(),
+            crate::config::Codec::Png => self.encode_png(),
             #[cfg(feature = "jxl")]
             crate::config::Codec::JpegXl => self.encode_jpegxl(),
-            crate::config::Codec::Png => self.encode_png(),
             #[cfg(feature = "oxipng")]
             crate::config::Codec::OxiPng => self.encode_oxipng(),
             #[cfg(feature = "webp")]
@@ -156,6 +156,23 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         .map_err(|_| EncoderError::General)?
     }
 
+    fn encode_png(self) -> Result<(), EncoderError> {
+        let width: u32 = self.data.width().try_into()?;
+        let height: u32 = self.data.height().try_into()?;
+
+        let mut encoder = png::Encoder::new(self.w, width, height);
+
+        encoder.set_color(png::ColorType::Rgba);
+        encoder.set_depth(png::BitDepth::Eight);
+
+        let mut writer = encoder.write_header()?;
+
+        writer.write_image_data(self.data.data().as_bytes())?;
+        writer.finish()?;
+
+        Ok(())
+    }
+
     #[cfg(feature = "jxl")]
     fn encode_jpegxl(mut self) -> Result<(), EncoderError> {
         let mut encoder = jpegxl_rs::encoder_builder()
@@ -171,23 +188,6 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
         self.w.write_all(&buf)?;
         self.w.flush()?;
-
-        Ok(())
-    }
-
-    fn encode_png(self) -> Result<(), EncoderError> {
-        let width: u32 = self.data.width().try_into()?;
-        let height: u32 = self.data.height().try_into()?;
-
-        let mut encoder = png::Encoder::new(self.w, width, height);
-
-        encoder.set_color(png::ColorType::Rgba);
-        encoder.set_depth(png::BitDepth::Eight);
-
-        let mut writer = encoder.write_header()?;
-
-        writer.write_image_data(self.data.data().as_bytes())?;
-        writer.finish()?;
 
         Ok(())
     }
