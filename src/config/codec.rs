@@ -35,5 +35,6 @@ pub enum Codec {
     WebP,
 
     /// AVIF codec for image encoding and decoding.
+    #[cfg(feature = "avif")]
     Avif,
 }

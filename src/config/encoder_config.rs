@@ -30,7 +30,7 @@ use super::resize_config::ResizeConfig;
 /// ```
 /// use rimage::config::{EncoderConfig, Codec};
 ///
-/// let config = EncoderConfig::new(Codec::WebP).with_quality(90.0).unwrap();
+/// let config = EncoderConfig::new(Codec::Png).with_quality(90.0).unwrap();
 /// ```
 #[derive(Debug)]
 pub struct EncoderConfig {
@@ -61,7 +61,7 @@ impl EncoderConfig {
     /// ```
     /// use rimage::config::{EncoderConfig, Codec};
     ///
-    /// let config = EncoderConfig::new(Codec::WebP);
+    /// let config = EncoderConfig::new(Codec::Png);
     /// ```
     #[inline]
     pub fn new(codec: Codec) -> Self {
@@ -124,7 +124,7 @@ impl EncoderConfig {
     ///     .with_quality(50).unwrap()
     ///     .with_dithering(0.75).unwrap();
     ///
-    /// let config = EncoderConfig::new(Codec::WebP)
+    /// let config = EncoderConfig::new(Codec::Png)
     ///     .with_quantization(quantization_config);
     /// ```
     #[inline]
@@ -153,7 +153,7 @@ impl EncoderConfig {
     ///     .with_width(800)
     ///     .with_height(600);
     ///
-    /// let config = EncoderConfig::new(Codec::WebP)
+    /// let config = EncoderConfig::new(Codec::Png)
     ///     .with_resize(resize_config);
     /// ```
     #[inline]
@@ -303,7 +303,7 @@ mod tests {
     fn configure_quantization() {
         let quantization_config = QuantizationConfig::default();
 
-        let config = EncoderConfig::new(Codec::WebP).with_quantization(quantization_config);
+        let config = EncoderConfig::new(Codec::Png).with_quantization(quantization_config);
 
         assert_eq!(config.quantization_config(), Some(&quantization_config));
     }
@@ -313,7 +313,7 @@ mod tests {
     fn configure_resize() {
         let resize_config = ResizeConfig::default();
 
-        let config = EncoderConfig::new(Codec::WebP).with_resize(resize_config);
+        let config = EncoderConfig::new(Codec::Png).with_resize(resize_config);
 
         assert!(config.resize_config().is_some());
     }
