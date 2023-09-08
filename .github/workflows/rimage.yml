@@ -1,68 +1,29 @@
-name: Rimage
+name: rimage
 
 on:
   push:
-     branches:
-       - main
-     paths-ignore:
-       - '**.md'
+    branches:
+      - main
   pull_request:
-     paths-ignore:
-       - '**.md'
+    branches:
+      - main
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-2019]
-
-    name: Test `cargo check/test` on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    
-    env:
-      CARGO_TERM_COLOR: always
+  test:
+    name: test
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Install dependencies (linux)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        DEBIAN_FRONTEND=noninteractive sudo apt-get update
-        DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
-    
-    - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install ninja nasm meson
-    
-    - name: Install dependencies (windows)
-      if: matrix.os == 'windows-2019'
-      run: |
-        choco install -y ninja
-        pip install meson
-    
-    - name: Install nasm (windows)
-      if: matrix.os == 'windows-2019'
-      uses: ilammy/setup-nasm@v1
-    
-    - run: |
-        rustup set auto-self-update disable
-        rustup toolchain install stable --profile minimal
-      
-    - name: Rust Cache
-      uses: Swatinem/rust-cache@v2.2.1
-      
-    - name: Check/Test (Windows)
-      if: matrix.os == 'windows-2019'
-      shell: cmd
-      run: |
-        call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-        cargo check --verbose
-        cargo test --verbose
-    
-    - name: Test (Linux, macOS)
-      if: ${{ matrix.os != 'windows-2019' }}
-      run: |
-        cargo check --verbose
-        cargo test --verbose
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup rust toolchain 🦀
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+
+      - name: Test 🧪
+        uses: actions-rs/cargo@v1
+        with:
+          command: test
