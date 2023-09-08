@@ -20,6 +20,9 @@ pub enum Codec {
     /// Mozilla JPEG codec for image encoding and decoding.
     MozJpeg,
 
+    /// JPEG XL codec for image encoding and decoding.
+    JpegXl,
+
     /// PNG codec for image encoding and decoding.
     Png,
 

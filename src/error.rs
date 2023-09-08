@@ -57,6 +57,10 @@ pub enum EncoderError {
     #[error(transparent)]
     Overflow(#[from] std::num::TryFromIntError),
 
+    /// Error indicating an encoding failure for the JPEG XL format.
+    #[error(transparent)]
+    JpegXl(#[from] jpegxl_rs::EncodeError),
+
     /// Error indicating an encoding failure for the PNG format.
     #[error(transparent)]
     Png(#[from] png::EncodingError),

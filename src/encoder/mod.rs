@@ -116,6 +116,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
         match self.conf.codec() {
             crate::config::Codec::MozJpeg => self.encode_mozjpeg(),
+            crate::config::Codec::JpegXl => self.encode_jpegxl(),
             crate::config::Codec::Png => self.encode_png(),
             crate::config::Codec::OxiPng => self.encode_oxipng(),
             crate::config::Codec::WebP => self.encode_webp(),
@@ -144,6 +145,24 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             Ok(())
         })
         .map_err(|_| EncoderError::General)?
+    }
+
+    fn encode_jpegxl(mut self) -> Result<(), EncoderError> {
+        let mut encoder = jpegxl_rs::encoder_builder()
+            .quality(self.conf.quality())
+            .speed(jpegxl_rs::encode::EncoderSpeed::Falcon)
+            .build()?;
+
+        let buf: jpegxl_rs::encode::EncoderResult<u8> = encoder.encode(
+            self.data.data().as_bytes(),
+            self.data.width().try_into()?,
+            self.data.height().try_into()?,
+        )?;
+
+        self.w.write_all(&buf)?;
+        self.w.flush()?;
+
+        Ok(())
     }
 
     fn encode_png(self) -> Result<(), EncoderError> {
@@ -189,6 +208,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         let encoder = webp::Encoder::from_rgba(self.data.data().as_bytes(), width, height);
 
         self.w.write_all(&encoder.encode(self.conf.quality()))?;
+        self.w.flush()?;
 
         Ok(())
     }
@@ -203,6 +223,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             .encode_rgba(ravif::Img::new(self.data.data(), width, height))?;
 
         self.w.write_all(&img.avif_file)?;
+        self.w.flush()?;
 
         Ok(())
     }
