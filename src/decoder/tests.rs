@@ -65,6 +65,7 @@ fn decode_jpeg() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(feature = "jxl")]
 fn decode_jpegxl() -> Result<(), Box<dyn Error>> {
     let files = fs::read_dir("tests/files/jxl")?;
 

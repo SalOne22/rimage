@@ -121,6 +121,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
         match self.conf.codec() {
             crate::config::Codec::MozJpeg => self.encode_mozjpeg(),
+            #[cfg(feature = "jxl")]
             crate::config::Codec::JpegXl => self.encode_jpegxl(),
             crate::config::Codec::Png => self.encode_png(),
             #[cfg(feature = "oxipng")]
@@ -155,6 +156,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         .map_err(|_| EncoderError::General)?
     }
 
+    #[cfg(feature = "jxl")]
     fn encode_jpegxl(mut self) -> Result<(), EncoderError> {
         let mut encoder = jpegxl_rs::encoder_builder()
             .quality(self.conf.quality())

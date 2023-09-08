@@ -21,6 +21,7 @@ pub enum Codec {
     MozJpeg,
 
     /// JPEG XL codec for image encoding and decoding.
+    #[cfg(feature = "jxl")]
     JpegXl,
 
     /// PNG codec for image encoding and decoding.

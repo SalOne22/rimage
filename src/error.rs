@@ -61,6 +61,7 @@ pub enum EncoderError {
 
     /// Error indicating an encoding failure for the JPEG XL format.
     #[error(transparent)]
+    #[cfg(feature = "jxl")]
     JpegXl(#[from] jpegxl_rs::EncodeError),
 
     /// Error indicating an encoding failure for the PNG format.
@@ -103,6 +104,7 @@ pub enum DecoderError {
 
     /// An error occurred during JPEG XL image decoding.
     #[error(transparent)]
+    #[cfg(feature = "jxl")]
     JpegXl(#[from] jpegxl_rs::DecodeError),
 
     /// An error occurred during PNG image decoding.
