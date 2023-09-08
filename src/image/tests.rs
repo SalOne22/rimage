@@ -50,6 +50,7 @@ fn resize_image_width_and_height() {
 }
 
 #[test]
+#[cfg(feature = "quantization")]
 fn quantize_image() {
     let image_data: Vec<RGBA8> = vec![RGBA8::new(0, 0, 0, 0); 800 * 600];
     let mut image = Image::new(image_data.clone(), 800, 600);

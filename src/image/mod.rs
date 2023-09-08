@@ -1,6 +1,8 @@
 use rgb::RGBA8;
 
-use crate::config::{QuantizationConfig, ResizeConfig};
+#[cfg(feature = "quantization")]
+use crate::config::QuantizationConfig;
+use crate::config::ResizeConfig;
 
 /// Struct representing an image with RGBA8 pixel data.
 pub struct Image {
@@ -119,6 +121,7 @@ impl Image {
     /// let quantization_config = QuantizationConfig::default();
     /// image.quantize(&quantization_config).unwrap();
     /// ```
+    #[cfg(feature = "quantization")]
     pub fn quantize(
         &mut self,
         quantization_config: &QuantizationConfig,
