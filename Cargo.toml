@@ -1,80 +1,59 @@
 [package]
-name = "rimage"
-description = "A CLI tool to convert/optimize/resize images in different formats"
-authors = ["Vladyslav Vladinov <vladdf44@gmail.com>"]
-
-categories = ["command-line-utilities", "compression"]
-keywords = ["cli", "image", "compression"]
-
-exclude = ["tests/*", ".*"]
-repository = "https://github.com/SalOne22/rimage"
+authors = ["Vladyslav Vladinov <vladinov.dev@gmail.com>"]
+categories = ["compression", "multimedia::images"]
+description = "A library to convert/optimize/resize images in different formats"
+documentation = "https://docs.rs/rimage"
+homepage = "https://lib.rs/rimage"
+include = ["/README.md", "/Cargo.toml", "/src/**/*.rs"]
+keywords = ["image", "compression", "encoder", "decoder"]
 license = "MIT OR Apache-2.0"
-
+name = "rimage"
+readme = "README.md"
+repository = "https://github.com/SalOne22/rimage"
 version = "0.8.2"
 edition = "2021"
 
-[profile.release]
-lto = true
-codegen-units = 1
+[features]
+default = ["quantization", "resizing", "exif", "oxipng"]
+quantization = ["imagequant"]
+resizing = ["resize"]
+transform = ["transpose"]
+avif = ["libavif-sys", "ravif"]
+exif = ["kamadak-exif", "transform"]
+jxl = ["jpegxl-rs"]
 
-[profile.profiling]
-inherits = "release"
-debug = 1
 
 [dependencies]
-bytemuck = "1.13.1"
-clap = { version = "4.4.0", features = ["derive"] }
-imagequant = "4.2.0"
-indicatif = "0.17.6"
-log = "0.4.20"
-mozjpeg = "0.9.4"
-oxipng = { git = "https://github.com/shssoichiro/oxipng.git", rev = "4ae64c56" } # For parallel support
-png = "0.17.10"
-pretty_env_logger = "0.5.0"
 rgb = "0.8.36"
-resize = "0.7.4"
-libwebp = { version = "0.1.2", features = ["static"] }
-libavif-sys = "0.14.3"
-ravif = "0.11.2"
 thiserror = "1.0.47"
-rayon = "1.7.0"
-console = "0.15.7"
-[target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = "0.5"
-[target.'cfg(target_env = "msvc")'.dependencies]
-mimalloc = "0.1.37"
-[target.'cfg(windows)'.dependencies]
-glob = "0.3.1"
+png = "0.17.10"
+imagequant = { version = "4.2.0", optional = true }
+resize = { version = "0.8.0", optional = true }
+transpose = { version = "0.2.2", optional = true }
+webp = { version = "0.2.5", optional = true }
+ravif = { version = "0.11.2", optional = true }
+kamadak-exif = { version = "0.5.5", optional = true }
 
-[dev-dependencies]
-criterion = { version = "0.5.1", features = ["html_reports"] }
-once_cell = "1.18.0"
-regex = "1.9.4"
+[dependencies.mozjpeg]
+version = "0.10.0"
+features = ["parallel", "with_simd"]
 
-[[bench]]
-name = "decode_jpg"
-harness = false
+[dependencies.oxipng]
+git = "https://github.com/shssoichiro/oxipng.git"
+rev = "02bd47b"
+version = "8.0.0"
+features = ["parallel", "zopfli", "filetime"]
+default-features = false
+optional = true
 
-[[bench]]
-name = "decode_png"
-harness = false
+[dependencies.libavif-sys]
+version = "0.14.3"
+features = ["codec-aom"]
+default-features = false
+optional = true
 
-[[bench]]
-name = "encode_jpg"
-harness = false
-
-[[bench]]
-name = "encode_png"
-harness = false
-
-[[bench]]
-name = "decode_webp"
-harness = false
-
-[[bench]]
-name = "encode_webp"
-harness = false
-
-[[bench]]
-name = "encode_browser_png"
-harness = false
+[dependencies.jpegxl-rs]
+version = "0.8.2"
+default-features = false
+features = ["vendored", "threads"]
+optional = true
