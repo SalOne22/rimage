@@ -5,7 +5,7 @@ Rimage is a powerful Rust image optimization library designed to simplify and en
 
 ## Features
 
-1. **Flexible Format Conversion**: Rimage supports all modern image formats, including JPEG, PNG, AVIF, and WebP.
+1. **Flexible Format Conversion**: Rimage supports all modern image formats, including JPEG, JPEG XL, PNG, AVIF, and WebP.
 2. **Quality Control**: Fine-tune the quality of your images using a simple and intuitive interface.
 3. **Parallel Optimization**: Harness the power of parallel processing to optimize multiple images simultaneously.
 4. **Quantization and Dithering**: For advanced users, Rimage offers control over quantization and dithering.
