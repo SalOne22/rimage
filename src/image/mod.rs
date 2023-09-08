@@ -165,6 +165,7 @@ impl Image {
     /// let mut image = Image::new(/* ... */);
     /// image.fix_orientation(3); // Fix the orientation of the image
     /// ```
+    #[cfg(feature = "transform")]
     pub fn fix_orientation(&mut self, orientation: u32) {
         if orientation > 8 {
             return;
@@ -198,6 +199,7 @@ impl Image {
     /// image.flip_diagonally(); // Flip the image diagonally
     /// ```
     #[inline]
+    #[cfg(feature = "transform")]
     fn flip_diagonally(&mut self) {
         let mut buf = vec![RGBA8::new(0, 0, 0, 0); self.data.len()];
 
@@ -241,6 +243,7 @@ impl Image {
     /// image.rotate_90(); // Rotate the image 90 degrees clockwise
     /// ```
     #[inline]
+    #[cfg(feature = "transform")]
     pub fn rotate_90(&mut self) {
         self.flip_diagonally();
         self.flip_horizontally();
@@ -259,6 +262,7 @@ impl Image {
     /// image.rotate_180(); // Rotate the image 180 degrees clockwise
     /// ```
     #[inline]
+    #[cfg(feature = "transform")]
     pub fn rotate_180(&mut self) {
         self.rotate_90();
         self.rotate_90();

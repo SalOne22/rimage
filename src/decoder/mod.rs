@@ -15,6 +15,7 @@ use crate::{config::ImageFormat, error::DecoderError, Image};
 pub struct Decoder<R: BufRead> {
     r: R,
     format: Option<ImageFormat>,
+    #[cfg(feature = "transform")]
     fix_orientation: Option<u32>,
 }
 
@@ -33,6 +34,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         Self {
             r,
             format: None,
+            #[cfg(feature = "transform")]
             fix_orientation: None,
         }
     }
@@ -79,6 +81,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
     /// let decoded_image = decoder.decode().unwrap();
     /// ```
     #[inline]
+    #[cfg(feature = "transform")]
     pub fn with_fixed_orientation(mut self, orientation: u32) -> Self {
         self.fix_orientation = Some(orientation);
         self
@@ -90,8 +93,10 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
     ///
     /// Returns a [`Result`] containing the decoded [`Image`] on success or a [`DecoderError`] on failure.
     pub fn decode(self) -> Result<Image, DecoderError> {
+        #[cfg(feature = "transform")]
         let orientation = self.fix_orientation;
 
+        #[allow(unused_mut)]
         let mut image = match self.format {
             #[cfg(feature = "avif")]
             Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
@@ -105,6 +110,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
             )),
         }?;
 
+        #[cfg(feature = "transform")]
         if let Some(orientation) = orientation {
             image.fix_orientation(orientation)
         }
@@ -274,22 +280,28 @@ impl Decoder<BufReader<File>> {
         Ok(Self {
             r: BufReader::new(File::open(path)?),
             format: Some(ImageFormat::from_path(path)?),
-            #[cfg(feature = "exif")]
+            #[cfg(feature = "transform")]
             fix_orientation: Self::get_orientation(path),
-            fix_orientation: None,
         })
     }
 
-    #[cfg(feature = "exif")]
+    #[cfg(feature = "transform")]
+    #[allow(unused_variables)]
     fn get_orientation(path: &Path) -> Option<u32> {
-        let exif_reader = exif::Reader::new();
-        let mut reader = BufReader::new(File::open(path).ok()?);
+        #[cfg(not(feature = "exif"))]
+        return None;
 
-        let exif = exif_reader.read_from_container(&mut reader).ok()?;
+        #[cfg(feature = "exif")]
+        {
+            let exif_reader = exif::Reader::new();
+            let mut reader = BufReader::new(File::open(path).ok()?);
 
-        let orientation = exif.get_field(exif::Tag::Orientation, exif::In::PRIMARY)?;
+            let exif = exif_reader.read_from_container(&mut reader).ok()?;
 
-        orientation.value.get_uint(0)
+            let orientation = exif.get_field(exif::Tag::Orientation, exif::In::PRIMARY)?;
+
+            orientation.value.get_uint(0)
+        }
     }
 }
 
