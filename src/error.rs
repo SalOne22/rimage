@@ -93,6 +93,10 @@ pub enum DecoderError {
     #[error("Failed to decode JPEG with MozJPEG")]
     MozJpeg,
 
+    /// An error occurred during JPEG XL image decoding.
+    #[error(transparent)]
+    JpegXl(#[from] jpegxl_rs::DecodeError),
+
     /// An error occurred during PNG image decoding.
     #[error(transparent)]
     Png(#[from] png::DecodingError),

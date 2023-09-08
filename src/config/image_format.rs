@@ -9,6 +9,8 @@ pub enum ImageFormat {
     Png,
     /// JPEG image format.
     Jpeg,
+    /// JPEG XL image format.
+    JpegXl,
     /// WebP image format.
     WebP,
     /// AVIF image format.
@@ -44,6 +46,7 @@ impl ImageFormat {
             match ext.as_ref().to_str().ok_or(ImageFormatError::Missing)? {
                 "png" => Self::Png,
                 "jpg" | "jpeg" => Self::Jpeg,
+                "jxl" => Self::JpegXl,
                 "webp" => Self::WebP,
                 "avif" => Self::Avif,
                 ext => return Err(ImageFormatError::Unknown(ext.to_string())),

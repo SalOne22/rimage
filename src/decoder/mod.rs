@@ -95,6 +95,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         let mut image = match self.format {
             Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
             Some(ImageFormat::Jpeg) => self.decode_jpeg(),
+            Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
             Some(ImageFormat::Png) => self.decode_png(),
             Some(ImageFormat::WebP) => self.decode_webp(),
             None => Err(DecoderError::Format(
@@ -158,6 +159,31 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
             Ok(Image::new(pixels, image.width(), image.height()))
         })
         .map_err(|_| DecoderError::MozJpeg)?
+    }
+
+    fn decode_jpegxl(mut self) -> Result<Image, DecoderError> {
+        let runner = jpegxl_rs::ThreadsRunner::default();
+
+        let decoder = jpegxl_rs::decoder_builder()
+            .parallel_runner(&runner)
+            .pixel_format(jpegxl_rs::decode::PixelFormat {
+                num_channels: 4,
+                endianness: jpegxl_rs::Endianness::Native,
+                align: 0,
+            })
+            .build()?;
+
+        let mut buf = Vec::new();
+
+        self.r.read_to_end(&mut buf)?;
+
+        let (info, pixels) = decoder.decode_with::<u8>(&buf)?;
+
+        Ok(Image::new(
+            pixels.as_rgba().to_owned(),
+            info.width as usize,
+            info.height as usize,
+        ))
     }
 
     fn decode_png(self) -> Result<Image, DecoderError> {
