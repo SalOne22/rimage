@@ -12,6 +12,7 @@ pub enum ImageFormat {
     /// JPEG XL image format.
     JpegXl,
     /// WebP image format.
+    #[cfg(feature = "webp")]
     WebP,
     /// AVIF image format.
     Avif,
@@ -47,6 +48,7 @@ impl ImageFormat {
                 "png" => Self::Png,
                 "jpg" | "jpeg" => Self::Jpeg,
                 "jxl" => Self::JpegXl,
+                #[cfg(feature = "webp")]
                 "webp" => Self::WebP,
                 "avif" => Self::Avif,
                 ext => return Err(ImageFormatError::Unknown(ext.to_string())),

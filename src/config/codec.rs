@@ -31,6 +31,7 @@ pub enum Codec {
     OxiPng,
 
     /// WebP codec for image encoding and decoding with WebP format.
+    #[cfg(feature = "webp")]
     WebP,
 
     /// AVIF codec for image encoding and decoding.

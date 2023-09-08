@@ -97,6 +97,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
             Some(ImageFormat::Jpeg) => self.decode_jpeg(),
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
             Some(ImageFormat::Png) => self.decode_png(),
+            #[cfg(feature = "webp")]
             Some(ImageFormat::WebP) => self.decode_webp(),
             None => Err(DecoderError::Format(
                 crate::error::ImageFormatError::Missing,
@@ -214,6 +215,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
         ))
     }
 
+    #[cfg(feature = "webp")]
     fn decode_webp(mut self) -> Result<Image, DecoderError> {
         let mut buf = Vec::new();
 

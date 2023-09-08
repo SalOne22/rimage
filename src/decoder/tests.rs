@@ -103,6 +103,7 @@ fn decode_png() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
+#[cfg(feature = "webp")]
 fn decode_webp() -> Result<(), Box<dyn Error>> {
     let files = fs::read_dir("tests/files/webp")?;
 

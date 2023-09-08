@@ -270,10 +270,10 @@ mod tests {
 
     #[test]
     fn new_encoder_config() {
-        let config = EncoderConfig::new(Codec::WebP);
+        let config = EncoderConfig::new(Codec::MozJpeg);
 
         assert_eq!(config.quality(), 75.0);
-        assert_eq!(config.codec(), &Codec::WebP);
+        assert_eq!(config.codec(), &Codec::MozJpeg);
         #[cfg(feature = "quantization")]
         assert!(config.quantization_config().is_none());
         #[cfg(feature = "resizing")]

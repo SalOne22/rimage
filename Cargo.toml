@@ -24,7 +24,7 @@ oxipng = { git = "https://github.com/shssoichiro/oxipng.git", rev = "02bd47b", v
 png = "0.17.10"
 rgb = "0.8.36"
 resize = {version = "0.8.0", optional = true}
-webp = "0.2.5"
+webp = {version = "0.2.5", optional = true}
 libavif-sys = { version = "0.14.3", features = ["codec-aom"], default-features = false }
 ravif = "0.11.2"
 thiserror = "1.0.47"
