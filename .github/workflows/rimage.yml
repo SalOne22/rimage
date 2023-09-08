@@ -17,6 +17,9 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
+      - name: Setup nasm 🧑‍💻
+        uses: ilammy/setup-nasm@v1
+
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
@@ -37,6 +40,9 @@ jobs:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
 
+      - name: Setup nasm 🧑‍💻
+        uses: ilammy/setup-nasm@v1
+
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
@@ -48,10 +54,10 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: fmt
-          args: --all -- --check
+          args: --all-features --all -- --check
 
       - name: Clippy check 🔎
         uses: actions-rs/cargo@v1
         with:
           command: clippy
-          args: -- -D warnings
+          args: --all-features -- -D warnings
