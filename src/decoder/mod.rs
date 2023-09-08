@@ -274,10 +274,13 @@ impl Decoder<BufReader<File>> {
         Ok(Self {
             r: BufReader::new(File::open(path)?),
             format: Some(ImageFormat::from_path(path)?),
+            #[cfg(feature = "exif")]
             fix_orientation: Self::get_orientation(path),
+            fix_orientation: None,
         })
     }
 
+    #[cfg(feature = "exif")]
     fn get_orientation(path: &Path) -> Option<u32> {
         let exif_reader = exif::Reader::new();
         let mut reader = BufReader::new(File::open(path).ok()?);

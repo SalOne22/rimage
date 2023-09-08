@@ -17,6 +17,7 @@ edition = "2021"
 quantization = ["imagequant"]
 resizing = ["resize"]
 avif = ["libavif-sys", "ravif"]
+exif = ["kamadak-exif"]
 
 [dependencies]
 imagequant = {version = "4.2.0", optional = true}
@@ -29,6 +30,6 @@ webp = {version = "0.2.5", optional = true}
 libavif-sys = { version = "0.14.3", features = ["codec-aom"], default-features = false, optional = true }
 ravif = {version = "0.11.2", optional = true }
 thiserror = "1.0.47"
-kamadak-exif = "0.5.5"
+kamadak-exif = {version = "0.5.5", optional = true}
 transpose = "0.2.2"
 jpegxl-rs = { version = "0.8.2", default-features = false, features = ["vendored", "threads"] }
