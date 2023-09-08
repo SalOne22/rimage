@@ -110,6 +110,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             self.data.resize(resize_config)?;
         }
 
+        #[cfg(feature = "quantization")]
         if let Some(quantization_config) = self.conf.quantization_config() {
             self.data.quantize(quantization_config)?;
         }

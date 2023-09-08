@@ -51,6 +51,7 @@ pub enum EncoderError {
 
     /// Error indicating a quantization operation failure.
     #[error(transparent)]
+    #[cfg(feature = "quantization")]
     Quantization(#[from] imagequant::Error),
 
     /// Error indicating an overflow or conversion error.
@@ -156,7 +157,9 @@ mod tests {
         );
 
         // Test Quantization error message
+        #[cfg(feature = "quantization")]
         let quantization_error = EncoderError::Quantization(imagequant::Error::OutOfMemory);
+        #[cfg(feature = "quantization")]
         assert_eq!(
             format!("{}", quantization_error),
             format!("{}", imagequant::Error::OutOfMemory)

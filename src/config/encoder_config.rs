@@ -1,6 +1,8 @@
 use crate::error::InvalidEncoderConfig;
 
-use super::{codec::Codec, quantization_config::QuantizationConfig, resize_config::ResizeConfig};
+#[cfg(feature = "quantization")]
+use super::quantization_config::QuantizationConfig;
+use super::{codec::Codec, resize_config::ResizeConfig};
 
 /// Configuration struct for image encoding.
 ///
@@ -37,6 +39,7 @@ pub struct EncoderConfig {
     codec: Codec,
 
     /// Optional quantization configuration for fine-tuning image compression.
+    #[cfg(feature = "quantization")]
     quantization: Option<QuantizationConfig>,
 
     /// Optional resizing configuration for adjusting image dimensions.
@@ -62,6 +65,7 @@ impl EncoderConfig {
         Self {
             quality: 75.0,
             codec,
+            #[cfg(feature = "quantization")]
             quantization: None,
             resize: None,
         }
@@ -120,6 +124,7 @@ impl EncoderConfig {
     ///     .with_quantization(quantization_config);
     /// ```
     #[inline]
+    #[cfg(feature = "quantization")]
     pub fn with_quantization(mut self, quantization: QuantizationConfig) -> Self {
         self.quantization = Some(quantization);
         self
@@ -215,6 +220,7 @@ impl EncoderConfig {
     /// }
     /// ```
     #[inline]
+    #[cfg(feature = "quantization")]
     pub fn quantization_config(&self) -> Option<&QuantizationConfig> {
         self.quantization.as_ref()
     }
@@ -262,6 +268,7 @@ mod tests {
 
         assert_eq!(config.quality(), 75.0);
         assert_eq!(config.codec(), &Codec::WebP);
+        #[cfg(feature = "quantization")]
         assert!(config.quantization_config().is_none());
         assert!(config.resize_config().is_none());
     }
@@ -285,6 +292,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(feature = "quantization")]
     fn configure_quantization() {
         let quantization_config = QuantizationConfig::default();
 
@@ -308,6 +316,7 @@ mod tests {
 
         assert_eq!(config.quality(), 75.0);
         assert_eq!(config.codec(), &Codec::MozJpeg);
+        #[cfg(feature = "quantization")]
         assert!(config.quantization_config().is_none());
         assert!(config.resize_config().is_none());
     }
