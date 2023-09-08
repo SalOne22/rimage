@@ -222,6 +222,7 @@ impl Image {
     /// image.flip_horizontally(); // Flip the image horizontally
     /// ```
     #[inline]
+    #[cfg(feature = "transform")]
     pub fn flip_horizontally(&mut self) {
         for y in 0..self.height {
             let start = y * self.width;

@@ -5,10 +5,10 @@ use crate::error::ImageFormatError;
 /// Enum representing supported image formats.
 #[derive(Debug)]
 pub enum ImageFormat {
-    /// PNG image format.
-    Png,
     /// JPEG image format.
     Jpeg,
+    /// PNG image format.
+    Png,
     /// JPEG XL image format.
     #[cfg(feature = "jxl")]
     JpegXl,
@@ -47,8 +47,8 @@ impl ImageFormat {
     pub fn from_ext(ext: impl AsRef<OsStr>) -> Result<Self, ImageFormatError> {
         Ok(
             match ext.as_ref().to_str().ok_or(ImageFormatError::Missing)? {
-                "png" => Self::Png,
                 "jpg" | "jpeg" => Self::Jpeg,
+                "png" => Self::Png,
                 #[cfg(feature = "jxl")]
                 "jxl" => Self::JpegXl,
                 #[cfg(feature = "webp")]

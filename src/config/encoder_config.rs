@@ -1,6 +1,7 @@
 use crate::error::InvalidEncoderConfig;
 
 use super::codec::Codec;
+
 #[cfg(feature = "quantization")]
 use super::quantization_config::QuantizationConfig;
 #[cfg(feature = "resizing")]
