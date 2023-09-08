@@ -1,100 +1,176 @@
-## v0.8.2
+# Changelog
 
-- [Bugfix] Fixed extensions written in uppercase (again 😅)
+All notable changes to the Rimage library will be documented in this file.
 
-## v0.8.1
+## **[Unreleased]** v0.9.0
 
-- [Changed] Updated progress bar. ![Updated version](./assets/progress_bar.gif)
-- [Changed] Now rimage uses rayon crate for parallel optimizations
-- [Added] `--quiet` flag that disables progress bar
+### Breaking Changes
 
-## v0.8.0
+- **Library Structure Rewrite**: The library structure has been entirely rewritten, resulting in no backward compatibility.
 
-- [Breaking Changes] `Decoder` now is builder for `GenericDecoder` that capable to decode byte slices and files
-- [Breaking Changes] `Config` now uses builder pattern
-- [Changed] `OutputFormat` is renamed to `Codec`
-- [Changed] Errors now is more declarative
-- [Removed] `decoders` and `encoders`
-- [Added] `optimize` and `optimize_from_memory` functions
-- [Added] `ImageFormat` for memory decoding
-- [Bugfix] Fixed jpeg decoding
+### Refactor
 
-## v0.7.1
+- Divided `Config` into several parts for improved modularity.
+- Moved `Codec` and `ImageFormat` into the `config` module.
+- Updated the `Decoder` and `Encoder` structs with more concise interfaces.
+- Updated error messages and handling to align with the new library structure.
+- Enhanced `from_path` in `Decoder` to handle image format and orientation.
 
-- [Bugfix] Fixed extensions written in uppercase, now they are all normalized to lowercase
+### New Features
 
-## v0.7.0
+- Introduced `EncoderConfig` for configuring encoding.
+- Introduced `ResizeConfig` for configuring image resizing (optional).
+- Introduced `QuantizationConfig` for configuring image quantization (optional).
+- Added `fixed_orientation` to `Decoder` to save image orientation according to EXIF tag.
 
-- [Breaking Changes] Decoder now accept opened file as input
-- [Changed] ImageData now stores bytes as Box<[u8]>
-- [Changed] Global allocator now is Jemalloc on unix and MiMalloc on Windows
-- [Changed] Reduced peak heap usage twice!
-- [Changed] Now output format option is named just format
-- [Added] AVIF decoding and encoding
-- [Added] Output dir option for saving in different locations
+## [v0.8.2](https://github.com/SalOne22/rimage/releases/tag/v0.8.2)
 
-## v0.6.0
+### Bug Fixes
 
-- [Added] WebP decoding and encoding
-- [Bugfix] Fixed typo in logs
+- Fixed an issue where extensions were written in uppercase.
 
-## v0.5.1
+## [v0.8.1](https://github.com/SalOne22/rimage/releases/tag/v0.8.1)
 
-- [Added] Logging of errors and info
-- [Changed] `eprintln!` now `error!`
+### Enhancements
 
-## v0.5.0
+- Updated progress bar. ![Updated version](./assets/progress_bar.gif)
+- Rimage now uses the rayon crate for parallel optimizations.
+- Added `--quiet` flag that disables the progress bar.
 
-- [Added] Image Resize
-- [Added] Resize error to EncodingError
-- [Added] Width and Height arguments to CLI
-- [Added] Resize filter type argument to CLI
-- [Changed] `Config::build` now require 5 arguments
+## [v0.8.0](https://github.com/SalOne22/rimage/releases/tag/v0.8.0)
 
-## v0.4.0
+### Breaking Changes
 
-- [Added] Image quantization
-- [Added] Quantization error to EncodingError
-- [Added] data_mut function to ImageData
-- [Added] Encode quantized function
-- [Added] Quantization argument to CLI
-- [Added] Dithering argument to CLI
+- `Decoder` now acts as a builder for `GenericDecoder` capable of decoding byte slices and files.
+- `Config` now uses a builder pattern.
+- Renamed `OutputFormat` to `Codec`.
+- Errors are now more declarative.
+- Removed `decoders` and `encoders`.
+- Introduced `optimize` and `optimize_from_memory` functions.
+- Added `ImageFormat` for memory decoding.
+- Fixed jpeg decoding.
 
-## v0.3.0
+### Enhancements
 
-- [Added] Parallelism
-- [Added] Thread number to use option (Default: number of cpus)
-- [Changed] Strings in errors replaced with SimpleError
+- Decoder now accepts an opened file as input.
+- `ImageData` now stores bytes as `Box<[u8]>`.
+- Global allocator is now Jemalloc on Unix and MiMalloc on Windows.
+- Reduced peak heap usage by half.
+- Output format option is now named simply `format`.
+- Added AVIF decoding and encoding.
+- Added output directory option for saving in different locations.
 
-## v0.2.1
+## [v0.7.1](https://github.com/SalOne22/rimage/releases/tag/v0.7.1)
 
-- [Changed] Readme updated
-- [Changed] Updated regex to 1.7.3
+### Bug Fixes
 
-## v0.2.0
+- Fixed an issue where extensions were written in uppercase; now they are all normalized to lowercase.
 
-- [Added] struct `ImageData` for storing images data
-- [Added] struct `Decoder` to decode images
-- [Added] struct `Encoder` to encode images
-- [Added] structs for errors in `rimage::errors`
+## [v0.7.0](https://github.com/SalOne22/rimage/releases/tag/v0.7.0)
 
-- [Added] image processing from stdio
-- [Added] info option
-- [Added] suffix option
+### Breaking Changes
 
-- [Changed] `decoders::decode_image` and `encoders::encode_image` now deprecated, use `Decoder` and `Encoder` structs instead
-- [Improvement] Added documentation to almost all functions and structs with examples
-- [Improvement] Added support for png as output (not oxipng)
+- Decoder now accepts an opened file as input.
 
-## v0.1.3
+### Enhancements
 
-- [Bugfix] Fixed long processing of png images
+- Added AVIF decoding and encoding.
+- Added an output directory option for saving in different locations.
 
-## v0.1.2
+## [v0.6.0](https://github.com/SalOne22/rimage/releases/tag/v0.6.0)
 
-- [Added] Added pretty progress bar
+### New Features
 
-## v0.1.1
+- Added WebP decoding and encoding.
 
-- [Bugfix] Fixed hardcoded format output
-- [Improvement] Added support for RGBA images
+### Bug Fixes
+
+- Fixed a typo in logs.
+
+## [v0.5.1](https://github.com/SalOne22/rimage/releases/tag/v0.5.1)
+
+### New Features
+
+- Added logging of errors and info.
+
+### Changes
+
+- Replaced `eprintln!` with `error!`.
+
+## [v0.5.0](https://github.com/SalOne22/rimage/releases/tag/v0.5.0)
+
+### New Features
+
+- Added image resize functionality.
+- Introduced a resize error to `EncodingError`.
+- Added width and height arguments to CLI.
+- Added a resize filter type argument to CLI.
+
+### Changes
+
+- `Config::build` now requires 5 arguments.
+
+## [v0.4.0](https://github.com/SalOne22/rimage/releases/tag/v0.4.0)
+
+### New Features
+
+- Added image quantization.
+- Introduced quantization error to `EncodingError`.
+- Added a `data_mut` function to `ImageData`.
+- Added an `encode_quantized` function.
+- Added a quantization argument to CLI.
+- Added a dithering argument to CLI.
+
+## [v0.3.0](https://github.com/SalOne22/rimage/releases/tag/v0.3.0)
+
+### New Features
+
+- Added parallelism.
+- Added a thread number option to use (Default: number of CPUs).
+
+### Changes
+
+- Replaced strings in errors with `SimpleError`.
+
+## [v0.2.1](https://github.com/SalOne22/rimage/releases/tag/v0.2.1)
+
+### Changes
+
+- Updated the Readme.
+
+## [v0.2.0](https://github.com/SalOne22/rimage/releases/tag/v0.2.0)
+
+### New Features
+
+- Introduced `ImageData` for storing image data.
+- Introduced `Decoder` to decode images.
+- Introduced `Encoder` to encode images.
+- Introduced error struct's in `rimage::errors`.
+- Added image ## [v0.1.processing from stdio.
+- Added an info option.
+- Added a suffix option.
+
+### Changes
+
+- Deprecated `decoders::decode_image` and `encoders::encode_image`; use `Decoder` and `Encoder` struct's instead.
+- Improved documentation for almost all functions and struct's with examples.
+- Added support for PNG as output (not oxipng codec).
+
+## [v0.1.3](https://github.com/SalOne22/rimage/releases/tag/v0.1.3)
+
+### Bug Fixes
+
+- Fixed long processing of PNG images.
+
+## [v0.1.2](https://github.com/SalOne22/rimage/releases/tag/v0.1.2)
+
+### New Features
+
+- Added a pretty progress bar.
+
+## [v0.1.1](https://github.com/SalOne22/rimage/releases/tag/v0.1.1)
+
+### Bug Fixes
+
+- Fixed a hardcoded format output.
+- Added support for RGBA images.
