@@ -123,6 +123,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             crate::config::Codec::Png => self.encode_png(),
             #[cfg(feature = "oxipng")]
             crate::config::Codec::OxiPng => self.encode_oxipng(),
+            #[cfg(feature = "webp")]
             crate::config::Codec::WebP => self.encode_webp(),
             crate::config::Codec::Avif => self.encode_avif(),
         }
@@ -206,6 +207,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         Ok(())
     }
 
+    #[cfg(feature = "webp")]
     fn encode_webp(mut self) -> Result<(), EncoderError> {
         let width: u32 = self.data.width().try_into()?;
         let height: u32 = self.data.height().try_into()?;
