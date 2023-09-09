@@ -201,10 +201,21 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
     #[cfg(feature = "jxl")]
     fn decode_jpegxl(mut self) -> Result<Image, DecoderError> {
+        #[cfg(feature = "parallel")]
         let runner = jpegxl_rs::ThreadsRunner::default();
 
+        #[cfg(feature = "parallel")]
         let decoder = jpegxl_rs::decoder_builder()
             .parallel_runner(&runner)
+            .pixel_format(jpegxl_rs::decode::PixelFormat {
+                num_channels: 4,
+                endianness: jpegxl_rs::Endianness::Native,
+                align: 0,
+            })
+            .build()?;
+
+        #[cfg(not(feature = "parallel"))]
+        let decoder = jpegxl_rs::decoder_builder()
             .pixel_format(jpegxl_rs::decode::PixelFormat {
                 num_channels: 4,
                 endianness: jpegxl_rs::Endianness::Native,
