@@ -179,6 +179,16 @@ impl ResizeConfig {
     }
 }
 
+impl Clone for ResizeConfig {
+    fn clone(&self) -> Self {
+        Self {
+            width: self.width,
+            height: self.height,
+            filter_type: self.filter_type(),
+        }
+    }
+}
+
 impl Debug for ResizeConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("ResizeConfig")
