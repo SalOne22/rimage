@@ -62,3 +62,70 @@ impl FromStr for Codec {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn to_unknown() {
+        let codec = Codec::from_str("bmp");
+        assert!(codec.is_err());
+        assert_eq!(codec.unwrap_err(), "bmp is not supported codec.");
+    }
+
+    #[test]
+    fn to_mozjpeg() {
+        let codec = Codec::from_str("mozjpeg");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::MozJpeg);
+        let codec = Codec::from_str("jpeg");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::MozJpeg);
+        let codec = Codec::from_str("jpg");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::MozJpeg);
+    }
+
+    #[test]
+    fn to_png() {
+        let codec = Codec::from_str("png");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::Png);
+    }
+
+    #[test]
+    #[cfg(feature = "jxl")]
+    fn to_jpegxl() {
+        let codec = Codec::from_str("jpegxl");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::JpegXl);
+        let codec = Codec::from_str("jxl");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::JpegXl);
+    }
+
+    #[test]
+    #[cfg(feature = "oxipng")]
+    fn to_oxipng() {
+        let codec = Codec::from_str("oxipng");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::OxiPng);
+    }
+
+    #[test]
+    #[cfg(feature = "webp")]
+    fn to_webp() {
+        let codec = Codec::from_str("webp");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::WebP);
+    }
+
+    #[test]
+    #[cfg(feature = "avif")]
+    fn to_avif() {
+        let codec = Codec::from_str("avif");
+        assert!(codec.is_ok());
+        assert_eq!(codec.unwrap(), Codec::Avif);
+    }
+}
