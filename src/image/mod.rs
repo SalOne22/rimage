@@ -6,6 +6,7 @@ use crate::config::QuantizationConfig;
 use crate::config::ResizeConfig;
 
 /// Struct representing an image with RGBA8 pixel data.
+#[derive(Debug, Clone)]
 pub struct Image {
     data: Vec<RGBA8>,
     width: usize,
