@@ -1,6 +1,55 @@
-use std::{error::Error, fs};
+use std::{error::Error, fs, io::Cursor};
 
 use super::*;
+
+#[test]
+fn new_decoder() {
+    let cursor = Cursor::new(Vec::new());
+    let decoder = Decoder::new(cursor.clone());
+
+    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.format, None);
+    #[cfg(feature = "transform")]
+    assert_eq!(decoder.fix_orientation, None);
+}
+
+#[test]
+fn new_decoder_with_format() {
+    let cursor = Cursor::new(Vec::new());
+    let decoder = Decoder::new(cursor.clone()).with_format(ImageFormat::Jpeg);
+
+    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.format, Some(ImageFormat::Jpeg));
+    #[cfg(feature = "transform")]
+    assert_eq!(decoder.fix_orientation, None);
+}
+
+#[test]
+fn decode_without_format() {
+    let cursor = Cursor::new(Vec::new());
+    let decoder = Decoder::new(cursor.clone());
+
+    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.format, None);
+    #[cfg(feature = "transform")]
+    assert_eq!(decoder.fix_orientation, None);
+
+    let result = decoder.decode();
+    assert!(result.is_err());
+    assert_eq!(result.unwrap_err().to_string(), "Can't find image format");
+}
+
+#[test]
+#[cfg(feature = "transform")]
+fn new_decoder_with_fixed_orientation() {
+    let cursor = Cursor::new(Vec::new());
+    let decoder = Decoder::new(cursor.clone()).with_fixed_orientation(4);
+
+    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.format, None);
+    #[cfg(feature = "transform")]
+    assert_eq!(decoder.fix_orientation, Some(4));
+}
 
 #[test]
 #[cfg(feature = "exif")]
