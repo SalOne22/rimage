@@ -215,3 +215,108 @@ impl Default for ResizeConfig {
         Self::new(resize::Type::Lanczos3)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new_resize_config() {
+        let resize_config = ResizeConfig::new(resize::Type::Lanczos3);
+        assert_eq!(resize_config.width(), None);
+        assert_eq!(resize_config.height(), None);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: None, filter_type: \"lanczos3\" }"
+        );
+    }
+
+    #[test]
+    fn default_resize_config() {
+        let resize_config = ResizeConfig::default();
+        assert_eq!(resize_config.width(), None);
+        assert_eq!(resize_config.height(), None);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: None, filter_type: \"lanczos3\" }"
+        );
+    }
+
+    #[test]
+    fn resize_config_with_width() {
+        let resize_config = ResizeConfig::new(resize::Type::Lanczos3).with_width(120);
+        assert_eq!(resize_config.width(), Some(120));
+        assert_eq!(resize_config.height(), None);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: Some(120), height: None, filter_type: \"lanczos3\" }"
+        );
+    }
+
+    #[test]
+    fn resize_config_with_height() {
+        let resize_config = ResizeConfig::new(resize::Type::Lanczos3).with_height(120);
+        assert_eq!(resize_config.width(), None);
+        assert_eq!(resize_config.height(), Some(120));
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: Some(120), filter_type: \"lanczos3\" }"
+        );
+    }
+
+    #[test]
+    fn clone_resize_config() {
+        let resize_config = ResizeConfig::new(resize::Type::Lanczos3)
+            .with_width(120)
+            .with_height(120);
+
+        let cloned_resize_config = resize_config.clone();
+
+        assert_eq!(resize_config.width(), cloned_resize_config.width());
+        assert_eq!(resize_config.height(), cloned_resize_config.height());
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: Some(120), height: Some(120), filter_type: \"lanczos3\" }"
+        );
+        assert_eq!(
+            format!("{cloned_resize_config:?}"),
+            "ResizeConfig { width: Some(120), height: Some(120), filter_type: \"lanczos3\" }"
+        );
+    }
+
+    #[test]
+    fn debug_resize_config() {
+        let resize_config = ResizeConfig::new(resize::Type::Lanczos3)
+            .with_width(120)
+            .with_height(120);
+
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: Some(120), height: Some(120), filter_type: \"lanczos3\" }"
+        );
+
+        let resize_config = ResizeConfig::new(resize::Type::Catrom);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: None, filter_type: \"catrom\" }"
+        );
+
+        let resize_config = ResizeConfig::new(resize::Type::Mitchell);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: None, filter_type: \"mitchell\" }"
+        );
+
+        let resize_config = ResizeConfig::new(resize::Type::Point);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: None, filter_type: \"point\" }"
+        );
+
+        let resize_config = ResizeConfig::new(resize::Type::Triangle);
+        assert_eq!(
+            format!("{resize_config:?}"),
+            "ResizeConfig { width: None, height: None, filter_type: \"triangle\" }"
+        );
+    }
+}
