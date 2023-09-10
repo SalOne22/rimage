@@ -33,7 +33,7 @@ use super::resize_config::ResizeConfig;
 ///
 /// let config = EncoderConfig::new(Codec::Png).with_quality(90.0).unwrap();
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct EncoderConfig {
     /// The quality level for image encoding, ranging from 0.0 to 100.0.
     quality: f32,
