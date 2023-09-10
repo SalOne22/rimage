@@ -27,7 +27,7 @@ pub enum InvalidEncoderConfig {
 }
 
 /// Enum representing errors related to parsing image formats.
-#[derive(Error, Debug)]
+#[derive(Error, Debug, PartialEq, Eq)]
 pub enum ImageFormatError {
     /// Error indicating an unknown or unsupported image format.
     #[error("Unknown image format: {0}")]
