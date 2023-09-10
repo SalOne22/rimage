@@ -296,7 +296,16 @@ mod tests {
         assert_eq!(
             result.unwrap_err().to_string(),
             "Quality value 120 is out of bounds (0.0-100.0)."
-        )
+        );
+
+        // Test invalid quality level
+        let result = EncoderConfig::new(Codec::MozJpeg).with_quality(-10.0);
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Quality value -10 is out of bounds (0.0-100.0)."
+        );
     }
 
     #[test]
