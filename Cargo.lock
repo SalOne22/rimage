@@ -880,9 +880,9 @@ dependencies = [
 
 [[package]]
 name = "mozjpeg"
-version = "0.10.0"
+version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8c7e3afac2fe1a464c056f4ee5627ca2687407e94e45ed252587311a6afd131"
+checksum = "84edaffd54775e831923ce65f73288793c80fe98771b0be9eadaf753b29792fc"
 dependencies = [
  "arrayvec",
  "libc",
