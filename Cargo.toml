@@ -34,7 +34,7 @@ ravif = { version = "0.11.2", optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
 
 [dependencies.imagequant]
-version = "4.2.0"
+version = "4.2.1"
 default-features = false
 optional = true
 
