@@ -1,16 +1,11 @@
-use std::{
-    error::Error,
-    fs::{self, File},
-    path::{Path, PathBuf},
-    str::FromStr,
-};
+use std::{error::Error, path::PathBuf, str::FromStr};
 
 use clap::{arg, value_parser, ArgAction, Command};
 
-use rimage::{
-    config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig},
-    Decoder, Encoder,
-};
+use rimage::config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig};
+
+mod optimize;
+mod paths;
 
 fn main() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("rimage")
@@ -116,115 +111,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     let recursive = matches.get_one::<bool>("recursive").unwrap_or(&false);
     let backup = matches.get_one::<bool>("backup").unwrap_or(&false);
 
-    optimize_files(
-        get_paths(files, out_dir, suffix, codec.to_extension(), *recursive),
+    optimize::optimize_files(
+        paths::get_paths(files, out_dir, suffix, codec.to_extension(), *recursive),
         conf,
         *backup,
-    )
-    .for_each(drop);
+    );
 
     Ok(())
 }
-
-fn get_paths(
-    files: Vec<PathBuf>,
-    out_dir: Option<PathBuf>,
-    suffix: Option<String>,
-    extension: impl ToString,
-    recursive: bool,
-) -> impl Iterator<Item = (PathBuf, PathBuf)> {
-    let common_path = if recursive {
-        get_common_path(&files)
-    } else {
-        None
-    };
-
-    files.into_iter().map(move |path| -> (PathBuf, PathBuf) {
-        let file_name = path
-            .file_stem()
-            .and_then(|f| f.to_str())
-            .unwrap_or("optimized_image");
-
-        let mut out_path = match &out_dir {
-            Some(dir) => {
-                if let Some(common) = &common_path {
-                    let relative_path = path.strip_prefix(common).unwrap_or(&path);
-                    dir.join(relative_path)
-                } else {
-                    dir.clone()
-                }
-            }
-            None => path.parent().map(|p| p.to_path_buf()).unwrap_or_default(),
-        };
-
-        if let Some(s) = &suffix {
-            out_path.push(format!("{file_name}{s}.{}", extension.to_string()));
-        } else {
-            out_path.push(format!("{file_name}.{}", extension.to_string()));
-        }
-
-        (path, out_path)
-    })
-}
-
-fn optimize_files(
-    paths: impl IntoIterator<Item = (PathBuf, PathBuf)>,
-    conf: EncoderConfig,
-    backup: bool,
-) -> impl Iterator<Item = ()> {
-    paths
-        .into_iter()
-        .map(move |(input, output): (PathBuf, PathBuf)| {
-            optimize(&input, &output, conf.clone(), backup).unwrap_or_else(|e| {
-                dbg!(&e);
-                eprintln!("{input:?}: {e}");
-            });
-        })
-}
-
-fn optimize(
-    in_path: &Path,
-    out_path: &Path,
-    conf: EncoderConfig,
-    backup: bool,
-) -> Result<(), Box<dyn Error>> {
-    let decoder: Decoder<std::io::BufReader<File>> = Decoder::from_path(in_path)?;
-
-    if backup {
-        fs::rename(
-            in_path,
-            format!("{}.backup", in_path.as_os_str().to_str().unwrap()),
-        )?;
-    }
-
-    let image = decoder.decode()?;
-
-    let out_file = File::create(out_path)?;
-
-    let encoder = Encoder::new(out_file, image).with_config(conf);
-    encoder.encode()?;
-
-    Ok(())
-}
-
-fn get_common_path(paths: &[PathBuf]) -> Option<PathBuf> {
-    if paths.is_empty() {
-        return None;
-    }
-
-    let mut common_path = paths[0].clone();
-
-    for path in paths.iter().skip(1) {
-        common_path = common_path
-            .iter()
-            .zip(path.iter())
-            .take_while(|&(a, b)| a == b)
-            .map(|(a, _)| a)
-            .collect();
-    }
-
-    Some(common_path)
-}
-
-#[cfg(test)]
-mod tests;
