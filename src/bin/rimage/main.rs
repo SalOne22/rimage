@@ -1,0 +1,230 @@
+use std::{
+    error::Error,
+    fs::{self, File},
+    path::{Path, PathBuf},
+    str::FromStr,
+};
+
+use clap::{arg, value_parser, ArgAction, Command};
+
+use rimage::{
+    config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig},
+    Decoder, Encoder,
+};
+
+fn main() -> Result<(), Box<dyn Error>> {
+    let matches = Command::new("rimage")
+        .version(env!("CARGO_PKG_VERSION"))
+        .author("Vladyslav Vladinov <vladinov.dev@gmail.com>")
+        .about("A tool to convert/optimize/resize images in different formats")
+        .arg(
+            arg!(<FILES> "Input file(s) to process (use '-' for stdin)")
+                .num_args(1..)
+                .value_delimiter(None)
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .next_help_heading("General")
+        .args([
+            arg!(-q --quality <QUALITY> "Optimization quality")
+                .value_parser(value_parser!(f32))
+                .default_value("75"),
+            arg!(-f --codec <CODEC> "Image codec to use")
+                .value_parser(Codec::from_str)
+                .default_value("mozjpeg"),
+            arg!(-o --output <DIR> "Write output file(s) to <DIR>")
+                .value_parser(value_parser!(PathBuf)),
+            arg!(-r --recursive "Saves output file(s) preserving folder structure")
+                .action(ArgAction::SetTrue),
+            arg!(-s --suffix [SUFFIX] "Appends suffix to output file(s) names [default: _u]")
+                .default_missing_value("_u"),
+            arg!(-b --backup "Appends '.backup' to input file(s) names")
+                .action(ArgAction::SetTrue),
+        ])
+        .next_help_heading("Quantization")
+        .args([
+            arg!(--quantization [QUALITY] "Enables quantization with optional quality [default: 75]")
+                .value_parser(value_parser!(u8).range(..=100))
+                .default_missing_value("75"),
+            arg!(--dithering [QUALITY] "Enables dithering with optional quality [default: 75]")
+                .value_parser(value_parser!(f32))
+                .default_missing_value("75")
+        ])
+        .next_help_heading("Resizing")
+        .args([
+            arg!(--width <WIDTH> "Resize image with specified width")
+                .value_parser(value_parser!(usize)),
+            arg!(--height <HEIGHT> "Resize image with specified height")
+                .value_parser(value_parser!(usize)),
+            arg!(--filter <FILTER> "Filter used for image resizing")
+                .value_parser(["point", "triangle", "catmull-rom", "mitchell", "lanczos3"])
+                .default_value("lanczos3")
+        ])
+        .get_matches();
+
+    let codec = matches.get_one::<Codec>("codec").unwrap();
+    let quality = matches.get_one::<f32>("quality").unwrap();
+
+    let mut quantization_config = QuantizationConfig::new();
+
+    if let Some(quality) = matches.get_one::<u8>("quantization") {
+        quantization_config = quantization_config.with_quality(*quality)?
+    }
+
+    if let Some(dithering) = matches.get_one::<f32>("dithering") {
+        quantization_config = quantization_config.with_dithering(*dithering / 100.0)?
+    }
+
+    let resize_filter = match matches.get_one::<String>("filter").unwrap().as_str() {
+        "point" => resize::Type::Point,
+        "triangle" => resize::Type::Triangle,
+        "catmull-rom" => resize::Type::Catrom,
+        "mitchell" => resize::Type::Mitchell,
+        "lanczos3" => resize::Type::Lanczos3,
+        _ => unreachable!("Clap should handle validation"),
+    };
+
+    let mut resize_config = ResizeConfig::new(resize_filter);
+
+    if let Some(width) = matches.get_one::<usize>("width") {
+        resize_config = resize_config.with_width(*width);
+    }
+
+    if let Some(height) = matches.get_one::<usize>("height") {
+        resize_config = resize_config.with_height(*height);
+    }
+
+    let mut conf = EncoderConfig::new(*codec).with_quality(*quality)?;
+
+    if matches.get_one::<u8>("quantization").is_some()
+        || matches.get_one::<u8>("dithering").is_some()
+    {
+        conf = conf.with_quantization(quantization_config);
+    }
+
+    if matches.get_one::<usize>("width").is_some() || matches.get_one::<usize>("height").is_some() {
+        conf = conf.with_resize(resize_config);
+    }
+
+    let files = matches
+        .get_many::<PathBuf>("FILES")
+        .unwrap_or_default()
+        .map(|v| v.into())
+        .collect();
+
+    let out_dir = matches.get_one::<PathBuf>("output").map(|p| p.into());
+    let suffix = matches.get_one::<String>("suffix").map(|p| p.into());
+    let recursive = matches.get_one::<bool>("recursive").unwrap_or(&false);
+    let backup = matches.get_one::<bool>("backup").unwrap_or(&false);
+
+    optimize_files(
+        get_paths(files, out_dir, suffix, codec.to_extension(), *recursive),
+        conf,
+        *backup,
+    )
+    .for_each(drop);
+
+    Ok(())
+}
+
+fn get_paths(
+    files: Vec<PathBuf>,
+    out_dir: Option<PathBuf>,
+    suffix: Option<String>,
+    extension: impl ToString,
+    recursive: bool,
+) -> impl Iterator<Item = (PathBuf, PathBuf)> {
+    let common_path = if recursive {
+        get_common_path(&files)
+    } else {
+        None
+    };
+
+    files.into_iter().map(move |path| -> (PathBuf, PathBuf) {
+        let file_name = path
+            .file_stem()
+            .and_then(|f| f.to_str())
+            .unwrap_or("optimized_image");
+
+        let mut out_path = match &out_dir {
+            Some(dir) => {
+                if let Some(common) = &common_path {
+                    let relative_path = path.strip_prefix(common).unwrap_or(&path);
+                    dir.join(relative_path)
+                } else {
+                    dir.clone()
+                }
+            }
+            None => path.parent().map(|p| p.to_path_buf()).unwrap_or_default(),
+        };
+
+        if let Some(s) = &suffix {
+            out_path.push(format!("{file_name}{s}.{}", extension.to_string()));
+        } else {
+            out_path.push(format!("{file_name}.{}", extension.to_string()));
+        }
+
+        (path, out_path)
+    })
+}
+
+fn optimize_files(
+    paths: impl IntoIterator<Item = (PathBuf, PathBuf)>,
+    conf: EncoderConfig,
+    backup: bool,
+) -> impl Iterator<Item = ()> {
+    paths
+        .into_iter()
+        .map(move |(input, output): (PathBuf, PathBuf)| {
+            optimize(&input, &output, conf.clone(), backup).unwrap_or_else(|e| {
+                dbg!(&e);
+                eprintln!("{input:?}: {e}");
+            });
+        })
+}
+
+fn optimize(
+    in_path: &Path,
+    out_path: &Path,
+    conf: EncoderConfig,
+    backup: bool,
+) -> Result<(), Box<dyn Error>> {
+    let decoder: Decoder<std::io::BufReader<File>> = Decoder::from_path(in_path)?;
+
+    if backup {
+        fs::rename(
+            in_path,
+            format!("{}.backup", in_path.as_os_str().to_str().unwrap()),
+        )?;
+    }
+
+    let image = decoder.decode()?;
+
+    let out_file = File::create(out_path)?;
+
+    let encoder = Encoder::new(out_file, image).with_config(conf);
+    encoder.encode()?;
+
+    Ok(())
+}
+
+fn get_common_path(paths: &[PathBuf]) -> Option<PathBuf> {
+    if paths.is_empty() {
+        return None;
+    }
+
+    let mut common_path = paths[0].clone();
+
+    for path in paths.iter().skip(1) {
+        common_path = common_path
+            .iter()
+            .zip(path.iter())
+            .take_while(|&(a, b)| a == b)
+            .map(|(a, _)| a)
+            .collect();
+    }
+
+    Some(common_path)
+}
+
+#[cfg(test)]
+mod tests;
