@@ -140,12 +140,16 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
         let mut reader = decoder.read_info()?;
 
-        let mut buf: Vec<u8> = vec![0; reader.output_buffer_size()];
+        let info = reader.info();
+
+        let buf_size = (info.width * info.height * 4) as usize;
+
+        let mut buf: Vec<u8> = vec![0; buf_size];
 
         let info = reader.next_frame(&mut buf)?;
 
         match info.color_type {
-            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
+            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, GRAY8::into),
             png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
             png::ColorType::Rgba => {}
