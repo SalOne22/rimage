@@ -30,8 +30,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .value_parser(value_parser!(PathBuf)),
             arg!(-r --recursive "Saves output file(s) preserving folder structure")
                 .action(ArgAction::SetTrue),
-            arg!(-s --suffix [SUFFIX] "Appends suffix to output file(s) names [default: _u]")
-                .default_missing_value("_u"),
+            arg!(-s --suffix [SUFFIX] "Appends suffix to output file(s) names"),
             arg!(-b --backup "Appends '.backup' to input file(s) names")
                 .action(ArgAction::SetTrue),
         ])
