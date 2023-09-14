@@ -46,7 +46,13 @@ impl ImageFormat {
     #[inline]
     pub fn from_ext(ext: impl AsRef<OsStr>) -> Result<Self, ImageFormatError> {
         Ok(
-            match ext.as_ref().to_str().ok_or(ImageFormatError::Missing)? {
+            match ext
+                .as_ref()
+                .to_str()
+                .ok_or(ImageFormatError::Missing)?
+                .to_lowercase()
+                .as_str()
+            {
                 "jpg" | "jpeg" => Self::Jpeg,
                 "png" => Self::Png,
                 #[cfg(feature = "jxl")]
