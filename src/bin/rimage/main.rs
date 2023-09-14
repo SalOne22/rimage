@@ -90,7 +90,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut conf = EncoderConfig::new(*codec).with_quality(*quality)?;
 
     if matches.get_one::<u8>("quantization").is_some()
-        || matches.get_one::<u8>("dithering").is_some()
+        || matches.get_one::<f32>("dithering").is_some()
     {
         conf = conf.with_quantization(quantization_config);
     }
