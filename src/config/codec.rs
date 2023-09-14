@@ -42,6 +42,40 @@ pub enum Codec {
     Avif,
 }
 
+impl Codec {
+    /// Converts a codec enum variant into its corresponding file extension.
+    ///
+    /// # Returns
+    ///
+    /// Returns the file extension as a string slice.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use rimage::config::Codec;
+    ///
+    /// let jpeg_extension = Codec::MozJpeg.to_extension();
+    /// assert_eq!(jpeg_extension, "jpg");
+    ///
+    /// let png_extension = Codec::Png.to_extension();
+    /// assert_eq!(png_extension, "png");
+    /// ```
+    pub fn to_extension(&self) -> &str {
+        match self {
+            Codec::MozJpeg => "jpg",
+            Codec::Png => "png",
+            #[cfg(feature = "jxl")]
+            Codec::JpegXl => "jxl",
+            #[cfg(feature = "oxipng")]
+            Codec::OxiPng => "png",
+            #[cfg(feature = "webp")]
+            Codec::WebP => "webp",
+            #[cfg(feature = "avif")]
+            Codec::Avif => "avif",
+        }
+    }
+}
+
 impl FromStr for Codec {
     type Err = String;
 
