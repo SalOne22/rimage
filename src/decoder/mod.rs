@@ -248,14 +248,19 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
         let decoder = webp::Decoder::new(&buf);
 
-        let mut image = decoder.decode().ok_or(DecoderError::WebP)?;
+        let image = decoder.decode().ok_or(DecoderError::WebP)?;
+
+        let mut buf = image.to_vec();
 
         if !image.is_alpha() {
-            Self::expand_pixels(&mut image, RGB8::into);
+            let buf_size = (image.width() * image.height() * 4) as usize;
+            buf.resize(buf_size, 0);
+
+            Self::expand_pixels(&mut buf, RGB8::into);
         }
 
         Ok(Image::new(
-            image.as_rgba().to_vec(),
+            buf.as_rgba().to_vec(),
             image.width() as usize,
             image.height() as usize,
         ))
