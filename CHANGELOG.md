@@ -11,8 +11,9 @@ All notable changes to the Rimage library will be documented in this file.
 ### Changes
 
 - Output directory now works differently, folder structure only preserves with `--recursive` flag.
-- Input from stdin now works with `-` as input, no more freezes when input files is not provided.
 - `--format` flag renamed to `--codec`, `-f` shortcut is not affected.
+- Deleted stdin input, no more freezes when input files is not provided.
+  > Stdin input will be returned in latest releases.
 - Removed progress bar because of issues with `indicatif` crate.
   > Progress bar will be returned in latest releases.
 
@@ -36,7 +37,6 @@ All notable changes to the Rimage library will be documented in this file.
 ### Bug Fixes
 
 - When glob cannot find any files, files provided by user will be processed.
-- Added `-b --backup` flag to backup input files in case of replacing.
 
 ## [v0.8.2](https://github.com/SalOne22/rimage/releases/tag/v0.8.2)
 
