@@ -113,7 +113,12 @@ fn get_common_path(paths: &[PathBuf]) -> Option<PathBuf> {
 #[inline]
 pub fn collect_files(input: Vec<PathBuf>) -> Vec<PathBuf> {
     #[cfg(windows)]
+    #[cfg(not(feature = "parallel"))]
     let input = input.into_iter().flat_map(apply_glob_pattern).collect();
+
+    #[cfg(windows)]
+    #[cfg(feature = "parallel")]
+    let input = input.into_par_iter().flat_map(apply_glob_pattern).collect();
 
     input
 }
