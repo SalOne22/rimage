@@ -2,7 +2,7 @@ use std::{error::Error, path::PathBuf, str::FromStr};
 
 use clap::{arg, value_parser, ArgAction, Command};
 
-use rimage::config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig};
+use rimage::config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig, ResizeType};
 
 mod optimize;
 mod paths;
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(--height <HEIGHT> "Resize image with specified height")
                 .value_parser(value_parser!(usize)),
             arg!(--filter <FILTER> "Filter used for image resizing")
-                .value_parser(["point", "triangle", "catmull-rom", "mitchell", "lanczos3"])
+                .value_parser(ResizeType::from_str)
                 .default_value("lanczos3")
         ])
         .get_matches();
@@ -68,16 +68,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         quantization_config = quantization_config.with_dithering(*dithering / 100.0)?
     }
 
-    let resize_filter = match matches.get_one::<String>("filter").unwrap().as_str() {
-        "point" => resize::Type::Point,
-        "triangle" => resize::Type::Triangle,
-        "catmull-rom" => resize::Type::Catrom,
-        "mitchell" => resize::Type::Mitchell,
-        "lanczos3" => resize::Type::Lanczos3,
-        _ => unreachable!("Clap should handle validation"),
-    };
+    let resize_filter = matches.get_one::<ResizeType>("filter").unwrap();
 
-    let mut resize_config = ResizeConfig::new(resize_filter);
+    let mut resize_config = ResizeConfig::new(*resize_filter);
 
     if let Some(width) = matches.get_one::<usize>("width") {
         resize_config = resize_config.with_width(*width);
