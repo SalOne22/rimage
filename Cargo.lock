@@ -1302,6 +1302,7 @@ dependencies = [
  "oxipng",
  "png",
  "ravif",
+ "rayon",
  "resize",
  "rgb",
  "thiserror",
