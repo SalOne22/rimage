@@ -2,6 +2,7 @@ use std::{error::Error, path::PathBuf, str::FromStr};
 
 use clap::{arg, value_parser, ArgAction, Command};
 
+use paths::collect_files;
 use rimage::config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig, ResizeType};
 
 mod optimize;
@@ -104,7 +105,13 @@ fn main() -> Result<(), Box<dyn Error>> {
     let backup = matches.get_one::<bool>("backup").unwrap_or(&false);
 
     optimize::optimize_files(
-        paths::get_paths(files, out_dir, suffix, codec.to_extension(), *recursive),
+        paths::get_paths(
+            collect_files(files),
+            out_dir,
+            suffix,
+            codec.to_extension(),
+            *recursive,
+        ),
         conf,
         *backup,
     );

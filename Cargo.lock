@@ -1294,6 +1294,7 @@ name = "rimage"
 version = "0.9.0"
 dependencies = [
  "clap",
+ "glob",
  "imagequant",
  "jpegxl-rs",
  "kamadak-exif",

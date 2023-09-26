@@ -31,7 +31,7 @@ transform = ["dep:transpose"]
 avif = ["dep:libavif-sys", "dep:ravif"]
 exif = ["dep:kamadak-exif", "transform"]
 jxl = ["dep:jpegxl-rs"]
-cli = ["dep:clap"]
+cli = ["dep:clap", "dep:glob"]
 
 
 [dependencies]
@@ -79,3 +79,7 @@ version = "0.8.2+libjxl-0.8.2"
 default-features = false
 features = ["vendored"]
 optional = true
+
+[target.'cfg(windows)'.dependencies.glob]
+optional = true
+version = "0.3.1"
