@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use super::ResizeType;
 
 /// Configuration struct for image resizing.
 ///
@@ -19,20 +19,20 @@ use std::fmt::Debug;
 /// Creating a custom [`ResizeConfig`] with specific settings:
 ///
 /// ```
-/// use rimage::resize;
-/// use rimage::config::ResizeConfig;
+/// use rimage::config::{ResizeConfig, ResizeType};
 ///
-/// let config = ResizeConfig::new(resize::Type::Lanczos3)
+/// let config = ResizeConfig::new(ResizeType::Lanczos3)
 ///     .with_width(800)
 ///     .with_height(600);
 /// ```
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ResizeConfig {
     /// The target width for image resizing. `None` if not specified.
     width: Option<usize>,
     /// The target height for image resizing. `None` if not specified.
     height: Option<usize>,
     /// The type of resizing filter to be used.
-    filter_type: resize::Type,
+    filter_type: ResizeType,
 }
 
 impl ResizeConfig {
@@ -45,13 +45,12 @@ impl ResizeConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::ResizeConfig;
+    /// use rimage::config::{ResizeConfig, ResizeType};
     ///
-    /// let config = ResizeConfig::new(resize::Type::Lanczos3);
+    /// let config = ResizeConfig::new(ResizeType::Lanczos3);
     /// ```
     #[inline]
-    pub fn new(filter_type: resize::Type) -> Self {
+    pub fn new(filter_type: ResizeType) -> Self {
         Self {
             width: None,
             height: None,
@@ -68,10 +67,9 @@ impl ResizeConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::ResizeConfig;
+    /// use rimage::config::{ResizeConfig, ResizeType};
     ///
-    /// let config = ResizeConfig::new(resize::Type::Lanczos3)
+    /// let config = ResizeConfig::new(ResizeType::Lanczos3)
     ///     .with_width(800);
     /// ```
     #[inline]
@@ -89,10 +87,9 @@ impl ResizeConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::ResizeConfig;
+    /// use rimage::config::{ResizeConfig, ResizeType};
     ///
-    /// let config = ResizeConfig::new(resize::Type::Lanczos3)
+    /// let config = ResizeConfig::new(ResizeType::Lanczos3)
     ///     .with_height(600);
     /// ```
     #[inline]
@@ -112,10 +109,9 @@ impl ResizeConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::ResizeConfig;
+    /// use rimage::config::{ResizeConfig, ResizeType};
     ///
-    /// let config = ResizeConfig::new(resize::Type::Lanczos3).with_width(800);
+    /// let config = ResizeConfig::new(ResizeType::Lanczos3).with_width(800);
     ///
     /// if let Some(width) = config.width() {
     ///     assert_eq!(width, 800);
@@ -137,10 +133,9 @@ impl ResizeConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::ResizeConfig;
+    /// use rimage::config::{ResizeConfig, ResizeType};
     ///
-    /// let config = ResizeConfig::new(resize::Type::Lanczos3).with_height(600);
+    /// let config = ResizeConfig::new(ResizeType::Lanczos3).with_height(600);
     ///
     /// if let Some(height) = config.height() {
     ///     assert_eq!(height, 600);
@@ -155,64 +150,26 @@ impl ResizeConfig {
     ///
     /// # Returns
     ///
-    /// Returns a reference to the [`resize::Type`] enum that represents the image resizing algorithm.
+    /// Returns a reference to the [`ResizeType`] enum that represents the image resizing algorithm.
     ///
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::ResizeConfig;
+    /// use rimage::config::{ResizeConfig, ResizeType};
     ///
-    /// let config = ResizeConfig::new(resize::Type::Lanczos3);
-    /// let resize_type = config.filter_type();
+    /// let config = ResizeConfig::new(ResizeType::Lanczos3);
+    ///
+    /// assert_eq!(config.filter_type(), ResizeType::Lanczos3);
     /// ```
-    pub fn filter_type(&self) -> resize::Type {
-        match &self.filter_type {
-            resize::Type::Point => resize::Type::Point,
-            resize::Type::Triangle => resize::Type::Triangle,
-            resize::Type::Catrom => resize::Type::Catrom,
-            resize::Type::Mitchell => resize::Type::Mitchell,
-            resize::Type::Lanczos3 => resize::Type::Lanczos3,
-            //FIXME: because resize::Type does not implement Copy or Clone we use fallback Lanczos3
-            resize::Type::Custom(_) => resize::Type::Lanczos3,
-        }
-    }
-}
-
-impl Clone for ResizeConfig {
-    fn clone(&self) -> Self {
-        Self {
-            width: self.width,
-            height: self.height,
-            filter_type: self.filter_type(),
-        }
-    }
-}
-
-impl Debug for ResizeConfig {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("ResizeConfig")
-            .field("width", &self.width)
-            .field("height", &self.height)
-            .field(
-                "filter_type",
-                &match self.filter_type {
-                    resize::Type::Point => "point",
-                    resize::Type::Triangle => "triangle",
-                    resize::Type::Catrom => "catrom",
-                    resize::Type::Mitchell => "mitchell",
-                    resize::Type::Lanczos3 => "lanczos3",
-                    resize::Type::Custom(_) => "custom",
-                },
-            )
-            .finish()
+    pub fn filter_type(&self) -> ResizeType {
+        self.filter_type
     }
 }
 
 impl Default for ResizeConfig {
     /// Creates a default [`ResizeConfig`] with a default resizing filter type (Lanczos3).
     fn default() -> Self {
-        Self::new(resize::Type::Lanczos3)
+        Self::new(ResizeType::Lanczos3)
     }
 }
 
@@ -222,13 +179,10 @@ mod tests {
 
     #[test]
     fn new_resize_config() {
-        let resize_config = ResizeConfig::new(resize::Type::Lanczos3);
+        let resize_config = ResizeConfig::new(ResizeType::Lanczos3);
         assert_eq!(resize_config.width(), None);
         assert_eq!(resize_config.height(), None);
-        assert_eq!(
-            format!("{resize_config:?}"),
-            "ResizeConfig { width: None, height: None, filter_type: \"lanczos3\" }"
-        );
+        assert_eq!(resize_config.filter_type(), ResizeType::Lanczos3);
     }
 
     #[test]
@@ -236,37 +190,28 @@ mod tests {
         let resize_config = ResizeConfig::default();
         assert_eq!(resize_config.width(), None);
         assert_eq!(resize_config.height(), None);
-        assert_eq!(
-            format!("{resize_config:?}"),
-            "ResizeConfig { width: None, height: None, filter_type: \"lanczos3\" }"
-        );
+        assert_eq!(resize_config.filter_type(), ResizeType::Lanczos3);
     }
 
     #[test]
     fn resize_config_with_width() {
-        let resize_config = ResizeConfig::new(resize::Type::Lanczos3).with_width(120);
+        let resize_config = ResizeConfig::new(ResizeType::Lanczos3).with_width(120);
         assert_eq!(resize_config.width(), Some(120));
         assert_eq!(resize_config.height(), None);
-        assert_eq!(
-            format!("{resize_config:?}"),
-            "ResizeConfig { width: Some(120), height: None, filter_type: \"lanczos3\" }"
-        );
+        assert_eq!(resize_config.filter_type(), ResizeType::Lanczos3);
     }
 
     #[test]
     fn resize_config_with_height() {
-        let resize_config = ResizeConfig::new(resize::Type::Lanczos3).with_height(120);
+        let resize_config = ResizeConfig::new(ResizeType::Lanczos3).with_height(120);
         assert_eq!(resize_config.width(), None);
         assert_eq!(resize_config.height(), Some(120));
-        assert_eq!(
-            format!("{resize_config:?}"),
-            "ResizeConfig { width: None, height: Some(120), filter_type: \"lanczos3\" }"
-        );
+        assert_eq!(resize_config.filter_type(), ResizeType::Lanczos3);
     }
 
     #[test]
     fn clone_resize_config() {
-        let resize_config = ResizeConfig::new(resize::Type::Lanczos3)
+        let resize_config = ResizeConfig::new(ResizeType::Lanczos3)
             .with_width(120)
             .with_height(120);
 
@@ -274,19 +219,12 @@ mod tests {
 
         assert_eq!(resize_config.width(), cloned_resize_config.width());
         assert_eq!(resize_config.height(), cloned_resize_config.height());
-        assert_eq!(
-            format!("{resize_config:?}"),
-            "ResizeConfig { width: Some(120), height: Some(120), filter_type: \"lanczos3\" }"
-        );
-        assert_eq!(
-            format!("{cloned_resize_config:?}"),
-            "ResizeConfig { width: Some(120), height: Some(120), filter_type: \"lanczos3\" }"
-        );
+        assert_eq!(resize_config, cloned_resize_config);
     }
 
     #[test]
     fn debug_resize_config() {
-        let resize_config = ResizeConfig::new(resize::Type::Lanczos3)
+        let resize_config = ResizeConfig::new(ResizeType::Lanczos3)
             .with_width(120)
             .with_height(120);
 
@@ -295,25 +233,25 @@ mod tests {
             "ResizeConfig { width: Some(120), height: Some(120), filter_type: \"lanczos3\" }"
         );
 
-        let resize_config = ResizeConfig::new(resize::Type::Catrom);
+        let resize_config = ResizeConfig::new(ResizeType::CatmullRom);
         assert_eq!(
             format!("{resize_config:?}"),
             "ResizeConfig { width: None, height: None, filter_type: \"catrom\" }"
         );
 
-        let resize_config = ResizeConfig::new(resize::Type::Mitchell);
+        let resize_config = ResizeConfig::new(ResizeType::Mitchell);
         assert_eq!(
             format!("{resize_config:?}"),
             "ResizeConfig { width: None, height: None, filter_type: \"mitchell\" }"
         );
 
-        let resize_config = ResizeConfig::new(resize::Type::Point);
+        let resize_config = ResizeConfig::new(ResizeType::Point);
         assert_eq!(
             format!("{resize_config:?}"),
             "ResizeConfig { width: None, height: None, filter_type: \"point\" }"
         );
 
-        let resize_config = ResizeConfig::new(resize::Type::Triangle);
+        let resize_config = ResizeConfig::new(ResizeType::Triangle);
         assert_eq!(
             format!("{resize_config:?}"),
             "ResizeConfig { width: None, height: None, filter_type: \"triangle\" }"
