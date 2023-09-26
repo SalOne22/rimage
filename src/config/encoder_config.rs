@@ -147,10 +147,9 @@ impl EncoderConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::{EncoderConfig, Codec, ResizeConfig};
+    /// use rimage::config::{EncoderConfig, Codec, ResizeConfig, ResizeType};
     ///
-    /// let resize_config = ResizeConfig::new(resize::Type::Lanczos3)
+    /// let resize_config = ResizeConfig::new(ResizeType::Lanczos3)
     ///     .with_width(800)
     ///     .with_height(600);
     ///
@@ -241,10 +240,9 @@ impl EncoderConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::{EncoderConfig, ResizeConfig};
+    /// use rimage::config::{EncoderConfig, ResizeConfig, ResizeType};
     ///
-    /// let resize = ResizeConfig::new(resize::Type::Lanczos3).with_width(800);
+    /// let resize = ResizeConfig::new(ResizeType::Lanczos3).with_width(800);
     /// let config = EncoderConfig::default().with_resize(resize);
     ///
     /// if let Some(resize_config) = config.resize_config() {
