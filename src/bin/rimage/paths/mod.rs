@@ -110,5 +110,26 @@ fn get_common_path(paths: &[PathBuf]) -> Option<PathBuf> {
     Some(common_path)
 }
 
+#[inline]
+pub fn collect_files(input: Vec<PathBuf>) -> Vec<PathBuf> {
+    #[cfg(windows)]
+    let input = input.into_iter().flat_map(apply_glob_pattern).collect();
+
+    input
+}
+
+#[cfg(windows)]
+fn apply_glob_pattern(path: PathBuf) -> Vec<PathBuf> {
+    let matches = path
+        .to_str()
+        .and_then(|pattern| glob::glob(pattern).ok())
+        .map(|paths| paths.flatten().collect::<Vec<_>>());
+
+    match matches {
+        Some(paths) if !paths.is_empty() => paths,
+        _ => vec![path],
+    }
+}
+
 #[cfg(test)]
 mod tests;
