@@ -24,7 +24,7 @@ codegen-units = 1
 [features]
 default = ["cli", "lib-default"]
 lib-default = ["parallel", "quantization", "resizing", "exif", "oxipng"]
-parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jpegxl-rs?/threads"]
+parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jpegxl-rs?/threads", "dep:rayon"]
 quantization = ["dep:imagequant"]
 resizing = ["dep:resize"]
 transform = ["dep:transpose"]
@@ -38,6 +38,7 @@ cli = ["dep:clap"]
 rgb = "0.8.36"
 thiserror = "1.0.47"
 png = "0.17.10"
+rayon = { version = "1.7.0", optional = true }
 resize = { version = "0.8.0", optional = true }
 transpose = { version = "0.2.2", optional = true }
 ravif = { version = "0.11.2", optional = true }
