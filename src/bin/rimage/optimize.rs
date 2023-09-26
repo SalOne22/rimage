@@ -4,8 +4,12 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(feature = "parallel")]
+use rayon::prelude::*;
+
 use rimage::{config::EncoderConfig, Decoder, Encoder};
 
+#[cfg(not(feature = "parallel"))]
 pub fn optimize_files(
     paths: impl IntoIterator<Item = (PathBuf, PathBuf)>,
     conf: EncoderConfig,
@@ -18,7 +22,22 @@ pub fn optimize_files(
                 dbg!(&e);
                 eprintln!("{input:?}: {e}");
             });
-        })
+        });
+}
+
+#[cfg(feature = "parallel")]
+pub fn optimize_files(
+    paths: impl IntoParallelIterator<Item = (PathBuf, PathBuf)>,
+    conf: EncoderConfig,
+    backup: bool,
+) {
+    paths
+        .into_par_iter()
+        .for_each(move |(input, output): (PathBuf, PathBuf)| {
+            optimize(&input, &output, conf.clone(), backup).unwrap_or_else(|e| {
+                eprintln!("{input:?}: {e}");
+            });
+        });
 }
 
 fn optimize(
