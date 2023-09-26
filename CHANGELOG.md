@@ -33,6 +33,11 @@ All notable changes to the Rimage library will be documented in this file.
 - Added `fixed_orientation` to `Decoder` to save image orientation according to EXIF tag.
 - Added `-b --backup` flag to backup input files in case of replacing.
 
+### Bug Fixes
+
+- When glob cannot find any files, files provided by user will be processed.
+- Added `-b --backup` flag to backup input files in case of replacing.
+
 ## [v0.8.2](https://github.com/SalOne22/rimage/releases/tag/v0.8.2)
 
 ### Bug Fixes
