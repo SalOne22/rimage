@@ -90,7 +90,7 @@ impl Image {
             width,
             height,
             resize::Pixel::RGBA8,
-            resize_config.filter_type(),
+            resize_config.filter_type().into(),
         )?;
 
         resizer.resize(&self.data, &mut buf)?;
