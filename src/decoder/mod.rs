@@ -140,12 +140,16 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
         let mut reader = decoder.read_info()?;
 
-        let mut buf: Vec<u8> = vec![0; reader.output_buffer_size()];
+        let info = reader.info();
+
+        let buf_size = (info.width * info.height * 4) as usize;
+
+        let mut buf: Vec<u8> = vec![0; buf_size];
 
         let info = reader.next_frame(&mut buf)?;
 
         match info.color_type {
-            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, |gray: GRAY8| gray.into()),
+            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, GRAY8::into),
             png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
             png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
             png::ColorType::Rgba => {}
@@ -244,14 +248,19 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
 
         let decoder = webp::Decoder::new(&buf);
 
-        let mut image = decoder.decode().ok_or(DecoderError::WebP)?;
+        let image = decoder.decode().ok_or(DecoderError::WebP)?;
+
+        let mut buf = image.to_vec();
 
         if !image.is_alpha() {
-            Self::expand_pixels(&mut image, RGB8::into);
+            let buf_size = (image.width() * image.height() * 4) as usize;
+            buf.resize(buf_size, 0);
+
+            Self::expand_pixels(&mut buf, RGB8::into);
         }
 
         Ok(Image::new(
-            image.as_rgba().to_vec(),
+            buf.as_rgba().to_vec(),
             image.width() as usize,
             image.height() as usize,
         ))
