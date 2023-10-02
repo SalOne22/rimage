@@ -175,13 +175,32 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
     #[cfg(feature = "jxl")]
     fn encode_jpegxl(mut self) -> Result<(), EncoderError> {
+        #[cfg(feature = "parallel")]
+        let runner = jpegxl_rs::ThreadsRunner::default();
+        use std::f32::consts::E;
+
+        let quality = 15.0 * E.powf(-0.1 * self.conf.quality());
+
+        #[cfg(feature = "parallel")]
         let mut encoder = jpegxl_rs::encoder_builder()
-            .quality(self.conf.quality())
+            .parallel_runner(&runner)
+            .quality(quality)
+            .speed(jpegxl_rs::encode::EncoderSpeed::Falcon)
+            .build()?;
+
+        #[cfg(not(feature = "parallel"))]
+        let mut encoder = jpegxl_rs::encoder_builder()
+            .quality(quality)
             .speed(jpegxl_rs::encode::EncoderSpeed::Falcon)
             .build()?;
 
         let buf: jpegxl_rs::encode::EncoderResult<u8> = encoder.encode(
-            self.data.data().as_bytes(),
+            self.data
+                .data()
+                .iter()
+                .map(|pix| pix.rgb())
+                .collect::<Vec<rgb::RGB8>>()
+                .as_bytes(),
             self.data.width().try_into()?,
             self.data.height().try_into()?,
         )?;

@@ -169,8 +169,7 @@ mod tests {
         // Test creating a new QuantizationConfig with default settings
         let config = QuantizationConfig::new();
 
-        assert_eq!(config.quality(), 100);
-        assert_eq!(config.dithering_level(), 1.0);
+        assert_eq!(config, QuantizationConfig::default());
     }
 
     #[test]
@@ -185,7 +184,7 @@ mod tests {
         assert_eq!(
             result.unwrap_err().to_string(),
             "Quality value 120 is out of bounds (0-100)."
-        )
+        );
     }
 
     #[test]
@@ -200,7 +199,14 @@ mod tests {
         assert_eq!(
             result.unwrap_err().to_string(),
             "Dithering level 1.5 is out of bounds (0.0-1.0)."
-        )
+        );
+
+        let result = QuantizationConfig::new().with_dithering(-0.5);
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Dithering level -0.5 is out of bounds (0.0-1.0)."
+        );
     }
 
     #[test]
