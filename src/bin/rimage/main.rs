@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .author("Vladyslav Vladinov <vladinov.dev@gmail.com>")
         .about("A tool to convert/optimize/resize images in different formats")
         .arg(
-            arg!(<FILES> "Input file(s) to process (use '-' for stdin)")
+            arg!(<FILES> "Input file(s) to process")
                 .num_args(1..)
                 .value_delimiter(None)
                 .value_parser(value_parser!(PathBuf)),
