@@ -22,8 +22,7 @@ lto = true
 codegen-units = 1
 
 [features]
-default = ["cli", "lib-default"]
-lib-default = ["parallel", "quantization", "resizing", "exif", "oxipng"]
+default = ["cli", "parallel", "quantization", "resizing", "exif", "oxipng"]
 parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jpegxl-rs?/threads", "dep:rayon"]
 quantization = ["dep:imagequant"]
 resizing = ["dep:resize"]
