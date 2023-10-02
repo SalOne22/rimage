@@ -23,7 +23,7 @@ Rimage simplifies and enhances your image optimization workflows. Optimize image
 
 You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
 
-Alternatively you can build rimage from source if you have `rust`, `cargo` and `cmake` installed:
+Alternatively you can build rimage from source if you have `rust`, `cargo`, `nasm` and `cmake` installed:
 
 ```sh
 cargo install rimage
