@@ -2,7 +2,7 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## **[Unreleased]** v0.9.0
+## v0.9.0
 
 ### Breaking Changes
 
