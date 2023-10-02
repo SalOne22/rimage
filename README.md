@@ -5,7 +5,7 @@
 [![version](https://img.shields.io/crates/v/rimage?style=flat-square)](https://crates.io/crates/rimage)
 [![license](https://img.shields.io/crates/l/rimage?style=flat-square)](https://github.com/SalOne22/rimage)
 
-A powerful Rust image optimization library inspired by [squoosh!](https://squoosh.app/).
+A powerful Rust image optimization CLI tool and library inspired by [squoosh!](https://squoosh.app/).
 
 ## Overview
 
@@ -21,6 +21,65 @@ Rimage simplifies and enhances your image optimization workflows. Optimize image
 
 ## Installation
 
+You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
+
+Alternatively you can build rimage from source if you have `rust`, `cargo` and `cmake` installed:
+
+```sh
+cargo install rimage
+```
+
+## Usage
+
+```
+Usage: rimage [OPTIONS] <FILES>...
+
+Arguments:
+  <FILES>...  Input file(s) to process
+
+Options:
+  -h, --help     Print help
+  -V, --version  Print version
+
+General:
+  -q, --quality <QUALITY>  Optimization quality [default: 75]
+  -f, --codec <CODEC>      Image codec to use [default: mozjpeg]
+  -o, --output <DIR>       Write output file(s) to <DIR>
+  -r, --recursive          Saves output file(s) preserving folder structure
+  -s, --suffix [<SUFFIX>]  Appends suffix to output file(s) names
+  -b, --backup             Appends '.backup' to input file(s) names
+
+Quantization:
+      --quantization [<QUALITY>]  Enables quantization with optional quality [default: 75]
+      --dithering [<QUALITY>]     Enables dithering with optional quality [default: 75]
+
+Resizing:
+      --width <WIDTH>    Resize image with specified width
+      --height <HEIGHT>  Resize image with specified height
+      --filter <FILTER>  Filter used for image resizing [default: lanczos3]
+```
+
+Note that image formats may wary from features that are used when building `rimage`.
+
+List of supported codecs with all features:
+
+- `mozjpeg`, `jpeg`, `jpg` => mozjpeg codec
+- `png` => browser png codec without compression
+- `oxipng` => oxipng codec with compression
+- `jpegxl`, `jxl` => jpeg xl codec
+- `webp` => webp codec
+- `avif` => avif codec
+
+List of available resize filters:
+
+- `point` => Point resizing
+- `triangle` => Triangle (bilinear) resizing
+- `catmull-rom`, `catrom` => Catmull-Rom (bicubic) resizing
+- `mitchell` => Resize using Mitchell-Netravali filter
+- `lanczos3` => Resize using Sinc-windowed Sinc with radius of 3
+
+## Library Installation
+
 Add Rimage to your project with Cargo:
 
 ```sh
@@ -34,7 +93,7 @@ Or add this to your `Cargo.toml`:
 rimage = "0.9.0"
 ```
 
-## Usage
+## Library Usage
 
 ### Decoding
 
