@@ -30,7 +30,7 @@ transform = ["dep:transpose"]
 avif = ["dep:libavif-sys", "dep:ravif"]
 exif = ["dep:kamadak-exif", "transform"]
 jxl = ["dep:jpegxl-rs"]
-cli = ["dep:clap", "dep:glob"]
+cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
 
 
 [dependencies]
