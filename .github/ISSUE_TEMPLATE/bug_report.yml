@@ -36,8 +36,8 @@ body:
         - 0.7.0
         - 0.6.0
         - < 0.5.1 (old)
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     attributes:
       label: Steps To Reproduce
@@ -47,8 +47,8 @@ body:
         2. With this config...
         3. Run '...'
         4. See error...
-      validations:
-        required: false
+    validations:
+      required: false
   - type: textarea
     attributes:
       label: Anything else?
