@@ -12,7 +12,7 @@ All notable changes to the Rimage library will be documented in this file.
 
 - Output directory now works differently, folder structure only preserves with `--recursive` flag.
 - `--format` flag renamed to `--codec`, `-f` shortcut is not affected.
-- Deleted stdin input, no more freezes when input files is not provided.
+- Removed stdin input, no more freezes when input files is not provided.
   > Stdin input will be returned in latest releases.
 - Removed progress bar because of issues with `indicatif` crate.
   > Progress bar will be returned in latest releases.
