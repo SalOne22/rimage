@@ -127,12 +127,12 @@ jobs:
       - name: Run tests
         if: matrix.target != 'aarch64-apple-darwin'
         run: |
-          cargo nextest run --release --features sanity-checks
-          cargo test --doc --release --features sanity-checks
+          cargo nextest run --release --all-features
+          cargo test --doc --release --all-features
 
       - name: Build tests (ARM64 macOS only)
         if: matrix.target == 'aarch64-apple-darwin'
-        run: cargo test --release --features sanity-checks --no-run
+        run: cargo test --release --all-features --no-run
 
       - name: Build docs
         if: matrix.target == 'x86_64-unknown-linux-gnu'
@@ -175,5 +175,5 @@ jobs:
 
       - name: Run tests
         run: |
-          cargo nextest run --release --features sanity-checks
-          cargo test --doc --release --features sanity-checks
+          cargo nextest run --release --all-features
+          cargo test --doc --release --all-features
