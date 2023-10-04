@@ -9,11 +9,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
-    name: test
+  ci:
+    name: CI
+
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
 
+    # Prevent tags and in-repo PRs from triggering this workflow more than once for a commit
     if: github.ref_type != 'tag' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork)
 
     strategy:
@@ -31,16 +33,16 @@ jobs:
 
         include:
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: amd64
           - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: amd64
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: arm64
           - target: aarch64-unknown-linux-musl
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: arm64
           - target: x86_64-pc-windows-msvc
             os: windows-latest
@@ -55,7 +57,7 @@ jobs:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
 
     steps:
-      - name: Checkout 🛎️
+      - name: Checkout source
         uses: actions/checkout@v4
         with:
           persist-credentials: false
@@ -86,35 +88,58 @@ jobs:
           # against glibc for the target architecture
           sudo apt-get -yq install qemu-user gcc-aarch64-linux-gnu libc6:arm64
 
-      - name: Setup cache 💾
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: Cache Cargo artifacts
+        uses: Swatinem/rust-cache@v2
 
-      - name: Setup nasm 🧑‍💻
-        uses: ilammy/setup-nasm@v1
-
-      - name: Setup rust toolchain 🦀
-        uses: actions-rs/toolchain@v1
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@v1
         with:
-          profile: minimal
-          target: ${{ env.CARGO_BUILD_TARGET }}
-          toolchain: stable
+          toolchain: nightly
+          targets: ${{ env.CARGO_BUILD_TARGET }}
+          components: clippy, rustfmt
 
-      - name: Test 🧪
-        uses: actions-rs/cargo@v1
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
+
+      - name: Run rustfmt
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: cargo fmt --check
+
+      - name: Run Clippy (no default features)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        uses: giraffate/clippy-action@v1
         with:
-          command: test
-          args: --all-features
+          clippy_flags: --no-deps --all-targets --no-default-features -- -D warnings
+          reporter: github-check
+          fail_on_error: true
+
+      - name: Run Clippy (all features)
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        uses: giraffate/clippy-action@v1
+        with:
+          clippy_flags: --no-deps --all-targets --all-features -- -D warnings
+          reporter: github-check
+          fail_on_error: true
+
+      # There aren't good user-mode ARM64 emulators we can use on x64 macOS hosts.
+      # QEMU doesn't have any plans to add such support due to a lack of kernel
+      # syscall stability guarantees: https://gitlab.com/qemu-project/qemu/-/issues/1682
+      - name: Run tests
+        if: matrix.target != 'aarch64-apple-darwin'
+        run: |
+          cargo nextest run --release --features sanity-checks
+          cargo test --doc --release --features sanity-checks
+
+      - name: Build tests (ARM64 macOS only)
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: cargo test --release --features sanity-checks --no-run
+
+      - name: Build docs
+        if: matrix.target == 'x86_64-unknown-linux-gnu'
+        run: cargo doc --release --no-deps
 
       - name: Build CLI binary
-        run: cargo build --release --all-features
+        run: cargo build --release --all-feautes
 
       - name: Upload CLI binary as artifact
         uses: actions/upload-artifact@v3
@@ -124,43 +149,31 @@ jobs:
             target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
             target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
 
-  lint:
-    name: lint
+  msrv-check:
+    name: MSRV check
+
     runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    # Prevent tags and in-repo PRs from triggering this workflow more than once for a commit
+    if: github.ref_type != 'tag' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork)
 
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
-
-      - name: Setup cache 💾
-        uses: actions/cache@v3
+      - name: Checkout source
+        uses: actions/checkout@v3
         with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          persist-credentials: false
 
-      - name: Setup nasm 🧑‍💻
-        uses: ilammy/setup-nasm@v1
+      - name: Cache Cargo artifacts
+        uses: Swatinem/rust-cache@v2
 
-      - name: Setup rust toolchain 🦀
-        uses: actions-rs/toolchain@v1
-        with:
-          profile: minimal
-          toolchain: stable
-          components: rustfmt, clippy
+      - name: Install MSRV Rust toolchain
+        uses: dtolnay/rust-toolchain@1.65.0
 
-      - name: Formatting check 🪄
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Install nextest
+        uses: taiki-e/install-action@nextest
 
-      - name: Clippy check 🔎
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-features -- -D warnings
+      - name: Run tests
+        run: |
+          cargo nextest run --release --features sanity-checks
+          cargo test --doc --release --features sanity-checks
