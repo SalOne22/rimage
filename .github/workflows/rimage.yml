@@ -80,6 +80,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          target: ${{ matrix.target }}
 
       - name: Test 🧪
         uses: actions-rs/cargo@v1
