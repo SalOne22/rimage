@@ -88,7 +88,9 @@ jobs:
         uses: ilammy/setup-nasm@v1
 
       - name: Setup libjxl 🧑‍💻
-        run: vcpkg install libjxl
+        run: |
+          vcpkg install libjxl
+          vcpkg integrate install
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
