@@ -87,8 +87,13 @@ jobs:
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
 
-      - name: Setup ninja/meson 🧑‍💻
+      - name: Setup ninja/meson 🧑‍💻 (not macos)
+        if: matrix.os != 'macos-latest'
         run: pip install ninja meson
+
+      - name: Setup ninja/meson 🧑‍💻 (macos)
+        if: matrix.os == 'macos-latest'
+        run: brew install ninja meson
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
