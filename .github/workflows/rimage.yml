@@ -91,6 +91,7 @@ jobs:
         run: |
           vcpkg install libjxl
           vcpkg integrate install
+          echo $VCPKG_ROOT
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
