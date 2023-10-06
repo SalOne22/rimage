@@ -76,7 +76,6 @@ optional = true
 [dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
-features = ["vendored"]
 optional = true
 
 [target.'cfg(windows)'.dependencies.glob]
