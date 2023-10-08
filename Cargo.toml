@@ -73,13 +73,14 @@ features = ["codec-aom"]
 default-features = false
 optional = true
 
-[target.'cfg(not(target_os = "macos"))'.dependencies.jpegxl-rs]
+# Because libjxl cant be build with x86_64 macos jet
+[target.'cfg(not(all(target_os = "macos", target_arch = "x86_64")))'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 features = ["vendored"]
 optional = true
 
-[target.'cfg(target_os = "macos")'.dependencies.jpegxl-rs]
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 optional = true

@@ -96,6 +96,14 @@ jobs:
           command: test
           args: --all-features --release
 
+      - name: Upload CLI binary as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: Rimage binary (${{ matrix.target }})
+          path: |
+            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
+            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
+
   lint:
     name: lint
     runs-on: ubuntu-latest
