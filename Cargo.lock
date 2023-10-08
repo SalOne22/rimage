@@ -730,11 +730,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "jpegxl-src"
+version = "0.8.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81048fc7b31ebcf4393527f70d211824359a4a266f63fee50a5e5ba5fee18579"
+dependencies = [
+ "cmake",
+]
+
+[[package]]
 name = "jpegxl-sys"
 version = "0.8.2+libjxl-0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b907f540220390b54d9845eb5fe6a8f0453a0ea4f1e2e306cdbdbe8ee027d540"
 dependencies = [
+ "jpegxl-src",
  "pkg-config",
 ]
 
