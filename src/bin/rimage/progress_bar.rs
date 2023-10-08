@@ -1,6 +1,6 @@
 use std::{borrow::Cow, time::Duration};
 
-use console::Emoji;
+use console::{Emoji, Style};
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 const TICKS: &str = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏ ";
@@ -17,4 +17,12 @@ pub fn create_spinner(msg: impl Into<Cow<'static, str>>, m: &MultiProgress) -> P
     pb.enable_steady_tick(Duration::from_millis(100));
 
     pb
+}
+
+#[inline]
+pub fn set_error(spinner: &ProgressBar, file_name: &str, e: &str) {
+    let red = Style::new().red();
+
+    spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+    spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
 }
