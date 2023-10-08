@@ -98,14 +98,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features --release
+          args: --all-features --release --target ${{ matrix.target }}
 
       - name: Test 🧪
         if: matrix.target != 'aarch64-apple-darwin'
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --release
+          args: --all-features --release --target ${{ matrix.target }}
 
   lint:
     name: lint
