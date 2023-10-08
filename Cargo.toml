@@ -30,7 +30,7 @@ transform = ["dep:transpose"]
 avif = ["dep:libavif-sys", "dep:ravif"]
 exif = ["dep:kamadak-exif", "transform"]
 jxl = ["dep:jpegxl-rs"]
-cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
+cli = ["dep:clap", "dep:indicatif", "dep:console", "dep:glob", "quantization", "resizing", "exif"]
 
 
 [dependencies]
@@ -43,8 +43,8 @@ transpose = { version = "0.2.2", optional = true }
 ravif = { version = "0.11.2", optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
 clap = { version = "4.4.2", optional = true }
-indicatif = "0.17.7"
-console = "0.15.7"
+indicatif = { version = "0.17.7", optional = true }
+console = { version = "0.15.7", optional = true }
 
 [dependencies.imagequant]
 version = "4.2.0"
