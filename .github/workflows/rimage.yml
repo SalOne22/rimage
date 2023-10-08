@@ -67,7 +67,7 @@ jobs:
             sudo tee -a /etc/apt/sources.list >/dev/null
           done
           sudo apt-get -yq update
-          sudo apt-get -yq install g++:${{ matrix.target-apt-arch }} gcc:${{ matrix.target-apt-arch }}
+          sudo apt-get -yq install gcc-aarch64-linux-gnu
 
       - name: Setup cache 💾
         uses: actions/cache@v3
@@ -87,15 +87,8 @@ jobs:
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
           sudo ln -s "/usr/bin/g++" "/usr/bin/musl-g++"
 
-      - name: Setup nasm 🧑‍💻 (windows, macos)
-        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
+      - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
-
-      - name: Setup nasm 🧑‍💻 (ubuntu)
-        if: startsWith(matrix.os, 'ubuntu')
-        run: |
-          sudo apt-get -yq update
-          sudo apt-get -yq install nasm:${{ matrix.target-apt-arch }}
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
