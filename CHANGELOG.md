@@ -7,6 +7,7 @@ All notable changes to the Rimage library will be documented in this file.
 ### New features
 
 - Added previously removed `--threads` option when parallel feature is enabled
+- Added previously removed progress bar
 
 ## [v0.9.0](https://github.com/SalOne22/rimage/releases/tag/v0.9.0)
 
