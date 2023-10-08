@@ -43,6 +43,8 @@ transpose = { version = "0.2.2", optional = true }
 ravif = { version = "0.11.2", optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
 clap = { version = "4.4.2", optional = true }
+indicatif = "0.17.7"
+console = "0.15.7"
 
 [dependencies.imagequant]
 version = "4.2.0"

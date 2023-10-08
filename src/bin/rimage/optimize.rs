@@ -1,3 +1,5 @@
+use console::{Emoji, Style};
+use indicatif::{DecimalBytes, MultiProgress};
 use std::{
     error::Error,
     fs::{self, File},
@@ -9,20 +11,18 @@ use rayon::prelude::*;
 
 use rimage::{config::EncoderConfig, Decoder, Encoder};
 
+use crate::progress_bar::create_spinner;
+
 #[cfg(not(feature = "parallel"))]
 pub fn optimize_files(
     paths: impl IntoIterator<Item = (PathBuf, PathBuf)>,
     conf: EncoderConfig,
     backup: bool,
+    m: &MultiProgress,
 ) {
     paths
         .into_iter()
-        .for_each(move |(input, output): (PathBuf, PathBuf)| {
-            optimize(&input, &output, conf.clone(), backup).unwrap_or_else(|e| {
-                dbg!(&e);
-                eprintln!("{input:?}: {e}");
-            });
-        });
+        .for_each(move |paths| optimize_file(paths, conf.clone(), backup, m));
 }
 
 #[cfg(feature = "parallel")]
@@ -30,14 +30,78 @@ pub fn optimize_files(
     paths: impl IntoParallelIterator<Item = (PathBuf, PathBuf)>,
     conf: EncoderConfig,
     backup: bool,
+    m: &MultiProgress,
 ) {
     paths
         .into_par_iter()
-        .for_each(move |(input, output): (PathBuf, PathBuf)| {
-            optimize(&input, &output, conf.clone(), backup).unwrap_or_else(|e| {
-                eprintln!("{input:?}: {e}");
-            });
-        });
+        .for_each(move |paths| optimize_file(paths, conf.clone(), backup, m));
+}
+
+fn optimize_file(
+    (input, output): (PathBuf, PathBuf),
+    conf: EncoderConfig,
+    backup: bool,
+    m: &MultiProgress,
+) {
+    let file_name = input
+        .file_name()
+        .expect("Filename should be present")
+        .to_str()
+        .unwrap()
+        .to_owned();
+
+    let spinner = create_spinner(file_name.clone(), m);
+
+    let cyan = Style::new().cyan();
+    let red = Style::new().red();
+    let green = Style::new().green();
+
+    let file_size_before = match fs::metadata(&input) {
+        Ok(meta) => meta.len(),
+        Err(e) => {
+            spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+            spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+            return;
+        }
+    };
+
+    match optimize(&input, &output, conf.clone(), backup) {
+        Ok(()) => {}
+        Err(e) => {
+            spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+            spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+            return;
+        }
+    };
+
+    let file_size_after = match fs::metadata(&output) {
+        Ok(meta) => meta.len(),
+        Err(e) => {
+            spinner.set_prefix(format!("{}", Emoji("❌", "Failed")));
+            spinner.finish_with_message(format!("{file_name} failed: {}", red.apply_to(e)));
+            return;
+        }
+    };
+
+    let diff = file_size_after as f64 / file_size_before as f64;
+    let abs_percent = diff.abs() * 100.0;
+    let percent = if diff > 1.0 {
+        abs_percent - 100.0
+    } else {
+        100.0 - abs_percent
+    };
+
+    spinner.set_prefix(format!("{}", Emoji("✅", "Done")));
+    spinner.finish_with_message(format!(
+        "{file_name} completed {} -> {} {}",
+        cyan.apply_to(DecimalBytes(file_size_before)),
+        cyan.apply_to(DecimalBytes(file_size_after)),
+        if file_size_after > file_size_before {
+            red.apply_to(format!("{} {:.1}%", Emoji("🔺", "^"), percent))
+        } else {
+            green.apply_to(format!("{} {:.1}%", Emoji("🔻", "v"), percent))
+        }
+    ));
 }
 
 fn optimize(

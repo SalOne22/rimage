@@ -2,13 +2,17 @@ use std::{error::Error, path::PathBuf, str::FromStr};
 
 use clap::{arg, value_parser, ArgAction, Command};
 
+use indicatif::MultiProgress;
 use paths::collect_files;
 use rimage::config::{Codec, EncoderConfig, QuantizationConfig, ResizeConfig, ResizeType};
 
 mod optimize;
 mod paths;
+mod progress_bar;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let m = MultiProgress::new();
+
     let matches = Command::new("rimage")
         .version(env!("CARGO_PKG_VERSION"))
         .author("Vladyslav Vladinov <vladinov.dev@gmail.com>")
@@ -35,7 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(-b --backup "Appends '.backup' to input file(s) names")
                 .action(ArgAction::SetTrue),
             #[cfg(feature = "parallel")]
-            arg!(-t --threads "Number of threads to use [default: number of cores]")
+            arg!(-t --threads <COUNT> "Number of threads to use [default: number of cores]")
                 .value_parser(value_parser!(usize)),
         ])
         .next_help_heading("Quantization")
@@ -125,6 +129,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         ),
         conf,
         *backup,
+        &m,
     );
 
     Ok(())
