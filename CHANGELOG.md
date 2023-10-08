@@ -4,6 +4,10 @@ All notable changes to the Rimage library will be documented in this file.
 
 ## **[Unreleased]** v0.9.1
 
+### Changes
+
+- Removed stdin input from plans, because of complexity
+
 ### New features
 
 - Added previously removed `--threads` option when parallel feature is enabled
