@@ -19,8 +19,8 @@ jobs:
         target:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
-          - x86_64-pc-windows-msvc
-          - i686-pc-windows-msvc
+          - x86_64-pc-windows-gnu
+          - i686-pc-windows-gnu
           - x86_64-apple-darwin
           - aarch64-apple-darwin
 
@@ -31,9 +31,9 @@ jobs:
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             target-apt-arch: arm64
-          - target: x86_64-pc-windows-msvc
+          - target: x86_64-pc-windows-gnu
             os: windows-latest
-          - target: i686-pc-windows-msvc
+          - target: i686-pc-windows-gnu
             os: windows-latest
           - target: x86_64-apple-darwin
             os: macos-latest
@@ -74,6 +74,10 @@ jobs:
 
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
+
+      - name: Setup libjxl 🧑‍💻 (macos)
+        if: startsWith(matrix.os, 'macos')
+        run: brew install jpeg-xl
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
