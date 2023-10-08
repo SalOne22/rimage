@@ -87,8 +87,15 @@ jobs:
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
           sudo ln -s "/usr/bin/g++" "/usr/bin/musl-g++"
 
-      - name: Setup nasm 🧑‍💻
+      - name: Setup nasm 🧑‍💻 (windows, macos)
+        if: startsWith(matrix.os, 'windows') || startsWith(matrix.os, 'macos')
         uses: ilammy/setup-nasm@v1
+
+      - name: Setup nasm 🧑‍💻 (ubuntu)
+        if: startsWith(matrix.os, 'ubuntu')
+        run: |
+          sudo apt-get -yq update
+          sudo apt-get -yq install nasm:${{ matrix.target-apt-arch }}
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
