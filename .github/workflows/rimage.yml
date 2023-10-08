@@ -87,12 +87,6 @@ jobs:
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
 
-      - name: Setup libjxl 🧑‍💻
-        run: |
-          vcpkg install libjxl
-          vcpkg integrate install
-          echo $VCPKG_ROOT
-
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
@@ -105,7 +99,6 @@ jobs:
         with:
           command: build
           args: --all-features --release
-          use-cross: true
 
       - name: Test 🧪
         if: matrix.target != 'aarch64-apple-darwin'
@@ -113,7 +106,6 @@ jobs:
         with:
           command: test
           args: --all-features --release
-          use-cross: true
 
   lint:
     name: lint
