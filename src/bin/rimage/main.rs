@@ -34,6 +34,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(-s --suffix [SUFFIX] "Appends suffix to output file(s) names"),
             arg!(-b --backup "Appends '.backup' to input file(s) names")
                 .action(ArgAction::SetTrue),
+            #[cfg(feature = "parallel")]
+            arg!(-t --threads "Number of threads to use [default: number of cores]")
+                .value_parser(value_parser!(usize)),
         ])
         .next_help_heading("Quantization")
         .args([
@@ -58,6 +61,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let codec = matches.get_one::<Codec>("codec").unwrap();
     let quality = matches.get_one::<f32>("quality").unwrap();
+
+    #[cfg(feature = "parallel")]
+    if let Some(threads) = matches.get_one::<usize>("threads") {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(*threads)
+            .build_global()
+            .unwrap();
+    }
 
     let mut quantization_config = QuantizationConfig::new();
 
