@@ -2,7 +2,9 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.9.0
+## **[Unreleased]** v0.9.1
+
+## [v0.9.0](https://github.com/SalOne22/rimage/releases/tag/v0.9.0)
 
 ### Breaking Changes
 
