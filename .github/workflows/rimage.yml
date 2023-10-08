@@ -66,6 +66,8 @@ jobs:
             echo "deb [arch=${{ matrix.target-apt-arch }}] http://ports.ubuntu.com/ $DISTRO_CODENAME$suite main universe multiverse" | \
             sudo tee -a /etc/apt/sources.list >/dev/null
           done
+          sudo apt-get -yq update
+          sudo apt-get -yq install g++:${{ matrix.target-apt-arch }} gcc:${{ matrix.target-apt-arch }}
 
       - name: Setup cache 💾
         uses: actions/cache@v3
@@ -83,6 +85,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
+          sudo ln -s "/usr/bin/g++" "/usr/bin/musl-g++"
 
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
