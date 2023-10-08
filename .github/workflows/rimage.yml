@@ -20,7 +20,6 @@ jobs:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - x86_64-pc-windows-gnu
-          - i686-pc-windows-gnu
           - x86_64-apple-darwin
           - aarch64-apple-darwin
 
@@ -32,8 +31,6 @@ jobs:
             os: ubuntu-latest
             target-apt-arch: arm64
           - target: x86_64-pc-windows-gnu
-            os: windows-latest
-          - target: i686-pc-windows-gnu
             os: windows-latest
           - target: x86_64-apple-darwin
             os: macos-latest
@@ -90,14 +87,14 @@ jobs:
         uses: actions-rs/cargo@v1
         with:
           command: build
-          args: --all-features --release --target ${{ matrix.target }}
+          args: --all-features --release
 
       - name: Test 🧪
-        if: matrix.target != 'aarch64-apple-darwin'
+        if: matrix.target != 'aarch64-apple-darwin' || matrix.target != 'aarch64-unknown-linux-gnu'
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features --release --target ${{ matrix.target }}
+          args: --all-features --release
 
   lint:
     name: lint

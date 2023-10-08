@@ -73,13 +73,13 @@ features = ["codec-aom"]
 default-features = false
 optional = true
 
-[target.'cfg(not(macos))'.dependencies.jpegxl-rs]
+[target.'cfg(not(target_os = "macos"))'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 features = ["vendored"]
 optional = true
 
-[target.'cfg(macos)'.dependencies.jpegxl-rs]
+[target.'cfg(target_os = "macos")'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 optional = true
