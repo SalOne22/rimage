@@ -54,11 +54,12 @@ jobs:
 
           case '${{ matrix.target }}' in
             *-windows-*)
-              cp ../LICENSE "$ARCHIVE_NAME/LICENSE.txt"
+              cp ../LICENSE-APACHE "$ARCHIVE_NAME/LICENSE-APACHE.txt"
+              cp ../LICENSE-MIT "$ARCHIVE_NAME/LICENSE-MIT.txt"
               cp rimage.exe "$ARCHIVE_NAME"
               zip "${ARCHIVE_NAME}.zip" "$ARCHIVE_NAME"/*;;
             *)
-              cp ../LICENSE "$ARCHIVE_NAME"
+              cp ../LICENSE-APACHE ../LICENSE-MIT "$ARCHIVE_NAME"
               cp rimage "$ARCHIVE_NAME"
               tar -vczf "${ARCHIVE_NAME}.tar.gz" "$ARCHIVE_NAME"/*;;
           esac
