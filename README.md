@@ -31,7 +31,7 @@ cargo install rimage
 
 ## Usage
 
-```
+```text
 Usage: rimage [OPTIONS] <FILES>...
 
 Arguments:
@@ -42,28 +42,35 @@ Options:
   -V, --version  Print version
 
 General:
-  -q, --quality <QUALITY>  Optimization quality [default: 75]
-  -f, --codec <CODEC>      Image codec to use [default: mozjpeg]
-  -o, --output <DIR>       Write output file(s) to <DIR>
-  -r, --recursive          Saves output file(s) preserving folder structure
-  -s, --suffix [<SUFFIX>]  Appends suffix to output file(s) names
-  -b, --backup             Appends '.backup' to input file(s) names
+  -q, --quality <QUALITY>         Optimization quality
+                                  [default: 75, Range: 1-100]
+  -f, --codec <CODEC>             Image codec to use
+                                  [default: mozjpeg]
+  -o, --output <DIR>              Write output file(s) to <DIR>
+  -r, --recursive                 Saves output file(s) preserving folder structure
+  -s, --suffix [<SUFFIX>]         Appends suffix to output file(s) names
+  -b, --backup                    Appends ".backup" to input file(s) names
 
 Quantization:
-      --quantization [<QUALITY>]  Enables quantization with optional quality [default: 75]
-      --dithering [<QUALITY>]     Enables dithering with optional quality [default: 75]
+      --quantization [<QUALITY>]  Enables quantization with optional quality
+                                  [default: 75, Range: 1-100]
+      --dithering [<QUALITY>]     Enables dithering with optional quality
+                                  [default: 75, Range: 1-100]
 
 Resizing:
-      --width <WIDTH>    Resize image with specified width
-      --height <HEIGHT>  Resize image with specified height
-      --filter <FILTER>  Filter used for image resizing [default: lanczos3]
+      --width <WIDTH>             Resize image with specified width
+                                  [Integer only]
+      --height <HEIGHT>           Resize image with specified height
+                                  [Integer only]
+      --filter <FILTER>           Filter used for image resizing
+                                  [default: lanczos3]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
 
 List of supported codecs with all features:
 
-- `mozjpeg`, `jpeg`, `jpg` => mozjpeg codec
+- `mozjpeg`, `jpeg`, `jpg` => **mozjpeg codec (common and small)**
 - `png` => browser png codec without compression
 - `oxipng` => oxipng codec with compression
 - `jpegxl`, `jxl` => jpeg xl codec
@@ -77,6 +84,16 @@ List of available resize filters:
 - `catmull-rom`, `catrom` => Catmull-Rom (bicubic) resizing
 - `mitchell` => Resize using Mitchell-Netravali filter
 - `lanczos3` => Resize using Sinc-windowed Sinc with radius of 3
+
+## Example
+
+|Image|Quality|Format|Dir|Backup|
+|----|----|----|----|----|
+|"D:\\Desktop\\input [text].png"|90|jpg|"D:\\Desktop\\OutputTest"|True|
+
+```sh
+rimage.exe "D:\\Desktop\\input [text].png" -q 90 --codec jpg -o "D:\\Desktop\\OutputTest" -b
+```
 
 ## Library Installation
 
