@@ -63,7 +63,7 @@ Resizing:
       --height <HEIGHT>           Resize image with specified height
                                   [integer only]
       --filter <FILTER>           Filter used for image resizing
-                                  [default: lanczos3][possible values: point, triangle, catmull-rom, mitchell]
+                                  [default: lanczos3] [possible values: point, triangle, catmull-rom, mitchell]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
