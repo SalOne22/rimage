@@ -43,9 +43,9 @@ Options:
 
 General:
   -q, --quality <QUALITY>         Optimization quality
-                                  [default: 75, Range: 1-100]
+                                  [range: 1 - 100] [default: 75]
   -f, --codec <CODEC>             Image codec to use
-                                  [default: mozjpeg]
+                                  [default: mozjpeg] [possible values: png, oxipng, jpegxl, webp, avif]
   -o, --output <DIR>              Write output file(s) to <DIR>
   -r, --recursive                 Saves output file(s) preserving folder structure
   -s, --suffix [<SUFFIX>]         Appends suffix to output file(s) names
@@ -53,17 +53,17 @@ General:
 
 Quantization:
       --quantization [<QUALITY>]  Enables quantization with optional quality
-                                  [default: 75, Range: 1-100]
+                                  [range: 1 - 100] [default: 75]
       --dithering [<QUALITY>]     Enables dithering with optional quality
-                                  [default: 75, Range: 1-100]
+                                  [range: 1 - 100] [default: 75]
 
 Resizing:
       --width <WIDTH>             Resize image with specified width
-                                  [Integer only]
+                                  [integer only]
       --height <HEIGHT>           Resize image with specified height
-                                  [Integer only]
+                                  [integer only]
       --filter <FILTER>           Filter used for image resizing
-                                  [default: lanczos3]
+                                  [default: lanczos3][possible values: point, triangle, catmull-rom, mitchell]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
@@ -87,12 +87,34 @@ List of available resize filters:
 
 ## Example
 
-|Image|Quality|Format|Dir|Backup|
+### png => jpg & quality => 90 & backup
+
+|Image Path|Quality|Out Format|Out Dir|Backup|
 |----|----|----|----|----|
 |"D:\\Desktop\\input [text].png"|90|jpg|"D:\\Desktop\\OutputTest"|True|
 
 ```sh
-rimage.exe "D:\\Desktop\\input [text].png" -q 90 --codec jpg -o "D:\\Desktop\\OutputTest" -b
+rimage.exe "D:\\Desktop\\input [text].png" -q 90 -f jpg -o "D:\\Desktop\\OutputTest" -b
+```
+
+### suffix & recursive & quantization & dithering
+
+|Image Path|Quality|Out Format|Suffix|Recursive|Quantization|Dithering|
+|----|----|----|----|----|----|----|
+|"C:\\中  文\\ソフトウェア.PNG"|40|png|_문자|True|95|85|
+
+```sh
+rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자" -r --quantization 95 --dithering 85
+```
+
+### jpg => webp & resize width and height (both are opinional)
+
+|Image Path|Quality|Out Format|Out Dir|Width|Height|
+|----|----|----|----|----|---|
+|"C:\\Docs\\justfortest.JPG"|40|webp|"C:\\Desktop\\Test"|60|10|
+
+```sh
+rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --width 60 --height 10
 ```
 
 ## Library Installation
