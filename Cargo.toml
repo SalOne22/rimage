@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 name = "rimage"
 readme = "README.md"
 repository = "https://github.com/SalOne22/rimage"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2021"
 
 [[bin]]
