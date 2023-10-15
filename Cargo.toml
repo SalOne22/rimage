@@ -55,9 +55,7 @@ features = ["with_simd"]
 default-features = false
 
 [dependencies.oxipng]
-git = "https://github.com/shssoichiro/oxipng.git"
-rev = "02bd47b"
-version = "8.0.0"
+version = "9.0.0"
 features = ["zopfli", "filetime"]
 default-features = false
 optional = true
