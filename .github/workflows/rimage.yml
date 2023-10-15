@@ -90,15 +90,14 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
-      - name: Download libjxl 🔃
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        uses: robinraju/release-downloader@v1.8
+      - name: Install libjxl 🔃
+        uses: johnwason/vcpkg-action@v5
+        id: vcpkg
         with:
-          repository: libjxl/libjxl
-          tag: v0.8.2
-          fileName: 'jxl-x64-windows-static.zip'
-          out-file-path: 'lib'
-          extract: true
+          pkgs: libjxl
+          triplet: x64-windows-static
+          revision: master
+          token: ${{ github.token }}
 
       - name: Build 🏗 (not msvc)
         if: matrix.target != 'x86_64-pc-windows-msvc'
@@ -112,7 +111,8 @@ jobs:
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          set DEP_JXL_LIB=%GITHUB_WORKSPACE%/lib
+          set DEP_JXL_LIB=${{github.workspace}}\vcpkg\installed\x64-windows-static
+          dir %DEP_JXL_LIB%
           cargo build --all-features --release
 
       - name: Test 🧪
