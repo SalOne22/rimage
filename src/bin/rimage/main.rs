@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .value_parser(value_parser!(usize)),
             arg!(--height <HEIGHT> "Resize image with specified height\n[integer only]")
                 .value_parser(value_parser!(usize)),
-            arg!(--filter <FILTER> "Filter used for image resizing\n")
+            arg!(--filter <FILTER> "Filter used for image resizing\n[possible values: point, triangle, catrom, mitchell] [default: lanczos3]")
                 .value_parser(ResizeType::from_str)
                 .default_value("lanczos3")
         ])
