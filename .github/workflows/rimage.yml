@@ -79,10 +79,6 @@ jobs:
         if: matrix.target == 'x86_64-apple-darwin'
         run: brew install jpeg-xl
 
-      - name: Setup libjxl 🧑‍💻 (msvc)
-        if: endsWith(matrix.target, '-msvc')
-        run: brew install jpeg-xl
-
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
