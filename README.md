@@ -21,7 +21,12 @@ Rimage simplifies and enhances your image optimization workflows. Optimize image
 
 ## Installation
 
+Dependencies:  
+On x86_64 macos requires libjxl installed.
+
 You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
+
+> Note: On x86_64-pc-windows-msvc build jxl feature disabled, because of libjxl inability for build on msvc target.
 
 Alternatively you can build rimage from source if you have `rust`, `cargo`, `nasm` and `cmake` installed:
 
@@ -91,9 +96,9 @@ List of available resize filters:
 
 ### png => jpg & quality => 90 & backup
 
-|Image Path|Quality|Out Format|Out Dir|Backup|
-|----|----|----|----|----|
-|"D:\\Desktop\\input [text].png"|90|jpg|"D:\\Desktop\\OutputTest"|True|
+| Image Path                      | Quality | Out Format | Out Dir                   | Backup |
+| ------------------------------- | ------- | ---------- | ------------------------- | ------ |
+| "D:\\Desktop\\input [text].png" | 90      | jpg        | "D:\\Desktop\\OutputTest" | True   |
 
 ```sh
 rimage.exe "D:\\Desktop\\input [text].png" -q 90 -f jpg -o "D:\\Desktop\\OutputTest" -b
@@ -101,9 +106,9 @@ rimage.exe "D:\\Desktop\\input [text].png" -q 90 -f jpg -o "D:\\Desktop\\OutputT
 
 ### suffix & recursive & quantization & dithering
 
-|Image Path|Quality|Out Format|Suffix|Recursive|Quantization|Dithering|
-|----|----|----|----|----|----|----|
-|"C:\\中  文\\ソフトウェア.PNG"|40|png|_문자|True|95|85|
+| Image Path                    | Quality | Out Format | Suffix | Recursive | Quantization | Dithering |
+| ----------------------------- | ------- | ---------- | ------ | --------- | ------------ | --------- |
+| "C:\\中 文\\ソフトウェア.PNG" | 40      | png        | \_문자 | True      | 95           | 85        |
 
 ```sh
 rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자" -r --quantization 95 --dithering 85
@@ -111,9 +116,9 @@ rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자"
 
 ### jpg => webp & threads &resize width and height (both are opinional)
 
-|Image Path|Quality|Out Format|Out Dir|Threads|Width|Height|
-|----|----|----|----|----|----|----|
-|"C:\\Docs\\justfortest.JPG"|40|webp|"C:\\Desktop\\Test"|4|60|10|
+| Image Path                  | Quality | Out Format | Out Dir             | Threads | Width | Height |
+| --------------------------- | ------- | ---------- | ------------------- | ------- | ----- | ------ |
+| "C:\\Docs\\justfortest.JPG" | 40      | webp       | "C:\\Desktop\\Test" | 4       | 60    | 10     |
 
 ```sh
 rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
