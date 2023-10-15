@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(-b --backup "Appends \".backup\" suffix to input file(s) extension")
                 .action(ArgAction::SetTrue),
             #[cfg(feature = "parallel")]
-            arg!(-t --threads "Number of threads to use [default: number of cores]")
+            arg!(-t --threads <NUM> "Number of threads to use [default: number of cores]")
                 .value_parser(value_parser!(usize)),
         ])
         .next_help_heading("Quantization")
