@@ -20,6 +20,7 @@ jobs:
           - x86_64-unknown-linux-gnu
           - aarch64-unknown-linux-gnu
           - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
           - x86_64-apple-darwin
           - aarch64-apple-darwin
 
@@ -32,6 +33,8 @@ jobs:
             target-apt-arch: arm64
           - target: x86_64-pc-windows-gnu
             os: windows-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-2019
           - target: x86_64-apple-darwin
             os: macos-latest
           - target: aarch64-apple-darwin
@@ -76,6 +79,10 @@ jobs:
         if: matrix.target == 'x86_64-apple-darwin'
         run: brew install jpeg-xl
 
+      - name: Setup libjxl 🧑‍💻 (msvc)
+        if: endsWith(matrix.target, '-msvc')
+        run: brew install jpeg-xl
+
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
@@ -83,11 +90,19 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
-      - name: Build 🏗
+      - name: Build 🏗 (not msvc)
+        if: matrix.target != 'x86_64-pc-windows-msvc'
         uses: actions-rs/cargo@v1
         with:
           command: build
           args: --all-features --release
+
+      - name: Build 🏗 (msvc)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        shell: cmd
+        run: |
+          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          cargo build --features avif,webp --release
 
       - name: Test 🧪
         if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin'
