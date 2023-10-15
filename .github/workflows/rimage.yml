@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
 
 jobs:
   test:
@@ -86,6 +90,16 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
+      - name: Download libjxl 🔃
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        uses: robinraju/release-downloader@v1.8
+        with:
+          repository: libjxl/libjxl
+          tag: v0.8.2
+          fileName: 'jxl-x64-windows-static.zip'
+          out-file-path: 'lib'
+          extract: true
+
       - name: Build 🏗 (not msvc)
         if: matrix.target != 'x86_64-pc-windows-msvc'
         uses: actions-rs/cargo@v1
@@ -98,10 +112,11 @@ jobs:
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          cargo build --features avif,webp --release
+          set DEP_JXL_LIB=%GITHUB_WORKSPACE%/lib
+          cargo build --all-features --release
 
       - name: Test 🧪
-        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin'
+        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin' || matrix.target == 'x86_64-pc-windows-msvc'
         uses: actions-rs/cargo@v1
         with:
           command: test
