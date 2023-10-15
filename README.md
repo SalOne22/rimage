@@ -38,20 +38,20 @@ Arguments:
   <FILES>...  Input file(s) to process
 
 Options:
-  -h, --help                      Print help
-  -V, --version                   Print version
+  -h, --help     Print help
+  -V, --version  Print version
 
 General:
   -q, --quality <QUALITY>         Optimization image quality
                                   [range: 1 - 100] [default: 75]
   -f, --codec <CODEC>             Image codec to use
-                                  [default: mozjpeg] [possible values: png, oxipng, jpegxl, webp, avif]
+                                  [default: jpg] [possible values: png, oxipng, jpegxl, webp, avif]
   -o, --output <DIR>              Write output file(s) to <DIR>, if "-r" option is not used
   -r, --recursive                 Saves output file(s) preserving folder structure
   -s, --suffix [<SUFFIX>]         Appends suffix to output file(s) names
   -b, --backup                    Appends ".backup" suffix to input file(s) extension
   -t, --threads                   Number of threads to use, more will run faster, but too many may crash
-                                  [range: 1 - 16] [default: 4] [integer only]
+                                  [range: 1 - 16] [integer only] [default: number of cores]
 
 Quantization:
       --quantization [<QUALITY>]  Enables quantization with optional quality
@@ -65,7 +65,7 @@ Resizing:
       --height <HEIGHT>           Resize image with specified height
                                   [integer only]
       --filter <FILTER>           Filter used for image resizing
-                                  [default: lanczos3] [possible values: point, triangle, catrom, mitchell]
+                                  [possible values: point, triangle, catrom, mitchell] [default: lanczos3]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
