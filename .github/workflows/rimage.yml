@@ -83,22 +83,22 @@ jobs:
         if: matrix.target == 'x86_64-apple-darwin'
         run: brew install jpeg-xl
 
+      - name: Install libjxl 🧑‍💻 (msvc)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        uses: johnwason/vcpkg-action@v5
+        id: vcpkg
+        with:
+          pkgs: libjxl
+          triplet: x64-windows-release
+          revision: master
+          token: ${{ github.token }}
+
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           target: ${{ matrix.target }}
-
-      - name: Install libjxl 🔃
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        uses: johnwason/vcpkg-action@v5
-        id: vcpkg
-        with:
-          pkgs: libjxl
-          triplet: x64-windows-static-release
-          revision: master
-          token: ${{ github.token }}
 
       - name: Build 🏗 (not msvc)
         if: matrix.target != 'x86_64-pc-windows-msvc'
@@ -112,8 +112,7 @@ jobs:
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          set DEP_JXL_LIB=${{github.workspace}}\vcpkg\installed\x64-windows-static-release\lib
-          dir %DEP_JXL_LIB%
+          set DEP_JXL_LIB=${{github.workspace}}\vcpkg\installed\x64-windows-release\lib
           cargo build --all-features --release
 
       - name: Test 🧪
