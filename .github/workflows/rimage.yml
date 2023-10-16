@@ -102,7 +102,9 @@ jobs:
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          cargo build --features avif,webp --release
+          set CC=C:/Program Files/LLVM/bin/clang.exe
+          set CXX=C:/Program Files/LLVM/bin/clang++.exe
+          cargo build --all-features --release
 
       - name: Test 🧪
         if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin'
