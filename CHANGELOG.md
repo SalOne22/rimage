@@ -2,14 +2,24 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## **[Unreleased]** v0.9.0
+## v0.9.0
 
 ### Breaking Changes
 
 - **Library Structure Rewrite**: The library structure has been entirely rewritten, resulting in no backward compatibility.
 
+### Changes
+
+- Output directory now works differently, folder structure only preserves with `--recursive` flag.
+- `--format` flag renamed to `--codec`, `-f` shortcut is not affected.
+- Removed stdin input, no more freezes when input files is not provided.
+  > Stdin input will be returned in latest releases.
+- Removed progress bar because of issues with `indicatif` crate.
+  > Progress bar will be returned in latest releases.
+
 ### Refactor
 
+- Divided crate to separate features to improve modularity.
 - Divided `Config` into several parts for improved modularity.
 - Moved `Codec` and `ImageFormat` into the `config` module.
 - Updated the `Decoder` and `Encoder` structs with more concise interfaces.
@@ -22,6 +32,11 @@ All notable changes to the Rimage library will be documented in this file.
 - Introduced `ResizeConfig` for configuring image resizing (optional).
 - Introduced `QuantizationConfig` for configuring image quantization (optional).
 - Added `fixed_orientation` to `Decoder` to save image orientation according to EXIF tag.
+- Added `-b --backup` flag to backup input files in case of replacing.
+
+### Bug Fixes
+
+- When glob cannot find any files, files provided by user will be processed.
 
 ## [v0.8.2](https://github.com/SalOne22/rimage/releases/tag/v0.8.2)
 
