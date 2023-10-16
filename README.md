@@ -136,7 +136,7 @@ Or add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rimage = "0.8.0"
+rimage = "0.9.1"
 ```
 
 ## Library Usage
