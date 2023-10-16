@@ -71,14 +71,14 @@ features = ["codec-aom"]
 default-features = false
 optional = true
 
-# Because libjxl cant be build on x86_64 macos and msvc targets
-[target.'cfg(not(any(all(target_os = "macos", target_arch = "x86_64"), target_env = "msvc")))'.dependencies.jpegxl-rs]
+# Because libjxl cant be build on x86_64 macos
+[target.'cfg(not(all(target_os = "macos", target_arch = "x86_64")))'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 features = ["vendored"]
 optional = true
 
-[target.'cfg(any(all(target_os = "macos", target_arch = "x86_64"), target_env = "msvc"))'.dependencies.jpegxl-rs]
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 optional = true
