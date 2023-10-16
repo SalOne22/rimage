@@ -124,6 +124,12 @@ rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자"
 rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
 ```
 
+## Help about "Dll not found Error"
+
+If you met the error of "Could not find libstdc++-6.dll", please **download all 3 DLLs from [HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0) and put these 3 DLLs near Rimage**.
+
+If you're a user who just want to use Rimage easily, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you. Just select the version you need and download it to use.
+
 ## Library Installation
 
 Add Rimage to your project with Cargo:
