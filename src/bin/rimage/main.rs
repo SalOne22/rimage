@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(-b --backup "Appends \".backup\" suffix to input file(s) extension")
                 .action(ArgAction::SetTrue),
             #[cfg(feature = "parallel")]
-            arg!(-t --threads <NUM> "Number of threads to use [default: number of cores]")
+            arg!(-t --threads <NUM> "Number of threads to use\n[default: number of cores]")
                 .value_parser(value_parser!(usize)),
         ])
         .next_help_heading("Quantization")
@@ -53,7 +53,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 .value_parser(value_parser!(usize)),
             arg!(--height <HEIGHT> "Resize image with specified height\n[integer only]")
                 .value_parser(value_parser!(usize)),
-            arg!(--filter <FILTER> "Filter used for image resizing\n[possible values: point, triangle, catrom, mitchell] [default: lanczos3]")
+            arg!(--filter <FILTER> "Filter used for image resizing\n[possible values: point, triangle, catrom, mitchell]")
                 .value_parser(ResizeType::from_str)
                 .default_value("lanczos3")
         ])
