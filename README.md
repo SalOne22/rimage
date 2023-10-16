@@ -21,7 +21,12 @@ Rimage simplifies and enhances your image optimization workflows. Optimize image
 
 ## Installation
 
+Dependencies:  
+On x86_64 macos requires libjxl installed.
+
 You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
+
+> Note: On x86_64-pc-windows-msvc build jxl feature disabled, because of libjxl inability for build on msvc target.
 
 Alternatively you can build rimage from source if you have `rust`, `cargo`, `nasm` and `cmake` installed:
 
@@ -31,7 +36,7 @@ cargo install rimage
 
 ## Usage
 
-```
+```text
 Usage: rimage [OPTIONS] <FILES>...
 
 Arguments:
@@ -42,28 +47,37 @@ Options:
   -V, --version  Print version
 
 General:
-  -q, --quality <QUALITY>  Optimization quality [default: 75]
-  -f, --codec <CODEC>      Image codec to use [default: mozjpeg]
-  -o, --output <DIR>       Write output file(s) to <DIR>
-  -r, --recursive          Saves output file(s) preserving folder structure
-  -s, --suffix [<SUFFIX>]  Appends suffix to output file(s) names
-  -b, --backup             Appends '.backup' to input file(s) names
+  -q, --quality <QUALITY>         Optimization image quality
+                                  [range: 1 - 100] [default: 75]
+  -f, --codec <CODEC>             Image codec to use
+                                  [default: jpg] [possible values: png, oxipng, jpegxl, webp, avif]
+  -o, --output <DIR>              Write output file(s) to <DIR>, if "-r" option is not used
+  -r, --recursive                 Saves output file(s) preserving folder structure
+  -s, --suffix [<SUFFIX>]         Appends suffix to output file(s) names
+  -b, --backup                    Appends ".backup" suffix to input file(s) extension
+  -t, --threads                   Number of threads to use, more will run faster, but too many may crash
+                                  [range: 1 - 16] [integer only] [default: number of cores]
 
 Quantization:
-      --quantization [<QUALITY>]  Enables quantization with optional quality [default: 75]
-      --dithering [<QUALITY>]     Enables dithering with optional quality [default: 75]
+      --quantization [<QUALITY>]  Enables quantization with optional quality
+                                  [range: 1 - 100] [default: 75]
+      --dithering [<QUALITY>]     Enables dithering with optional quality
+                                  [range: 1 - 100] [default: 75]
 
 Resizing:
-      --width <WIDTH>    Resize image with specified width
-      --height <HEIGHT>  Resize image with specified height
-      --filter <FILTER>  Filter used for image resizing [default: lanczos3]
+      --width <WIDTH>             Resize image with specified width
+                                  [integer only]
+      --height <HEIGHT>           Resize image with specified height
+                                  [integer only]
+      --filter <FILTER>           Filter used for image resizing
+                                  [possible values: point, triangle, catrom, mitchell] [default: lanczos3]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
 
 List of supported codecs with all features:
 
-- `mozjpeg`, `jpeg`, `jpg` => mozjpeg codec
+- `mozjpeg`, `jpeg`, `jpg` => **mozjpeg codec (common and small)**
 - `png` => browser png codec without compression
 - `oxipng` => oxipng codec with compression
 - `jpegxl`, `jxl` => jpeg xl codec
@@ -78,6 +92,38 @@ List of available resize filters:
 - `mitchell` => Resize using Mitchell-Netravali filter
 - `lanczos3` => Resize using Sinc-windowed Sinc with radius of 3
 
+## Example
+
+### png => jpg & quality => 90 & backup
+
+| Image Path                      | Quality | Out Format | Out Dir                   | Backup |
+| ------------------------------- | ------- | ---------- | ------------------------- | ------ |
+| "D:\\Desktop\\input [text].png" | 90      | jpg        | "D:\\Desktop\\OutputTest" | True   |
+
+```sh
+rimage.exe "D:\\Desktop\\input [text].png" -q 90 -f jpg -o "D:\\Desktop\\OutputTest" -b
+```
+
+### suffix & recursive & quantization & dithering
+
+| Image Path                    | Quality | Out Format | Suffix | Recursive | Quantization | Dithering |
+| ----------------------------- | ------- | ---------- | ------ | --------- | ------------ | --------- |
+| "C:\\中 文\\ソフトウェア.PNG" | 40      | png        | \_문자 | True      | 95           | 85        |
+
+```sh
+rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자" -r --quantization 95 --dithering 85
+```
+
+### jpg => webp & threads &resize width and height (both are opinional)
+
+| Image Path                  | Quality | Out Format | Out Dir             | Threads | Width | Height |
+| --------------------------- | ------- | ---------- | ------------------- | ------- | ----- | ------ |
+| "C:\\Docs\\justfortest.JPG" | 40      | webp       | "C:\\Desktop\\Test" | 4       | 60    | 10     |
+
+```sh
+rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
+```
+
 ## Library Installation
 
 Add Rimage to your project with Cargo:
@@ -90,7 +136,7 @@ Or add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rimage = "0.9.0"
+rimage = "0.8.0"
 ```
 
 ## Library Usage
