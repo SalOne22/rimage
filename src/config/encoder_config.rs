@@ -33,7 +33,7 @@ use super::resize_config::ResizeConfig;
 ///
 /// let config = EncoderConfig::new(Codec::Png).with_quality(90.0).unwrap();
 /// ```
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct EncoderConfig {
     /// The quality level for image encoding, ranging from 0.0 to 100.0.
     quality: f32,
@@ -147,10 +147,9 @@ impl EncoderConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::{EncoderConfig, Codec, ResizeConfig};
+    /// use rimage::config::{EncoderConfig, Codec, ResizeConfig, ResizeType};
     ///
-    /// let resize_config = ResizeConfig::new(resize::Type::Lanczos3)
+    /// let resize_config = ResizeConfig::new(ResizeType::Lanczos3)
     ///     .with_width(800)
     ///     .with_height(600);
     ///
@@ -241,10 +240,9 @@ impl EncoderConfig {
     /// # Examples
     ///
     /// ```
-    /// use rimage::resize;
-    /// use rimage::config::{EncoderConfig, ResizeConfig};
+    /// use rimage::config::{EncoderConfig, ResizeConfig, ResizeType};
     ///
-    /// let resize = ResizeConfig::new(resize::Type::Lanczos3).with_width(800);
+    /// let resize = ResizeConfig::new(ResizeType::Lanczos3).with_width(800);
     /// let config = EncoderConfig::default().with_resize(resize);
     ///
     /// if let Some(resize_config) = config.resize_config() {
@@ -296,7 +294,16 @@ mod tests {
         assert_eq!(
             result.unwrap_err().to_string(),
             "Quality value 120 is out of bounds (0.0-100.0)."
-        )
+        );
+
+        // Test invalid quality level
+        let result = EncoderConfig::new(Codec::MozJpeg).with_quality(-10.0);
+
+        assert!(result.is_err());
+        assert_eq!(
+            result.unwrap_err().to_string(),
+            "Quality value -10 is out of bounds (0.0-100.0)."
+        );
     }
 
     #[test]

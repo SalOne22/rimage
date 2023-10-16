@@ -1,0 +1,172 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  build-win-binaries:
+    runs-on: windows-2019
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup cache 💾
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Setup nasm 🧑‍💻
+        uses: ilammy/setup-nasm@v1
+
+      - name: Setup rust toolchain 🦀
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: x86_64-pc-windows-msvc
+          override: true
+
+      - name: Build rimage
+        shell: cmd
+        run: |
+          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          cargo build --all-features --release --target x86_64-pc-windows-msvc --verbose
+
+      - name: Get the version
+        id: tagName
+        run: echo "version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "rimage").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Build package
+        id: package
+        shell: bash
+        run: |
+          ARCHIVE_TARGET="x86_64-pc-windows-msvc"
+          ARCHIVE_NAME="rimage-${{ steps.tagName.outputs.tag }}-$ARCHIVE_TARGET"
+          ARCHIVE_FILE="${ARCHIVE_NAME}.zip"
+          mv LICENSE-MIT LICENSE-MIT.txt
+          mv LICENSE-APACHE LICENSE-APACHE.txt
+          7z a ${ARCHIVE_FILE} \
+               ./target/x86_64-pc-windows-msvc/release/rimage.exe \
+               ./CHANGELOG.md ./LICENSE-MIT.txt ./LICENSE-APACHE.txt ./README.md
+          echo "file=${ARCHIVE_FILE}" >> "$GITHUB_OUTPUT"
+          echo "name=${ARCHIVE_NAME}.zip" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.file }}
+
+  build-unix-binaries:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+          - os: macos-latest
+            target: x86_64-apple-darwin
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup cache 💾
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Setup nasm 🧑‍💻
+        uses: ilammy/setup-nasm@v1
+
+      - name: Setup rust toolchain 🦀
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: ${{ matrix.target }}
+          override: true
+
+      - name: Build rimage
+        run: cargo build --all-features --release --target ${{ matrix.target }} --verbose
+
+      - name: Strip binary
+        run: |
+          strip target/${{ matrix.target }}/release/rimage
+
+      - name: Get the version
+        id: tagName
+        run: echo "version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "rimage").version')" >> "$GITHUB_OUTPUT"
+
+      - name: Build package
+        id: package
+        run: |
+          ARCHIVE_TARGET=${{ matrix.target }}
+          ARCHIVE_NAME="rimage-${{ steps.tagName.outputs.tag }}-$ARCHIVE_TARGET"
+          ARCHIVE_FILE="${ARCHIVE_NAME}.tar.gz"
+          mkdir "/tmp/${ARCHIVE_NAME}"
+          cp README.md CHANGELOG.md LICENSE-MIT LICENSE-APACHE \
+             target/${{ matrix.target }}/release/rimage \
+             /tmp/${ARCHIVE_NAME}
+          tar -czf ${PWD}/${ARCHIVE_FILE} -C /tmp/ ${ARCHIVE_NAME}
+          echo "file=${ARCHIVE_FILE}" >> "$GITHUB_OUTPUT"
+          echo "name=${ARCHIVE_NAME}.tar.gz" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: ${{ steps.package.outputs.name }}
+          path: ${{ steps.package.outputs.file }}
+
+  deploy:
+    needs: [build-win-binaries, build-unix-binaries]
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Get version and release description
+        id: tagName
+        run: |
+          VERSION=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "rimage").version')
+          tail -n +5 CHANGELOG.md | sed -e '/## \[v/,$d' > CHANGELOG.txt
+          echo "tag=VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: ./binaries
+
+      - name: Create a release
+        uses: softprops/action-gh-release@v1
+        with:
+          name: v${{ steps.tagName.outputs.tag }}
+          body_path: CHANGELOG.txt
+          files: |
+            ./binaries/**/*.zip
+            ./binaries/**/*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
