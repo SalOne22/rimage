@@ -4,18 +4,66 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
   pull_request:
     branches:
       - main
+    paths-ignore:
+      - '**/*.md'
 
 jobs:
   test:
     name: test
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - aarch64-unknown-linux-gnu
+          - x86_64-pc-windows-gnu
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+            target-apt-arch: amd64
+          - target: aarch64-unknown-linux-gnu
+            os: ubuntu-latest
+            target-apt-arch: arm64
+          - target: x86_64-pc-windows-gnu
+            os: windows-latest
+          - target: x86_64-pc-windows-msvc
+            os: windows-2019
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+
+    env:
+      CARGO_BUILD_TARGET: ${{ matrix.target }}
 
     steps:
       - name: Checkout 🛎️
         uses: actions/checkout@v4
+
+      - name: Set up Ubuntu multiarch ⚙️
+        if: startsWith(matrix.os, 'ubuntu') && matrix.target-apt-arch != 'amd64'
+        run: |
+          readonly DISTRO_CODENAME=jammy
+          sudo dpkg --add-architecture "${{ matrix.target-apt-arch }}"
+          sudo sed -i "s/^deb http/deb [arch=$(dpkg-architecture -q DEB_HOST_ARCH)] http/" /etc/apt/sources.list
+          sudo sed -i "s/^deb mirror/deb [arch=$(dpkg-architecture -q DEB_HOST_ARCH)] mirror/" /etc/apt/sources.list
+          for suite in '' '-updates' '-backports' '-security'; do
+            echo "deb [arch=${{ matrix.target-apt-arch }}] http://ports.ubuntu.com/ $DISTRO_CODENAME$suite main universe multiverse" | \
+            sudo tee -a /etc/apt/sources.list >/dev/null
+          done
+          sudo apt-get -yq update
+          sudo apt-get -yq install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
 
       - name: Setup cache 💾
         uses: actions/cache@v3
@@ -26,22 +74,52 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
             target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Setup nasm 🧑‍💻
         uses: ilammy/setup-nasm@v1
+
+      - name: Setup libjxl 🧑‍💻 (x86_64 macos)
+        if: matrix.target == 'x86_64-apple-darwin'
+        run: brew install jpeg-xl
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
+          target: ${{ matrix.target }}
+
+      - name: Build 🏗 (not msvc)
+        if: matrix.target != 'x86_64-pc-windows-msvc'
+        uses: actions-rs/cargo@v1
+        with:
+          command: build
+          args: --all-features --release
+
+      - name: Build 🏗 (msvc)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
+        shell: cmd
+        run: |
+          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          set CC=C:/Program Files/LLVM/bin/clang.exe
+          set CXX=C:/Program Files/LLVM/bin/clang++.exe
+          cargo build --all-features --release
 
       - name: Test 🧪
+        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin'
         uses: actions-rs/cargo@v1
         with:
           command: test
-          args: --all-features
+          args: --all-features --release
+
+      - name: Upload CLI binary as artifact 💾
+        uses: actions/upload-artifact@v3
+        with:
+          name: rimage binary (${{ matrix.target }})
+          path: |
+            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
+            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
 
   lint:
     name: lint

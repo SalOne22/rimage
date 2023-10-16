@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 name = "rimage"
 readme = "README.md"
 repository = "https://github.com/SalOne22/rimage"
-version = "0.9.0"
+version = "0.9.1"
 edition = "2021"
 
 [[bin]]
@@ -55,9 +55,7 @@ features = ["with_simd"]
 default-features = false
 
 [dependencies.oxipng]
-git = "https://github.com/shssoichiro/oxipng.git"
-rev = "02bd47b"
-version = "8.0.0"
+version = "9.0.0"
 features = ["zopfli", "filetime"]
 default-features = false
 optional = true
@@ -73,10 +71,16 @@ features = ["codec-aom"]
 default-features = false
 optional = true
 
-[dependencies.jpegxl-rs]
+# Because libjxl cant be build on x86_64 macos
+[target.'cfg(not(all(target_os = "macos", target_arch = "x86_64")))'.dependencies.jpegxl-rs]
 version = "0.8.2+libjxl-0.8.2"
 default-features = false
 features = ["vendored"]
+optional = true
+
+[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies.jpegxl-rs]
+version = "0.8.2+libjxl-0.8.2"
+default-features = false
 optional = true
 
 [target.'cfg(windows)'.dependencies.glob]

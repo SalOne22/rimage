@@ -13,4 +13,4 @@
 
 ## Reporting a Vulnerability
 
-If you find any vulnerability issues, please create a issue with vulnerabilty label, and describe what vulnerability you found
+If you find any vulnerability issues, please create a issue with vulnerability label, and describe what vulnerability you found

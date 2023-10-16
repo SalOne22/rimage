@@ -21,36 +21,39 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .next_help_heading("General")
         .args([
-            arg!(-q --quality <QUALITY> "Optimization quality")
+            arg!(-q --quality <QUALITY> "Optimization image quality\n[range: 1 - 100]")
                 .value_parser(value_parser!(f32))
                 .default_value("75"),
-            arg!(-f --codec <CODEC> "Image codec to use")
+            arg!(-f --codec <CODEC> "Image codec to use\n[possible values: png, oxipng, jpegxl, webp, avif]")
                 .value_parser(Codec::from_str)
                 .default_value("mozjpeg"),
-            arg!(-o --output <DIR> "Write output file(s) to <DIR>")
+            arg!(-o --output <DIR> "Write output file(s) to <DIR>, if \"-r\" option is not used")
                 .value_parser(value_parser!(PathBuf)),
             arg!(-r --recursive "Saves output file(s) preserving folder structure")
                 .action(ArgAction::SetTrue),
             arg!(-s --suffix [SUFFIX] "Appends suffix to output file(s) names"),
-            arg!(-b --backup "Appends '.backup' to input file(s) names")
+            arg!(-b --backup "Appends \".backup\" suffix to input file(s) extension")
                 .action(ArgAction::SetTrue),
+            #[cfg(feature = "parallel")]
+            arg!(-t --threads <NUM> "Number of threads to use\n[default: number of cores]")
+                .value_parser(value_parser!(usize)),
         ])
         .next_help_heading("Quantization")
         .args([
-            arg!(--quantization [QUALITY] "Enables quantization with optional quality [default: 75]")
+            arg!(--quantization [QUALITY] "Enables quantization with optional quality\n[range: 1 - 100] [default: 75]")
                 .value_parser(value_parser!(u8).range(..=100))
                 .default_missing_value("75"),
-            arg!(--dithering [QUALITY] "Enables dithering with optional quality [default: 75]")
+            arg!(--dithering [QUALITY] "Enables dithering with optional quality\n[range: 1 - 100] [default: 75]")
                 .value_parser(value_parser!(f32))
                 .default_missing_value("75")
         ])
         .next_help_heading("Resizing")
         .args([
-            arg!(--width <WIDTH> "Resize image with specified width")
+            arg!(--width <WIDTH> "Resize image with specified width\n[integer only]")
                 .value_parser(value_parser!(usize)),
-            arg!(--height <HEIGHT> "Resize image with specified height")
+            arg!(--height <HEIGHT> "Resize image with specified height\n[integer only]")
                 .value_parser(value_parser!(usize)),
-            arg!(--filter <FILTER> "Filter used for image resizing")
+            arg!(--filter <FILTER> "Filter used for image resizing\n[possible values: point, triangle, catrom, mitchell]")
                 .value_parser(ResizeType::from_str)
                 .default_value("lanczos3")
         ])
@@ -58,6 +61,14 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     let codec = matches.get_one::<Codec>("codec").unwrap();
     let quality = matches.get_one::<f32>("quality").unwrap();
+
+    #[cfg(feature = "parallel")]
+    if let Some(threads) = matches.get_one::<usize>("threads") {
+        rayon::ThreadPoolBuilder::new()
+            .num_threads(*threads)
+            .build_global()
+            .unwrap();
+    }
 
     let mut quantization_config = QuantizationConfig::new();
 

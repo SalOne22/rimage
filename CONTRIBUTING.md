@@ -14,6 +14,7 @@ To get started with contributing, you'll need to:
 2. Clone your fork locally.
 3. Install Rust and Cargo (if you haven't already).
 4. Install cmake and nasm for AVIF and JPEG XL development.
+   > Note: On x86_64 macos, you need to install `jpeg-xl` library
 5. Run `cargo build` to ensure everything builds properly.
    > Note: On Windows, use a Visual Studio build environment like Developer PowerShell for VS 2019/2022.
 

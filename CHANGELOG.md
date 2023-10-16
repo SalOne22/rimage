@@ -2,7 +2,17 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.9.0
+## v0.9.1
+
+### New features
+
+- Added previously removed `--threads` option when parallel feature is enabled.
+
+### Changes
+
+- Temporarily removed from plans stdin input due to complexity.
+
+## [v0.9.0](https://github.com/SalOne22/rimage/releases/tag/v0.9.0)
 
 ### Breaking Changes
 
