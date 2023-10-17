@@ -34,11 +34,11 @@ cargo install rimage
 
 ## Note
 
-1. On x86_64-pc-windows-msvc build jxl feature disabled, because of libjxl inability for build on msvc target.
+1. Jxl(JpegXL) format on Microsoft Windows® is not support, because of its complexity.
 
-2. If you met the error of "Could not find libstdc++-6.dll", please **download all 3 DLLs from [HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0) and put these 3 DLLs near Rimage**.
+2. If you met the error of **"Could not find libstdc++-6.dll", etc.**, please download all 3 DLLs from **[HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0)** and put these 3 DLLs near Rimage.
 
-3. If you're a user who just want to use Rimage easily with GUI, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you. Just select the version you need and download it to use.
+3. If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
 
 ## Usage
 
@@ -55,7 +55,7 @@ Options:
 General:
   -q, --quality <QUALITY>         Optimization image quality
                                   [range: 1 - 100] [default: 75]
-  -f, --codec <CODEC>             Image codec to use
+  -f, --codec <CODEC>             Image codec to use, jxl feature is disabled on Microsoft Windows®
                                   [default: jpg] [possible values: png, oxipng, jpegxl, webp, avif]
   -o, --output <DIR>              Write output file(s) to <DIR>, if "-r" option is not used
   -r, --recursive                 Saves output file(s) preserving folder structure

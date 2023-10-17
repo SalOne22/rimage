@@ -24,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(-q --quality <QUALITY> "Optimization image quality\n[range: 1 - 100]")
                 .value_parser(value_parser!(f32))
                 .default_value("75"),
-            arg!(-f --codec <CODEC> "Image codec to use\n[possible values: png, oxipng, jpegxl, webp, avif]")
+            arg!(-f --codec <CODEC> "Image codec to use, jxl feature is disabled on Microsoft Windows®\n[possible values: png, oxipng, jpegxl, webp, avif]")
                 .value_parser(Codec::from_str)
                 .default_value("mozjpeg"),
             arg!(-o --output <DIR> "Write output file(s) to <DIR>, if \"-r\" option is not used")
@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             arg!(-b --backup "Appends \".backup\" suffix to input file(s) extension")
                 .action(ArgAction::SetTrue),
             #[cfg(feature = "parallel")]
-            arg!(-t --threads <NUM> "Number of threads to use\n[default: number of cores]")
+            arg!(-t --threads <NUM> "Number of threads to use\n[range: 1 - 16] [default: number of cores]")
                 .value_parser(value_parser!(usize)),
         ])
         .next_help_heading("Quantization")
