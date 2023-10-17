@@ -26,13 +26,19 @@ On x86_64 macos requires libjxl installed.
 
 You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
 
-> Note: On x86_64-pc-windows-msvc build jxl feature disabled, because of libjxl inability for build on msvc target.
-
 Alternatively you can build rimage from source if you have `rust`, `cargo`, `nasm` and `cmake` installed:
 
 ```sh
 cargo install rimage
 ```
+
+## Note
+
+1. On x86_64-pc-windows-msvc build jxl feature disabled, because of libjxl inability for build on msvc target.
+
+2. If you met the error of "Could not find libstdc++-6.dll", please **download all 3 DLLs from [HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0) and put these 3 DLLs near Rimage**.
+
+3. If you're a user who just want to use Rimage easily with GUI, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you. Just select the version you need and download it to use.
 
 ## Usage
 
@@ -123,12 +129,6 @@ rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자"
 ```sh
 rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
 ```
-
-## Help about "Dll not found Error"
-
-If you met the error of "Could not find libstdc++-6.dll", please **download all 3 DLLs from [HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0) and put these 3 DLLs near Rimage**.
-
-If you're a user who just want to use Rimage easily, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you. Just select the version you need and download it to use.
 
 ## Library Installation
 
