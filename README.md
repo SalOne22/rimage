@@ -1,5 +1,9 @@
 # Rimage
 
+❗ Work on rimage in this repository will be suspended, but new PRs will still be accepted.
+
+I'm currently working on a new project "Rimage App" which will have similar functionality with a graphical interface. In the future, this repository will be used as a library for the "Rimage App". For those who use rimage from the command line, a new package called "Rimage CLI" will be created with extended functionality.
+
 [![build status](https://img.shields.io/github/actions/workflow/status/SalOne22/rimage/rimage.yml?label=rimage&style=flat-square)](https://github.com/SalOne22/rimage/actions?query=branch%3Amain+)
 [![docs.rs](https://img.shields.io/docsrs/rimage/latest?style=flat-square)](https://docs.rs/rimage)
 [![version](https://img.shields.io/crates/v/rimage?style=flat-square)](https://crates.io/crates/rimage)
