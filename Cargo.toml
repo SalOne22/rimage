@@ -66,7 +66,7 @@ default-features = false
 optional = true
 
 [dependencies.libavif-sys]
-version = "0.14.3"
+version = "0.15.0"
 features = ["codec-aom"]
 default-features = false
 optional = true
