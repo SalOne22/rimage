@@ -21,6 +21,9 @@ Rimage simplifies and enhances your image optimization workflows. Optimize image
 
 ## Installation
 
+Dependencies:  
+On x86_64 macos requires libjxl installed.
+
 You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
 
 Alternatively you can build rimage from source if you have `rust`, `cargo`, `nasm` and `cmake` installed:
@@ -29,9 +32,17 @@ Alternatively you can build rimage from source if you have `rust`, `cargo`, `nas
 cargo install rimage
 ```
 
+## Note
+
+1. Jxl(JpegXL) format on Microsoft Windows® is not support, because of its complexity.
+
+2. If you met the error of **"Could not find libstdc++-6.dll", etc.**, please download all 3 DLLs from **[HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0)** and put these 3 DLLs near Rimage.
+
+3. If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
+
 ## Usage
 
-```
+```text
 Usage: rimage [OPTIONS] <FILES>...
 
 Arguments:
@@ -42,28 +53,37 @@ Options:
   -V, --version  Print version
 
 General:
-  -q, --quality <QUALITY>  Optimization quality [default: 75]
-  -f, --codec <CODEC>      Image codec to use [default: mozjpeg]
-  -o, --output <DIR>       Write output file(s) to <DIR>
-  -r, --recursive          Saves output file(s) preserving folder structure
-  -s, --suffix [<SUFFIX>]  Appends suffix to output file(s) names
-  -b, --backup             Appends '.backup' to input file(s) names
+  -q, --quality <QUALITY>         Optimization image quality
+                                  [range: 1 - 100] [default: 75]
+  -f, --codec <CODEC>             Image codec to use, jxl feature is disabled on Microsoft Windows®
+                                  [default: jpg] [possible values: png, oxipng, jpegxl, webp, avif]
+  -o, --output <DIR>              Write output file(s) to <DIR>, if "-r" option is not used
+  -r, --recursive                 Saves output file(s) preserving folder structure
+  -s, --suffix [<SUFFIX>]         Appends suffix to output file(s) names
+  -b, --backup                    Appends ".backup" suffix to input file(s) extension
+  -t, --threads                   Number of threads to use, more will run faster, but too many may crash
+                                  [range: 1 - 16] [integer only] [default: number of cores]
 
 Quantization:
-      --quantization [<QUALITY>]  Enables quantization with optional quality [default: 75]
-      --dithering [<QUALITY>]     Enables dithering with optional quality [default: 75]
+      --quantization [<QUALITY>]  Enables quantization with optional quality
+                                  [range: 1 - 100] [default: 75]
+      --dithering [<QUALITY>]     Enables dithering with optional quality
+                                  [range: 1 - 100] [default: 75]
 
 Resizing:
-      --width <WIDTH>    Resize image with specified width
-      --height <HEIGHT>  Resize image with specified height
-      --filter <FILTER>  Filter used for image resizing [default: lanczos3]
+      --width <WIDTH>             Resize image with specified width
+                                  [integer only]
+      --height <HEIGHT>           Resize image with specified height
+                                  [integer only]
+      --filter <FILTER>           Filter used for image resizing
+                                  [possible values: point, triangle, catrom, mitchell] [default: lanczos3]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
 
 List of supported codecs with all features:
 
-- `mozjpeg`, `jpeg`, `jpg` => mozjpeg codec
+- `mozjpeg`, `jpeg`, `jpg` => **mozjpeg codec (common and small)**
 - `png` => browser png codec without compression
 - `oxipng` => oxipng codec with compression
 - `jpegxl`, `jxl` => jpeg xl codec
@@ -77,6 +97,38 @@ List of available resize filters:
 - `catmull-rom`, `catrom` => Catmull-Rom (bicubic) resizing
 - `mitchell` => Resize using Mitchell-Netravali filter
 - `lanczos3` => Resize using Sinc-windowed Sinc with radius of 3
+
+## Example
+
+### png => jpg & quality => 90 & backup
+
+| Image Path                      | Quality | Out Format | Out Dir                   | Backup |
+| ------------------------------- | ------- | ---------- | ------------------------- | ------ |
+| "D:\\Desktop\\input [text].png" | 90      | jpg        | "D:\\Desktop\\OutputTest" | True   |
+
+```sh
+rimage.exe "D:\\Desktop\\input [text].png" -q 90 -f jpg -o "D:\\Desktop\\OutputTest" -b
+```
+
+### suffix & recursive & quantization & dithering
+
+| Image Path                    | Quality | Out Format | Suffix | Recursive | Quantization | Dithering |
+| ----------------------------- | ------- | ---------- | ------ | --------- | ------------ | --------- |
+| "C:\\中 文\\ソフトウェア.PNG" | 40      | png        | \_문자 | True      | 95           | 85        |
+
+```sh
+rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자" -r --quantization 95 --dithering 85
+```
+
+### jpg => webp & threads &resize width and height (both are opinional)
+
+| Image Path                  | Quality | Out Format | Out Dir             | Threads | Width | Height |
+| --------------------------- | ------- | ---------- | ------------------- | ------- | ----- | ------ |
+| "C:\\Docs\\justfortest.JPG" | 40      | webp       | "C:\\Desktop\\Test" | 4       | 60    | 10     |
+
+```sh
+rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
+```
 
 ## Library Installation
 
