@@ -23,17 +23,18 @@ codegen-units = 1
 
 [features]
 default = ["cli", "parallel", "quantization", "resizing", "exif", "oxipng"]
-parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jpegxl-rs?/threads", "dep:rayon"]
+parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jxl-oxide?/rayon", "dep:rayon"]
 quantization = ["dep:imagequant"]
 resizing = ["dep:resize"]
 transform = ["dep:transpose"]
-avif = ["dep:libavif-sys", "dep:ravif"]
+avif = ["dep:libavif-sys", "dep:ravif", "image/avif-decoder"]
 exif = ["dep:kamadak-exif", "transform"]
-jxl = ["dep:jpegxl-rs"]
+jxl = ["dep:jxl-oxide"]
 cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
 
 
 [dependencies]
+image = "0.24.7"
 rgb = "0.8.36"
 thiserror = "1.0.49"
 png = "0.17.10"
@@ -43,6 +44,11 @@ transpose = { version = "0.2.2", optional = true }
 ravif = { version = "0.11.2", optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
 clap = { version = "4.4.2", optional = true }
+
+[dependencies.jxl-oxide]
+version = "0.5.1"
+default-features = false
+optional = true
 
 [dependencies.imagequant]
 version = "4.2.1"
