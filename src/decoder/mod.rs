@@ -99,6 +99,8 @@ impl<R: BufRead + Seek> Decoder<R> {
         let image = match self.format {
             #[cfg(feature = "jxl")]
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
+            #[cfg(feature = "avif")]
+            Some(ImageFormat::Avif) => self.decode_avif(),
             _ => self.r.with_guessed_format()?.decode(),
         }?;
 
@@ -185,6 +187,22 @@ impl<R: BufRead + Seek> Decoder<R> {
                     UnsupportedErrorKind::GenericFeature("CMYK Colorspace".to_string()),
                 ),
             ))?,
+        })
+    }
+
+    #[cfg(feature = "avif")]
+    fn decode_avif(self) -> ImageResult<DynamicImage> {
+        let mut r = self.r.into_inner();
+
+        let mut buf: Vec<u8> = vec![];
+
+        r.read_to_end(&mut buf)?;
+
+        libavif_image::read(&buf).map_err(|e| {
+            ImageError::Decoding(DecodingError::new(
+                ImageFormatHint::Exact(image::ImageFormat::Avif),
+                e,
+            ))
         })
     }
 }
