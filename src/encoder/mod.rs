@@ -1,4 +1,4 @@
-use image::{DynamicImage, ImageBuffer};
+use image::{ColorType, DynamicImage, ImageBuffer, ImageResult};
 use rgb::FromSlice;
 use std::io::Write;
 
@@ -110,6 +110,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     /// # Ok::<(), rimage::error::EncoderError>(())
     /// ```
     #[allow(unused_mut)]
+    // TODO: Change Error type to ImageError
     pub fn encode(mut self) -> Result<(), EncoderError> {
         // TODO: Move resize out from encoder to operations
         #[cfg(feature = "resizing")]
@@ -198,7 +199,26 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         let quality = self.conf.quality();
 
         std::panic::catch_unwind(|| -> Result<(), EncoderError> {
-            let mut comp = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
+            let format = match self.data.color() {
+                ColorType::L8 | ColorType::L16 => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+                ColorType::La8 | ColorType::La16 => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+                ColorType::Rgb8 | ColorType::Rgb16 | ColorType::Rgb32F => {
+                    mozjpeg::ColorSpace::JCS_RGB
+                }
+                ColorType::Rgba8 | ColorType::Rgba16 | ColorType::Rgba32F => {
+                    mozjpeg::ColorSpace::JCS_EXT_RGBA
+                }
+                _ => mozjpeg::ColorSpace::JCS_EXT_RGBA,
+            };
+
+            let data = match self.data.color() {
+                ColorType::La8 | ColorType::La16 => {
+                    DynamicImage::ImageLuma8(self.data.into_luma8())
+                }
+                _ => self.data,
+            };
+
+            let mut comp = mozjpeg::Compress::new(format);
 
             comp.set_size(width as usize, height as usize);
             comp.set_quality(quality);
@@ -206,7 +226,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
             let mut comp = comp.start_compress(self.w)?;
 
-            comp.write_scanlines(self.data.as_bytes())?;
+            comp.write_scanlines(data.as_bytes())?;
 
             comp.finish()?;
 
