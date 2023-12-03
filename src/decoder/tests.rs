@@ -77,10 +77,8 @@ fn fix_orientation() -> Result<(), Box<dyn Error>> {
 }
 
 #[test]
-#[ignore = "dav1d can't decode avif yet..."]
 #[cfg(feature = "avif")]
 fn decode_avif() -> Result<(), Box<dyn Error>> {
-    // TODO: Add decoding of avif images
     let files = fs::read_dir("tests/files/avif")?;
 
     for entry in files {
