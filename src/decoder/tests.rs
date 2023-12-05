@@ -54,7 +54,6 @@ fn new_decoder_with_fixed_orientation() {
 }
 
 #[test]
-#[ignore = "needed fixes"]
 #[cfg(feature = "exif")]
 fn fix_orientation() -> Result<(), Box<dyn Error>> {
     // TODO: Add transform when exif tag is present

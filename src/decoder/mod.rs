@@ -96,13 +96,36 @@ impl<R: BufRead + Seek> Decoder<R> {
     ///
     /// Returns a [`Result`] containing the decoded [`Image`] on success or a [`DecoderError`] on failure.
     pub fn decode(self) -> ImageResult<DynamicImage> {
-        let image = match self.format {
+        #[cfg(feature = "transform")]
+        let orientation = self.fix_orientation;
+
+        let mut image = match self.format {
             #[cfg(feature = "jxl")]
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
             #[cfg(feature = "avif")]
             Some(ImageFormat::Avif) => self.decode_avif(),
             _ => self.r.with_guessed_format()?.decode(),
         }?;
+
+        #[cfg(feature = "transform")]
+        if let Some(orientation) = orientation {
+            if orientation <= 8 {
+                let orientation = orientation - 1;
+
+                if orientation & 0b100 != 0 {
+                    image = image.rotate90();
+                    image = image.fliph();
+                }
+
+                if orientation & 0b010 != 0 {
+                    image = image.rotate180();
+                }
+
+                if orientation & 0b001 != 0 {
+                    image = image.fliph();
+                }
+            }
+        }
 
         Ok(image)
     }
@@ -230,7 +253,7 @@ impl Decoder<BufReader<File>> {
     pub fn from_path(path: impl AsRef<Path>) -> ImageResult<Self> {
         Ok(Self {
             r: ImageReader::open(path.as_ref())?,
-            format: Some(ImageFormat::from_path(path.as_ref()).map_err(|e| {
+            format: Some(ImageFormat::from_path(path.as_ref()).map_err(|_| {
                 ImageError::Unsupported(UnsupportedError::from(ImageFormatHint::Unknown))
             })?),
             #[cfg(feature = "transform")]

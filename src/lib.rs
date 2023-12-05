@@ -63,7 +63,7 @@ let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)).with_config(co
 encoder.encode()?;
 
 # std::fs::remove_file("output.jpg").unwrap_or(());
-# Ok::<(), rimage::error::EncoderError>(())
+# Ok::<(), image::ImageError>(())
 ```
 */
 
