@@ -91,7 +91,7 @@ jobs:
 
       - name: Install emcc
         if: matrix.target == 'wasm32-unknown-unknown'
-        run: brew install emscripten
+        run: DEBIAN_FRONTEND=noninteractive sudo apt-get install -y emscripten
 
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-2019'
@@ -110,23 +110,35 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
+      - name: Build 🏗️ (windows)
+        if: matrix.os == 'windows-2019'
+        shell: cmd
+        run: |
+          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          cargo build --all-features --target ${{ matrix.target }}
+
+      - name: Build 🏗️ (unix)
+        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-unknown' }}
+        run: |
+          cargo build --all-features --target ${{ matrix.target }}
+
       - name: Test 🧪 (windows)
         if: matrix.os == 'windows-2019'
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          cargo test ${{ matrix.features }} --target ${{ matrix.target }}
+          cargo test --all-features --target ${{ matrix.target }}
 
       - name: Test 🧪 (unix)
-        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-unknown' }}
+        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-unknown' && matrix.target != 'aarch64-apple-darwin' && matrix.target != 'aarch64-unknown-linux-gnu' }}
         run: |
-          cargo test ${{ matrix.features }} --target ${{ matrix.target }}
+          cargo test --all-features --target ${{ matrix.target }}
 
       - name: Check wasm
         if: matrix.target == 'wasm32-unknown-unknown'
         run: |
           export EMSCRIPTEN_CMAKE_FILE="$(brew --cellar emscripten)/$(brew list --versions emscripten | tr ' ' '\n' | tail -1)/libexec/cmake/Modules/Platform/Emscripten.cmake"
-          cargo check ${{ matrix.features }} --target ${{ matrix.target }}
+          cargo check --all-features --target ${{ matrix.target }}
         env:
           CC: 'emcc'
           CXX: 'emcc'
