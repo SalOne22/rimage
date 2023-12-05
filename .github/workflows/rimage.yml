@@ -34,9 +34,11 @@ jobs:
             target-apt-arch: amd64
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+          - target: wasm32-unknown-unknown
+            os: ubuntu-latest
             target-apt-arch: arm64
           - target: x86_64-pc-windows-gnu
-            os: windows-latest
+            os: windows-2019
           - target: x86_64-pc-windows-msvc
             os: windows-2019
           - target: x86_64-apple-darwin
@@ -76,11 +78,30 @@ jobs:
             target/
           key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Setup nasm 🧑‍💻
-        uses: ilammy/setup-nasm@v1
+      - name: Install dependencies (linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          DEBIAN_FRONTEND=noninteractive sudo apt-get update
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
 
-      - name: Setup meson + ninja 🧑‍💻
-        run: pip3 install --user meson ninja
+      - name: Install dependencies (macos)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install ninja nasm meson
+
+      - name: Install emcc
+        if: matrix.target == 'wasm32-unknown-unknown'
+        run: brew install emscripten
+
+      - name: Install dependencies (windows)
+        if: matrix.os == 'windows-2019'
+        run: |
+          choco install -y ninja
+          pip install meson
+
+      - name: Install nasm (windows)
+        if: matrix.os == 'windows-2019'
+        uses: ilammy/setup-nasm@v1
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
@@ -89,18 +110,26 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
-      - name: Build 🏗
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features --release
+      - name: Test 🧪 (windows)
+        if: matrix.os == 'windows-2019'
+        shell: cmd
+        run: |
+          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
+          cargo test ${{ matrix.features }} --target ${{ matrix.target }}
 
-      - name: Test 🧪
-        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin'
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features --release
+      - name: Test 🧪 (unix)
+        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-unknown' }}
+        run: |
+          cargo test ${{ matrix.features }} --target ${{ matrix.target }}
+
+      - name: Check wasm
+        if: matrix.target == 'wasm32-unknown-unknown'
+        run: |
+          export EMSCRIPTEN_CMAKE_FILE="$(brew --cellar emscripten)/$(brew list --versions emscripten | tr ' ' '\n' | tail -1)/libexec/cmake/Modules/Platform/Emscripten.cmake"
+          cargo check ${{ matrix.features }} --target ${{ matrix.target }}
+        env:
+          CC: 'emcc'
+          CXX: 'emcc'
 
       - name: Upload CLI binary as artifact 💾
         uses: actions/upload-artifact@v3
