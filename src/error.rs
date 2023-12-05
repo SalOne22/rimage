@@ -1,6 +1,8 @@
 use std::io;
 
 use thiserror::Error;
+#[cfg(feature = "jxl")]
+use zune_jpegxl::JxlEncodeErrors;
 
 /// Error type for invalid quantization configuration.
 ///
@@ -43,7 +45,7 @@ pub enum ImageFormatError {
 pub enum EncoderError {
     /// Error indicating an I/O (input/output) operation failure.
     #[error(transparent)]
-    Io(#[from] std::io::Error),
+    Io(#[from] io::Error),
 
     /// Error indicating an overflow or conversion error.
     #[error(transparent)]
@@ -64,9 +66,9 @@ pub enum EncoderError {
     Png(#[from] png::EncodingError),
 
     /// Error indicating an encoding failure for the JPEG XL format.
-    #[error(transparent)]
+    #[error("{0:?}")]
     #[cfg(feature = "jxl")]
-    JpegXl(#[from] jpegxl_rs::EncodeError),
+    JpegXl(JxlEncodeErrors),
 
     /// Error indicating an error during the encoding of PNG images with oxipng.
     #[error(transparent)]
@@ -107,16 +109,16 @@ pub enum DecoderError {
     #[cfg(feature = "avif")]
     Avif(u32),
 
-    /// An error occurred during JPEG XL image decoding.
-    #[error(transparent)]
-    #[cfg(feature = "jxl")]
-    JpegXl(#[from] jpegxl_rs::DecodeError),
-
     /// An error occurred when decoding WebP image format with libwebp.
     #[error("Failed to decode WebP with libwebp")]
     #[cfg(feature = "webp")]
     WebP,
 }
+
+#[cfg(feature = "jxl")]
+#[derive(Error, Debug)]
+#[error("{0:?}")]
+pub struct JxlEncodingError(pub JxlEncodeErrors);
 
 #[cfg(test)]
 mod tests {

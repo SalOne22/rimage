@@ -1,4 +1,3 @@
-use image::codecs::webp::WebPQuality;
 use image::error::{ImageFormatHint, UnsupportedError, UnsupportedErrorKind};
 use image::{
     error::EncodingError, ColorType, DynamicImage, ImageBuffer, ImageError, ImageFormat,
@@ -279,7 +278,47 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
 
     #[cfg(feature = "jxl")]
     fn encode_jpegxl(mut self) -> ImageResult<()> {
-        unimplemented!()
+        use crate::error::JxlEncodingError;
+        use zune_core::bit_depth::BitDepth;
+        use zune_core::colorspace::ColorSpace;
+        use zune_core::options::EncoderOptions;
+        use zune_jpegxl::JxlSimpleEncoder;
+
+        let width = self.data.width();
+        let height = self.data.height();
+
+        let (color_space, bit_depth) = match self.data.color() {
+            ColorType::L8 => (ColorSpace::Luma, BitDepth::Eight),
+            ColorType::La8 => (ColorSpace::LumaA, BitDepth::Eight),
+            ColorType::Rgb8 => (ColorSpace::RGB, BitDepth::Eight),
+            ColorType::Rgba8 => (ColorSpace::RGBA, BitDepth::Eight),
+            ColorType::L16 => (ColorSpace::Luma, BitDepth::Sixteen),
+            ColorType::La16 => (ColorSpace::LumaA, BitDepth::Sixteen),
+            ColorType::Rgb16 => (ColorSpace::RGB, BitDepth::Sixteen),
+            ColorType::Rgba16 => (ColorSpace::RGBA, BitDepth::Sixteen),
+            ColorType::Rgb32F => (ColorSpace::RGB, BitDepth::Float32),
+            ColorType::Rgba32F => (ColorSpace::RGBA, BitDepth::Float32),
+            color => Err(ImageError::Unsupported(
+                UnsupportedError::from_format_and_kind(
+                    ImageFormatHint::Name("JpegXL".to_string()),
+                    UnsupportedErrorKind::Color(color.into()),
+                ),
+            ))?,
+        };
+
+        let options = EncoderOptions::new(width as usize, height as usize, color_space, bit_depth);
+        let encoder = JxlSimpleEncoder::new(self.data.as_bytes(), options);
+
+        let data = encoder.encode().map_err(|e| {
+            ImageError::Encoding(EncodingError::new(
+                ImageFormatHint::Name("JpegXL".to_string()),
+                JxlEncodingError(e),
+            ))
+        })?;
+
+        self.w.write_all(&data)?;
+
+        Ok(())
     }
 
     #[cfg(feature = "oxipng")]
@@ -346,19 +385,15 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
                     ImageFormatHint::Exact(ImageFormat::Png),
                     e,
                 ))
-            })?)
-            .map_err(|e| {
-                ImageError::Encoding(EncodingError::new(
-                    ImageFormatHint::Exact(ImageFormat::Png),
-                    e,
-                ))
-            })?;
+            })?)?;
 
         Ok(())
     }
 
     #[cfg(feature = "webp")]
     fn encode_webp(self) -> ImageResult<()> {
+        use image::codecs::webp::WebPQuality;
+
         let image = match self.data.color() {
             ColorType::Rgb8 | ColorType::Rgba8 => self.data,
             _ => DynamicImage::ImageRgba8(self.data.into_rgba8()),
