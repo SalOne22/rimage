@@ -1,18 +1,22 @@
-use image::{ColorType, DynamicImage, ImageBuffer, ImageResult};
+use image::error::ImageFormatHint;
+use image::{
+    error::EncodingError, ColorType, DynamicImage, ImageBuffer, ImageError, ImageFormat,
+    ImageResult,
+};
 use rgb::FromSlice;
-use std::io::Write;
+use std::io::{Seek, Write};
 
+use crate::config::EncoderConfig;
 use crate::config::ResizeType;
-use crate::{config::EncoderConfig, error::EncoderError};
 
 /// A struct for encoding images using various codecs.
-pub struct Encoder<W: Write> {
+pub struct Encoder<W: Write + Seek> {
     w: W,
     data: DynamicImage,
     conf: EncoderConfig,
 }
 
-impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
+impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
     /// Creates a new [`Encoder`] instance with the specified writer and image data.
     ///
     /// # Parameters
@@ -107,11 +111,11 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     ///
     /// encoder.encode()?;
     /// # fs::remove_file("output.jpg")?;
-    /// # Ok::<(), rimage::error::EncoderError>(())
+    /// # Ok::<(), image::ImageError>(())
     /// ```
     #[allow(unused_mut)]
     // TODO: Change Error type to ImageError
-    pub fn encode(mut self) -> Result<(), EncoderError> {
+    pub fn encode(mut self) -> ImageResult<()> {
         // TODO: Move resize out from encoder to operations
         #[cfg(feature = "resizing")]
         if let Some(resize_config) = self.conf.resize_config() {
@@ -150,21 +154,49 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
             let mut liq = imagequant::new();
 
-            liq.set_speed(5)?;
-            liq.set_quality(0, quantization_config.quality())?;
+            liq.set_quality(0, quantization_config.quality())
+                .map_err(|e| {
+                    ImageError::Encoding(EncodingError::new(
+                        ImageFormatHint::Name("Quantization".to_string()),
+                        e,
+                    ))
+                })?;
 
-            let mut img = liq.new_image_borrowed(
-                pixels.as_rgba(),
-                image.width() as usize,
-                image.height() as usize,
-                0.0,
-            )?;
+            let mut img = liq
+                .new_image_borrowed(
+                    pixels.as_rgba(),
+                    image.width() as usize,
+                    image.height() as usize,
+                    0.0,
+                )
+                .map_err(|e| {
+                    ImageError::Encoding(EncodingError::new(
+                        ImageFormatHint::Name("Quantization".to_string()),
+                        e,
+                    ))
+                })?;
 
-            let mut res = liq.quantize(&mut img)?;
+            let mut res = liq.quantize(&mut img).map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Name("Quantization".to_string()),
+                    e,
+                ))
+            })?;
 
-            res.set_dithering_level(quantization_config.dithering_level())?;
+            res.set_dithering_level(quantization_config.dithering_level())
+                .map_err(|e| {
+                    ImageError::Encoding(EncodingError::new(
+                        ImageFormatHint::Name("Quantization".to_string()),
+                        e,
+                    ))
+                })?;
 
-            let (palette, pixels) = res.remapped(&mut img)?;
+            let (palette, pixels) = res.remapped(&mut img).map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Name("Quantization".to_string()),
+                    e,
+                ))
+            })?;
 
             self.data = DynamicImage::ImageRgba8(
                 ImageBuffer::from_raw(
@@ -175,30 +207,57 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
                         .flat_map(|pix| palette[*pix as usize].iter())
                         .collect::<Vec<u8>>(),
                 )
-                .ok_or(EncoderError::General)?,
+                .ok_or(ImageError::Encoding(EncodingError::from_format_hint(
+                    ImageFormatHint::Name("Quantization".to_string()),
+                )))?,
             );
         }
 
         match self.conf.codec() {
-            crate::config::Codec::MozJpeg => self.encode_mozjpeg(),
+            crate::config::Codec::MozJpeg => self.encode_mozjpeg().map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Jpeg),
+                    e,
+                ))
+            }),
             crate::config::Codec::Png => self.encode_png(),
             #[cfg(feature = "jxl")]
-            crate::config::Codec::JpegXl => self.encode_jpegxl(),
+            crate::config::Codec::JpegXl => self.encode_jpegxl().map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Name("JpegXL".to_string()),
+                    e,
+                ))
+            }),
             #[cfg(feature = "oxipng")]
-            crate::config::Codec::OxiPng => self.encode_oxipng(),
+            crate::config::Codec::OxiPng => self.encode_oxipng().map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Png),
+                    e,
+                ))
+            }),
             #[cfg(feature = "webp")]
-            crate::config::Codec::WebP => self.encode_webp(),
+            crate::config::Codec::WebP => self.encode_webp().map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::WebP),
+                    e,
+                ))
+            }),
             #[cfg(feature = "avif")]
-            crate::config::Codec::Avif => self.encode_avif(),
+            crate::config::Codec::Avif => self.encode_avif().map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Avif),
+                    e,
+                ))
+            }),
         }
     }
 
-    fn encode_mozjpeg(self) -> Result<(), EncoderError> {
+    fn encode_mozjpeg(self) -> ImageResult<()> {
         let width = self.data.width();
         let height = self.data.height();
         let quality = self.conf.quality();
 
-        std::panic::catch_unwind(|| -> Result<(), EncoderError> {
+        std::panic::catch_unwind(|| -> ImageResult<()> {
             let format = match self.data.color() {
                 ColorType::L8 | ColorType::L16 => mozjpeg::ColorSpace::JCS_GRAYSCALE,
                 ColorType::La8 | ColorType::La16 => mozjpeg::ColorSpace::JCS_GRAYSCALE,
@@ -232,33 +291,24 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
 
             Ok(())
         })
-        .map_err(|_| EncoderError::General)?
+        .map_err(|_| {
+            ImageError::Encoding(EncodingError::from_format_hint(ImageFormatHint::Exact(
+                ImageFormat::Jpeg,
+            )))
+        })?
     }
 
-    fn encode_png(self) -> Result<(), EncoderError> {
-        let width = self.data.width();
-        let height = self.data.height();
-
-        let mut encoder = png::Encoder::new(self.w, width, height);
-
-        encoder.set_color(png::ColorType::Rgba);
-        encoder.set_depth(png::BitDepth::Eight);
-
-        let mut writer = encoder.write_header()?;
-
-        writer.write_image_data(self.data.as_bytes())?;
-        writer.finish()?;
-
-        Ok(())
+    fn encode_png(mut self) -> ImageResult<()> {
+        self.data.write_to(&mut self.w, ImageFormat::Png)
     }
 
     #[cfg(feature = "jxl")]
-    fn encode_jpegxl(mut self) -> Result<(), EncoderError> {
+    fn encode_jpegxl(mut self) -> ImageResult<()> {
         unimplemented!()
     }
 
     #[cfg(feature = "oxipng")]
-    fn encode_oxipng(mut self) -> Result<(), EncoderError> {
+    fn encode_oxipng(mut self) -> ImageResult<()> {
         let width = self.data.width();
         let height = self.data.height();
 
@@ -270,15 +320,33 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
             oxipng::ColorType::RGBA,
             oxipng::BitDepth::Eight,
             self.data.as_bytes().to_vec(),
-        )?;
+        )
+        .map_err(|e| {
+            ImageError::Encoding(EncodingError::new(
+                ImageFormatHint::Exact(ImageFormat::Png),
+                e,
+            ))
+        })?;
 
-        self.w.write_all(&img.create_optimized_png(&options)?)?;
+        self.w
+            .write_all(&img.create_optimized_png(&options).map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Png),
+                    e,
+                ))
+            })?)
+            .map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Png),
+                    e,
+                ))
+            })?;
 
         Ok(())
     }
 
     #[cfg(feature = "webp")]
-    fn encode_webp(mut self) -> Result<(), EncoderError> {
+    fn encode_webp(mut self) -> ImageResult<()> {
         let width = self.data.width();
         let height = self.data.height();
 
@@ -291,7 +359,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     }
 
     #[cfg(feature = "avif")]
-    fn encode_avif(mut self) -> Result<(), EncoderError> {
+    fn encode_avif(mut self) -> ImageResult<()> {
         let width = self.data.width();
         let height = self.data.height();
 
@@ -302,7 +370,13 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
                 self.data.into_rgba8().as_rgba(),
                 width as usize,
                 height as usize,
-            ))?;
+            ))
+            .map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Avif),
+                    e,
+                ))
+            })?;
 
         self.w.write_all(&img.avif_file)?;
         self.w.flush()?;
