@@ -581,6 +581,7 @@ dependencies = [
  "png",
  "qoi",
  "tiff",
+ "webp",
 ]
 
 [[package]]
@@ -1425,7 +1426,6 @@ dependencies = [
  "rgb",
  "thiserror",
  "transpose",
- "webp",
 ]
 
 [[package]]
