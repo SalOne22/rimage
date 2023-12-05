@@ -30,6 +30,7 @@ transform = ["dep:transpose"]
 avif = ["dep:ravif", "dep:libavif-image"]
 exif = ["dep:kamadak-exif", "transform"]
 jxl = ["dep:jxl-oxide"]
+webp = ["image/webp-encoder"]
 cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
 
 
@@ -69,11 +70,6 @@ default-features = false
 [dependencies.oxipng]
 version = "9.0.0"
 features = ["zopfli", "filetime"]
-default-features = false
-optional = true
-
-[dependencies.webp]
-version = "0.2.6"
 default-features = false
 optional = true
 
