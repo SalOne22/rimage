@@ -23,13 +23,13 @@ codegen-units = 1
 
 [features]
 default = ["cli", "parallel", "quantization", "resizing", "exif", "oxipng"]
-parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jxl-oxide?/rayon", "dep:rayon"]
+parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jxl-oxide?/rayon", "zune-jpegxl?/threads", "dep:rayon"]
 quantization = ["dep:imagequant"]
 resizing = ["dep:resize"]
 transform = ["dep:transpose"]
 avif = ["dep:ravif", "dep:libavif-image"]
 exif = ["dep:kamadak-exif", "transform"]
-jxl = ["dep:jxl-oxide"]
+jxl = ["dep:jxl-oxide", "dep:zune-jpegxl", "dep:zune-core"]
 webp = ["image/webp-encoder"]
 cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
 
@@ -57,6 +57,17 @@ version = "0.5.1"
 default-features = false
 optional = true
 
+[dependencies.zune-core]
+version = "0.4.11"
+default-features = false
+optional = true
+
+[dependencies.zune-jpegxl]
+version = "0.4.0"
+default-features = false
+features = ["std"]
+optional = true
+
 [dependencies.imagequant]
 version = "4.2.1"
 default-features = false
@@ -70,24 +81,6 @@ default-features = false
 [dependencies.oxipng]
 version = "9.0.0"
 features = ["zopfli", "filetime"]
-default-features = false
-optional = true
-
-[dependencies.libavif-sys]
-version = "0.14.3"
-features = ["codec-aom"]
-default-features = false
-optional = true
-
-# Because libjxl cant be build on x86_64 macos
-[target.'cfg(not(all(target_os = "macos", target_arch = "x86_64")))'.dependencies.jpegxl-rs]
-version = "0.8.2+libjxl-0.8.2"
-default-features = false
-features = ["vendored"]
-optional = true
-
-[target.'cfg(all(target_os = "macos", target_arch = "x86_64"))'.dependencies.jpegxl-rs]
-version = "0.8.2+libjxl-0.8.2"
 default-features = false
 optional = true
 
