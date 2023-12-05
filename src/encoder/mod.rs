@@ -1,4 +1,5 @@
-use image::error::ImageFormatHint;
+use image::codecs::webp::WebPQuality;
+use image::error::{ImageFormatHint, UnsupportedError, UnsupportedErrorKind};
 use image::{
     error::EncodingError, ColorType, DynamicImage, ImageBuffer, ImageError, ImageFormat,
     ImageResult,
@@ -114,7 +115,6 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
     /// # Ok::<(), image::ImageError>(())
     /// ```
     #[allow(unused_mut)]
-    // TODO: Change Error type to ImageError
     pub fn encode(mut self) -> ImageResult<()> {
         // TODO: Move resize out from encoder to operations
         #[cfg(feature = "resizing")]
@@ -214,41 +214,16 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
         }
 
         match self.conf.codec() {
-            crate::config::Codec::MozJpeg => self.encode_mozjpeg().map_err(|e| {
-                ImageError::Encoding(EncodingError::new(
-                    ImageFormatHint::Exact(ImageFormat::Jpeg),
-                    e,
-                ))
-            }),
+            crate::config::Codec::MozJpeg => self.encode_mozjpeg(),
             crate::config::Codec::Png => self.encode_png(),
             #[cfg(feature = "jxl")]
-            crate::config::Codec::JpegXl => self.encode_jpegxl().map_err(|e| {
-                ImageError::Encoding(EncodingError::new(
-                    ImageFormatHint::Name("JpegXL".to_string()),
-                    e,
-                ))
-            }),
+            crate::config::Codec::JpegXl => self.encode_jpegxl(),
             #[cfg(feature = "oxipng")]
-            crate::config::Codec::OxiPng => self.encode_oxipng().map_err(|e| {
-                ImageError::Encoding(EncodingError::new(
-                    ImageFormatHint::Exact(ImageFormat::Png),
-                    e,
-                ))
-            }),
+            crate::config::Codec::OxiPng => self.encode_oxipng(),
             #[cfg(feature = "webp")]
-            crate::config::Codec::WebP => self.encode_webp().map_err(|e| {
-                ImageError::Encoding(EncodingError::new(
-                    ImageFormatHint::Exact(ImageFormat::WebP),
-                    e,
-                ))
-            }),
+            crate::config::Codec::WebP => self.encode_webp(),
             #[cfg(feature = "avif")]
-            crate::config::Codec::Avif => self.encode_avif().map_err(|e| {
-                ImageError::Encoding(EncodingError::new(
-                    ImageFormatHint::Exact(ImageFormat::Avif),
-                    e,
-                ))
-            }),
+            crate::config::Codec::Avif => self.encode_avif(),
         }
     }
 
@@ -314,11 +289,48 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
 
         let options = oxipng::Options::default();
 
+        let (color_type, bit_depth) = match self.data.color() {
+            ColorType::L8 => (
+                oxipng::ColorType::Grayscale {
+                    transparent_shade: None,
+                },
+                oxipng::BitDepth::Eight,
+            ),
+            ColorType::La8 => (oxipng::ColorType::GrayscaleAlpha, oxipng::BitDepth::Eight),
+            ColorType::Rgb8 => (
+                oxipng::ColorType::RGB {
+                    transparent_color: None,
+                },
+                oxipng::BitDepth::Eight,
+            ),
+            ColorType::Rgba8 => (oxipng::ColorType::RGBA, oxipng::BitDepth::Eight),
+            ColorType::L16 => (
+                oxipng::ColorType::Grayscale {
+                    transparent_shade: None,
+                },
+                oxipng::BitDepth::Sixteen,
+            ),
+            ColorType::La16 => (oxipng::ColorType::GrayscaleAlpha, oxipng::BitDepth::Sixteen),
+            ColorType::Rgb16 => (
+                oxipng::ColorType::RGB {
+                    transparent_color: None,
+                },
+                oxipng::BitDepth::Sixteen,
+            ),
+            ColorType::Rgba16 => (oxipng::ColorType::RGBA, oxipng::BitDepth::Sixteen),
+            color => Err(ImageError::Unsupported(
+                UnsupportedError::from_format_and_kind(
+                    ImageFormatHint::Exact(ImageFormat::Png),
+                    UnsupportedErrorKind::Color(color.into()),
+                ),
+            ))?,
+        };
+
         let img = oxipng::RawImage::new(
             width,
             height,
-            oxipng::ColorType::RGBA,
-            oxipng::BitDepth::Eight,
+            color_type,
+            bit_depth,
             self.data.as_bytes().to_vec(),
         )
         .map_err(|e| {
@@ -346,16 +358,18 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
     }
 
     #[cfg(feature = "webp")]
-    fn encode_webp(mut self) -> ImageResult<()> {
-        let width = self.data.width();
-        let height = self.data.height();
+    fn encode_webp(self) -> ImageResult<()> {
+        let image = match self.data.color() {
+            ColorType::Rgb8 | ColorType::Rgba8 => self.data,
+            _ => DynamicImage::ImageRgba8(self.data.into_rgba8()),
+        };
 
-        let encoder = webp::Encoder::from_rgba(self.data.as_bytes(), width, height);
+        let encoder = image::codecs::webp::WebPEncoder::new_with_quality(
+            self.w,
+            WebPQuality::lossy(self.conf.quality().round() as u8),
+        );
 
-        self.w.write_all(&encoder.encode(self.conf.quality()))?;
-        self.w.flush()?;
-
-        Ok(())
+        image.write_with_encoder(encoder)
     }
 
     #[cfg(feature = "avif")]
