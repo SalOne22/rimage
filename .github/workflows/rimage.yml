@@ -107,27 +107,27 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
-      - name: Build 🏗️ (windows)
-        if: matrix.os == 'windows-2019'
+      - name: Build 🏗️ (windows msvc)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           cargo build --all-features --target ${{ matrix.target }}
 
-      - name: Build 🏗️ (unix)
-        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-emscripten' }}
+      - name: Build 🏗️ (unix / windows gnu)
+        if: ${{ matrix.target != 'x86_64-pc-windows-msvc' && matrix.target != 'wasm32-unknown-emscripten' }}
         run: |
           cargo build --all-features --target ${{ matrix.target }}
 
-      - name: Test 🧪 (windows)
-        if: matrix.os == 'windows-2019'
+      - name: Test 🧪 (windows msvc)
+        if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: cmd
         run: |
           call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
           cargo test --all-features --target ${{ matrix.target }}
 
-      - name: Test 🧪 (unix)
-        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-emscripten' && matrix.target != 'aarch64-apple-darwin' && matrix.target != 'aarch64-unknown-linux-gnu' }}
+      - name: Test 🧪 (unix / windows gnu)
+        if: ${{ matrix.target != 'x86_64-pc-windows-msvc' && matrix.target != 'wasm32-unknown-emscripten' && matrix.target != 'aarch64-apple-darwin' && matrix.target != 'aarch64-unknown-linux-gnu' }}
         run: |
           cargo test --all-features --target ${{ matrix.target }}
 
