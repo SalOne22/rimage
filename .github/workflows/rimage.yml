@@ -36,7 +36,7 @@ jobs:
             os: ubuntu-latest
             target-apt-arch: arm64
           - target: wasm32-unknown-unknown
-            os: ubuntu-latest
+            os: macos-latest
             target-apt-arch: amd64
           - target: x86_64-pc-windows-gnu
             os: windows-2019
@@ -92,17 +92,13 @@ jobs:
 
       - name: Install emcc
         if: matrix.target == 'wasm32-unknown-unknown'
-        run: DEBIAN_FRONTEND=noninteractive sudo apt-get install -y emscripten
+        run: brew install emscripten
 
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-2019'
         run: |
-          choco install -y ninja
+          choco install -y ninja nasm
           pip install meson
-
-      - name: Install nasm (windows)
-        if: matrix.os == 'windows-2019'
-        uses: ilammy/setup-nasm@v1
 
       - name: Setup rust toolchain 🦀
         uses: actions-rs/toolchain@v1
