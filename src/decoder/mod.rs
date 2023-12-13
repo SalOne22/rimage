@@ -1,15 +1,12 @@
-use image::error::{DecodingError, ImageFormatHint, UnsupportedError, UnsupportedErrorKind};
-use image::DynamicImage::{ImageLuma8, ImageLumaA8, ImageRgb8, ImageRgba8};
-use image::{
-    DynamicImage, GrayAlphaImage, GrayImage, ImageError, ImageResult, RgbImage, RgbaImage,
-};
-use std::io::Seek;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
 };
+use std::io::Seek;
 
+use image::{DynamicImage, ImageError, ImageResult};
+use image::error::{ImageFormatHint, UnsupportedError};
 use image::io::Reader as ImageReader;
 
 use crate::config::ImageFormat;
@@ -132,6 +129,10 @@ impl<R: BufRead + Seek> Decoder<R> {
 
     #[cfg(feature = "jxl")]
     fn decode_jpegxl(self) -> ImageResult<DynamicImage> {
+        use image::error::{DecodingError, UnsupportedErrorKind};
+        use image::DynamicImage::{ImageLuma8, ImageLumaA8, ImageRgb8, ImageRgba8};
+        use image::{GrayAlphaImage, GrayImage, RgbaImage, RgbImage};
+
         use jxl_oxide::{JxlImage, PixelFormat};
 
         let image = JxlImage::from_reader(self.r.into_inner()).map_err(|e| {
@@ -215,6 +216,8 @@ impl<R: BufRead + Seek> Decoder<R> {
 
     #[cfg(feature = "avif")]
     fn decode_avif(self) -> ImageResult<DynamicImage> {
+        use image::error::DecodingError;
+
         let mut r = self.r.into_inner();
 
         let mut buf: Vec<u8> = vec![];
