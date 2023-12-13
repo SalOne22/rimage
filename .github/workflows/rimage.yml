@@ -91,7 +91,7 @@ jobs:
           brew install ninja nasm meson
 
       - name: Install emcc
-        if: matrix.target == 'wasm32-unknown-unknown'
+        if: matrix.target == 'wasm32-unknown-emscripten'
         run: brew install emscripten
 
       - name: Install dependencies (windows)
@@ -115,7 +115,7 @@ jobs:
           cargo build --all-features --target ${{ matrix.target }}
 
       - name: Build 🏗️ (unix)
-        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-unknown' }}
+        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-emscripten' }}
         run: |
           cargo build --all-features --target ${{ matrix.target }}
 
@@ -127,12 +127,12 @@ jobs:
           cargo test --all-features --target ${{ matrix.target }}
 
       - name: Test 🧪 (unix)
-        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-unknown' && matrix.target != 'aarch64-apple-darwin' && matrix.target != 'aarch64-unknown-linux-gnu' }}
+        if: ${{ matrix.os != 'windows-2019' && matrix.target != 'wasm32-unknown-emscripten' && matrix.target != 'aarch64-apple-darwin' && matrix.target != 'aarch64-unknown-linux-gnu' }}
         run: |
           cargo test --all-features --target ${{ matrix.target }}
 
       - name: Check wasm
-        if: matrix.target == 'wasm32-unknown-unknown'
+        if: matrix.target == 'wasm32-unknown-emscripten'
         run: |
           export EMSCRIPTEN_CMAKE_FILE="$(brew --cellar emscripten)/$(brew list --versions emscripten | tr ' ' '\n' | tail -1)/libexec/cmake/Modules/Platform/Emscripten.cmake"
           cargo check --all-features --target ${{ matrix.target }}
