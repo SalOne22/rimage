@@ -115,6 +115,7 @@ pub enum DecoderError {
     WebP,
 }
 
+/// An error occurred when encoding JpegXL image
 #[cfg(feature = "jxl")]
 #[derive(Error, Debug)]
 #[error("{0:?}")]
