@@ -1,13 +1,13 @@
+use std::io::Seek;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
 };
-use std::io::Seek;
 
-use image::{DynamicImage, ImageError, ImageResult};
 use image::error::{ImageFormatHint, UnsupportedError};
 use image::io::Reader as ImageReader;
+use image::{DynamicImage, ImageError, ImageResult};
 
 use crate::config::ImageFormat;
 
@@ -131,7 +131,7 @@ impl<R: BufRead + Seek> Decoder<R> {
     fn decode_jpegxl(self) -> ImageResult<DynamicImage> {
         use image::error::{DecodingError, UnsupportedErrorKind};
         use image::DynamicImage::{ImageLuma8, ImageLumaA8, ImageRgb8, ImageRgba8};
-        use image::{GrayAlphaImage, GrayImage, RgbaImage, RgbImage};
+        use image::{GrayAlphaImage, GrayImage, RgbImage, RgbaImage};
 
         use jxl_oxide::{JxlImage, PixelFormat};
 
