@@ -79,16 +79,18 @@ jobs:
             target/
           key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - uses: ilammy/setup-nasm@v1
+
       - name: Install dependencies (linux)
         if: matrix.os == 'ubuntu-latest'
         run: |
           DEBIAN_FRONTEND=noninteractive sudo apt-get update
-          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build nasm meson
+          DEBIAN_FRONTEND=noninteractive sudo apt-get install -y ninja-build meson
 
       - name: Install dependencies (macos)
         if: matrix.os == 'macos-latest'
         run: |
-          brew install ninja nasm meson
+          brew install ninja meson
 
       - name: Install emcc
         if: matrix.target == 'wasm32-unknown-emscripten'
@@ -97,7 +99,7 @@ jobs:
       - name: Install dependencies (windows)
         if: matrix.os == 'windows-2019'
         run: |
-          choco install -y ninja nasm
+          choco install -y ninja
           pip install meson
 
       - name: Setup rust toolchain 🦀
@@ -106,11 +108,6 @@ jobs:
           profile: minimal
           toolchain: stable
           target: ${{ matrix.target }}
-
-      - name: Verify NASM Installation
-        if: matrix.target == 'x86_64-pc-windows-gnu'
-        run: |
-          nasm -v
 
       - name: Build 🏗️ (windows msvc)
         if: matrix.target == 'x86_64-pc-windows-msvc'
