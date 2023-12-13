@@ -34,9 +34,10 @@ jobs:
             target-apt-arch: amd64
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
+            target-apt-arch: arm64
           - target: wasm32-unknown-unknown
             os: ubuntu-latest
-            target-apt-arch: arm64
+            target-apt-arch: amd64
           - target: x86_64-pc-windows-gnu
             os: windows-2019
           - target: x86_64-pc-windows-msvc
