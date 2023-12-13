@@ -107,6 +107,11 @@ jobs:
           toolchain: stable
           target: ${{ matrix.target }}
 
+      - name: Verify NASM Installation
+        if: matrix.target == 'x86_64-pc-windows-gnu'
+        run: |
+          nasm -v
+
       - name: Build 🏗️ (windows msvc)
         if: matrix.target == 'x86_64-pc-windows-msvc'
         shell: cmd
