@@ -50,7 +50,7 @@ clap = { version = "4.4.2", optional = true }
 version = "0.11.0"
 optional = true
 default-features = false
-features = ["codec-dav1d"]
+features = ["codec-aom"]
 
 [dependencies.jxl-oxide]
 version = "0.5.1"
