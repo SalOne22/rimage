@@ -83,7 +83,7 @@ jobs:
         if: startsWith(matrix.target, 'aarch64-unknown-linux')
         run: |
           sudo apt-get -yq update
-          sudo apt-get -yq install gcc-aarch64-linux-gnu libc6:arm64 g++:arm64
+          sudo apt-get -yq install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6:arm64
 
       - uses: Swatinem/rust-cache@v2
 
@@ -118,6 +118,7 @@ jobs:
         run: brew install emscripten
 
       - name: build
+        if: matrix.target != 'wasm32-unknown-emscripten'
         run: cargo build --all-features --release
 
       - name: test
