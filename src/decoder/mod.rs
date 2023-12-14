@@ -1,30 +1,30 @@
+use std::io::Seek;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
     path::Path,
 };
 
-use rgb::{
-    alt::{GRAY8, GRAYA8},
-    AsPixels, FromSlice, RGB8, RGBA8,
-};
+use image::error::{ImageFormatHint, UnsupportedError};
+use image::io::Reader as ImageReader;
+use image::{DynamicImage, ImageError, ImageResult};
 
-use crate::{config::ImageFormat, error::DecoderError, Image};
+use crate::config::ImageFormat;
 
 /// Decoder for reading and decoding images from various formats.
-pub struct Decoder<R: BufRead> {
-    r: R,
+pub struct Decoder<R: BufRead + Seek> {
+    r: ImageReader<R>,
     format: Option<ImageFormat>,
     #[cfg(feature = "transform")]
     fix_orientation: Option<u32>,
 }
 
-impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
+impl<R: BufRead + Seek> Decoder<R> {
     /// Creates a new [`Decoder`] with the specified input reader.
     ///
     /// # Parameters
     ///
-    /// - `r`: The input reader implementing [`BufRead`] from which image data will be read.
+    /// - `r`: The input reader implementing [`Read`] from which image data will be read.
     ///
     /// # Returns
     ///
@@ -32,7 +32,7 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
     #[inline]
     pub fn new(r: R) -> Self {
         Self {
-            r,
+            r: ImageReader::new(r),
             format: None,
             #[cfg(feature = "transform")]
             fix_orientation: None,
@@ -92,196 +92,151 @@ impl<R: BufRead + std::panic::UnwindSafe> Decoder<R> {
     /// # Returns
     ///
     /// Returns a [`Result`] containing the decoded [`Image`] on success or a [`DecoderError`] on failure.
-    pub fn decode(self) -> Result<Image, DecoderError> {
+    pub fn decode(self) -> ImageResult<DynamicImage> {
         #[cfg(feature = "transform")]
         let orientation = self.fix_orientation;
 
-        #[allow(unused_mut)]
         let mut image = match self.format {
-            Some(ImageFormat::Jpeg) => self.decode_jpeg(),
-            Some(ImageFormat::Png) => self.decode_png(),
-            #[cfg(feature = "avif")]
-            Some(ImageFormat::Avif) => unsafe { self.decode_avif() },
             #[cfg(feature = "jxl")]
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
-            #[cfg(feature = "webp")]
-            Some(ImageFormat::WebP) => self.decode_webp(),
-            None => Err(DecoderError::Format(
-                crate::error::ImageFormatError::Missing,
-            )),
+            #[cfg(feature = "avif")]
+            Some(ImageFormat::Avif) => self.decode_avif(),
+            _ => self.r.with_guessed_format()?.decode(),
         }?;
 
         #[cfg(feature = "transform")]
         if let Some(orientation) = orientation {
-            image.fix_orientation(orientation)
+            if orientation <= 8 {
+                let orientation = orientation - 1;
+
+                if orientation & 0b100 != 0 {
+                    image = image.rotate90();
+                    image = image.fliph();
+                }
+
+                if orientation & 0b010 != 0 {
+                    image = image.rotate180();
+                }
+
+                if orientation & 0b001 != 0 {
+                    image = image.fliph();
+                }
+            }
         }
 
         Ok(image)
     }
 
-    fn decode_jpeg(self) -> Result<Image, DecoderError> {
-        std::panic::catch_unwind(|| -> Result<Image, DecoderError> {
-            let decoder =
-                mozjpeg::Decompress::with_markers(mozjpeg::ALL_MARKERS).from_reader(self.r)?;
+    #[cfg(feature = "jxl")]
+    fn decode_jpegxl(self) -> ImageResult<DynamicImage> {
+        use image::error::{DecodingError, UnsupportedErrorKind};
+        use image::DynamicImage::{ImageLuma8, ImageLumaA8, ImageRgb8, ImageRgba8};
+        use image::{GrayAlphaImage, GrayImage, RgbImage, RgbaImage};
 
-            let mut image = decoder.rgba()?;
+        use jxl_oxide::{JxlImage, PixelFormat};
 
-            let pixels = image.read_scanlines()?;
+        let image = JxlImage::from_reader(self.r.into_inner()).map_err(|e| {
+            ImageError::Decoding(DecodingError::new(
+                ImageFormatHint::Name("JpegXL".to_string()),
+                e,
+            ))
+        })?;
+        let render = image.render_frame(0).map_err(|e| {
+            ImageError::Decoding(DecodingError::new(
+                ImageFormatHint::Name("JpegXL".to_string()),
+                e,
+            ))
+        })?;
 
-            Ok(Image::new(pixels, image.width(), image.height()))
+        let format = image.pixel_format();
+
+        let framebuffer = render.image();
+
+        Ok(match format {
+            PixelFormat::Gray => ImageLuma8(
+                GrayImage::from_raw(
+                    framebuffer.width() as u32,
+                    framebuffer.height() as u32,
+                    framebuffer
+                        .buf()
+                        .iter()
+                        .map(|x| x * 255. + 0.5)
+                        .map(|x| x as u8)
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap(),
+            ),
+            PixelFormat::Graya => ImageLumaA8(
+                GrayAlphaImage::from_raw(
+                    framebuffer.width() as u32,
+                    framebuffer.height() as u32,
+                    framebuffer
+                        .buf()
+                        .iter()
+                        .map(|x| x * 255. + 0.5)
+                        .map(|x| x as u8)
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap(),
+            ),
+            PixelFormat::Rgb => ImageRgb8(
+                RgbImage::from_raw(
+                    framebuffer.width() as u32,
+                    framebuffer.height() as u32,
+                    framebuffer
+                        .buf()
+                        .iter()
+                        .map(|x| x * 255. + 0.5)
+                        .map(|x| x as u8)
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap(),
+            ),
+            PixelFormat::Rgba => ImageRgba8(
+                RgbaImage::from_raw(
+                    framebuffer.width() as u32,
+                    framebuffer.height() as u32,
+                    framebuffer
+                        .buf()
+                        .iter()
+                        .map(|x| x * 255. + 0.5)
+                        .map(|x| x as u8)
+                        .collect::<Vec<_>>(),
+                )
+                .unwrap(),
+            ),
+            _ => Err(ImageError::Unsupported(
+                UnsupportedError::from_format_and_kind(
+                    ImageFormatHint::Name("JpegXL".to_string()),
+                    UnsupportedErrorKind::GenericFeature("CMYK Colorspace".to_string()),
+                ),
+            ))?,
         })
-        .map_err(|_| DecoderError::MozJpeg)?
-    }
-
-    fn decode_png(self) -> Result<Image, DecoderError> {
-        let mut decoder = png::Decoder::new(self.r);
-
-        decoder.set_transformations(png::Transformations::normalize_to_color8());
-
-        let mut reader = decoder.read_info()?;
-
-        let info = reader.info();
-
-        let buf_size = (info.width * info.height * 4) as usize;
-
-        let mut buf: Vec<u8> = vec![0; buf_size];
-
-        let info = reader.next_frame(&mut buf)?;
-
-        match info.color_type {
-            png::ColorType::Grayscale => Self::expand_pixels(&mut buf, GRAY8::into),
-            png::ColorType::GrayscaleAlpha => Self::expand_pixels(&mut buf, GRAYA8::into),
-            png::ColorType::Rgb => Self::expand_pixels(&mut buf, RGB8::into),
-            png::ColorType::Rgba => {}
-            png::ColorType::Indexed => {
-                unreachable!("Indexed color type is expected to be expanded")
-            }
-        };
-
-        Ok(Image::new(
-            buf.as_rgba().to_owned(),
-            info.width as usize,
-            info.height as usize,
-        ))
     }
 
     #[cfg(feature = "avif")]
-    unsafe fn decode_avif(mut self) -> Result<Image, DecoderError> {
-        use libavif_sys::*;
+    fn decode_avif(self) -> ImageResult<DynamicImage> {
+        use image::error::DecodingError;
 
-        let image = avifImageCreateEmpty();
-        let decoder = avifDecoderCreate();
+        let mut r = self.r.into_inner();
 
-        let mut buf = Vec::new();
+        let mut buf: Vec<u8> = vec![];
 
-        self.r.read_to_end(&mut buf)?;
+        r.read_to_end(&mut buf)?;
 
-        let decode_result = avifDecoderReadMemory(decoder, image, buf.as_ptr(), buf.len());
-        avifDecoderDestroy(decoder);
-
-        if decode_result == AVIF_RESULT_OK {
-            let mut rgb = avifRGBImage::default();
-            avifRGBImageSetDefaults(&mut rgb, image);
-
-            rgb.depth = 8;
-
-            avifRGBImageAllocatePixels(&mut rgb);
-            avifImageYUVToRGB(image, &mut rgb);
-
-            let pixels =
-                std::slice::from_raw_parts(rgb.pixels, (rgb.rowBytes * rgb.height) as usize)
-                    .as_rgba()
-                    .to_owned();
-
-            let result = Image::new(pixels, rgb.width as usize, rgb.height as usize);
-
-            avifRGBImageFreePixels(&mut rgb);
-
-            Ok(result)
-        } else {
-            Err(DecoderError::Avif(decode_result))
-        }
-    }
-
-    #[cfg(feature = "jxl")]
-    fn decode_jpegxl(mut self) -> Result<Image, DecoderError> {
-        #[cfg(feature = "parallel")]
-        let runner = jpegxl_rs::ThreadsRunner::default();
-
-        #[cfg(feature = "parallel")]
-        let decoder = jpegxl_rs::decoder_builder()
-            .parallel_runner(&runner)
-            .pixel_format(jpegxl_rs::decode::PixelFormat {
-                num_channels: 4,
-                endianness: jpegxl_rs::Endianness::Native,
-                align: 0,
-            })
-            .build()?;
-
-        #[cfg(not(feature = "parallel"))]
-        let decoder = jpegxl_rs::decoder_builder()
-            .pixel_format(jpegxl_rs::decode::PixelFormat {
-                num_channels: 4,
-                endianness: jpegxl_rs::Endianness::Native,
-                align: 0,
-            })
-            .build()?;
-
-        let mut buf = Vec::new();
-
-        self.r.read_to_end(&mut buf)?;
-
-        let (info, pixels) = decoder.decode_with::<u8>(&buf)?;
-
-        Ok(Image::new(
-            pixels.as_rgba().to_owned(),
-            info.width as usize,
-            info.height as usize,
-        ))
-    }
-
-    #[cfg(feature = "webp")]
-    fn decode_webp(mut self) -> Result<Image, DecoderError> {
-        let mut buf = Vec::new();
-
-        self.r.read_to_end(&mut buf)?;
-
-        let decoder = webp::Decoder::new(&buf);
-
-        let image = decoder.decode().ok_or(DecoderError::WebP)?;
-
-        let mut buf = image.to_vec();
-
-        if !image.is_alpha() {
-            let buf_size = (image.width() * image.height() * 4) as usize;
-            buf.resize(buf_size, 0);
-
-            Self::expand_pixels(&mut buf, RGB8::into);
-        }
-
-        Ok(Image::new(
-            buf.as_rgba().to_vec(),
-            image.width() as usize,
-            image.height() as usize,
-        ))
-    }
-
-    fn expand_pixels<T: Copy>(buf: &mut [u8], to_rgba: impl Fn(T) -> RGBA8)
-    where
-        [u8]: AsPixels<T> + FromSlice<u8>,
-    {
-        assert!(std::mem::size_of::<T>() <= std::mem::size_of::<RGBA8>());
-        for i in (0..buf.len() / 4).rev() {
-            let src_pix = buf.as_pixels()[i];
-            buf.as_rgba_mut()[i] = to_rgba(src_pix);
-        }
+        libavif_image::read(&buf).map_err(|e| {
+            ImageError::Decoding(DecodingError::new(
+                ImageFormatHint::Exact(image::ImageFormat::Avif),
+                e,
+            ))
+        })
     }
 }
 
 impl Decoder<BufReader<File>> {
     /// Creates a new [`Decoder`] from a file specified by the given path.
     ///
-    /// This method opens the file at the specified path, sets up a `BufReader` for reading, and
+    /// This method opens the file at the specified path, sets up a `Reader` for reading, and
     /// determines the image format based on the file extension.
     ///
     /// # Parameters
@@ -298,12 +253,14 @@ impl Decoder<BufReader<File>> {
     /// This method may return a [`DecoderError`] if there are issues with opening the file, determining
     /// the image format, or other I/O-related errors.
     #[inline]
-    pub fn from_path(path: &Path) -> Result<Self, DecoderError> {
+    pub fn from_path(path: impl AsRef<Path>) -> ImageResult<Self> {
         Ok(Self {
-            r: BufReader::new(File::open(path)?),
-            format: Some(ImageFormat::from_path(path)?),
+            r: ImageReader::open(path.as_ref())?,
+            format: Some(ImageFormat::from_path(path.as_ref()).map_err(|_| {
+                ImageError::Unsupported(UnsupportedError::from(ImageFormatHint::Unknown))
+            })?),
             #[cfg(feature = "transform")]
-            fix_orientation: Self::get_orientation(path),
+            fix_orientation: Self::get_orientation(path.as_ref()),
         })
     }
 

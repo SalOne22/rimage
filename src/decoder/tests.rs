@@ -7,7 +7,7 @@ fn new_decoder() {
     let cursor = Cursor::new(Vec::new());
     let decoder = Decoder::new(cursor.clone());
 
-    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.r.into_inner(), cursor);
     assert_eq!(decoder.format, None);
     #[cfg(feature = "transform")]
     assert_eq!(decoder.fix_orientation, None);
@@ -18,7 +18,7 @@ fn new_decoder_with_format() {
     let cursor = Cursor::new(Vec::new());
     let decoder = Decoder::new(cursor.clone()).with_format(ImageFormat::Jpeg);
 
-    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.r.into_inner(), cursor);
     assert_eq!(decoder.format, Some(ImageFormat::Jpeg));
     #[cfg(feature = "transform")]
     assert_eq!(decoder.fix_orientation, None);
@@ -29,14 +29,16 @@ fn decode_without_format() {
     let cursor = Cursor::new(Vec::new());
     let decoder = Decoder::new(cursor.clone());
 
-    assert_eq!(decoder.r, cursor);
     assert_eq!(decoder.format, None);
     #[cfg(feature = "transform")]
     assert_eq!(decoder.fix_orientation, None);
 
     let result = decoder.decode();
     assert!(result.is_err());
-    assert_eq!(result.unwrap_err().to_string(), "Can't find image format");
+    assert_eq!(
+        result.unwrap_err().to_string(),
+        "The image format could not be determined"
+    );
 }
 
 #[test]
@@ -45,7 +47,7 @@ fn new_decoder_with_fixed_orientation() {
     let cursor = Cursor::new(Vec::new());
     let decoder = Decoder::new(cursor.clone()).with_fixed_orientation(4);
 
-    assert_eq!(decoder.r, cursor);
+    assert_eq!(decoder.r.into_inner(), cursor);
     assert_eq!(decoder.format, None);
     #[cfg(feature = "transform")]
     assert_eq!(decoder.fix_orientation, Some(4));
@@ -54,6 +56,7 @@ fn new_decoder_with_fixed_orientation() {
 #[test]
 #[cfg(feature = "exif")]
 fn fix_orientation() -> Result<(), Box<dyn Error>> {
+    // TODO: Add transform when exif tag is present
     let files = fs::read_dir("tests/files/exif")?;
 
     for entry in files {

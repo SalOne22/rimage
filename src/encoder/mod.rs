@@ -1,17 +1,22 @@
-use std::io::Write;
+use image::error::{ImageFormatHint, UnsupportedError, UnsupportedErrorKind};
+use image::{
+    error::EncodingError, ColorType, DynamicImage, ImageBuffer, ImageError, ImageFormat,
+    ImageResult,
+};
+use rgb::FromSlice;
+use std::io::{Seek, Write};
 
-use rgb::ComponentBytes;
-
-use crate::{config::EncoderConfig, error::EncoderError, image::Image};
+use crate::config::EncoderConfig;
+use crate::config::ResizeType;
 
 /// A struct for encoding images using various codecs.
-pub struct Encoder<W: Write> {
+pub struct Encoder<W: Write + Seek> {
     w: W,
-    data: Image,
+    data: DynamicImage,
     conf: EncoderConfig,
 }
 
-impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
+impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
     /// Creates a new [`Encoder`] instance with the specified writer and image data.
     ///
     /// # Parameters
@@ -22,19 +27,19 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     /// # Examples
     ///
     /// ```
-    /// # use rimage::rgb::RGBA8;
-    /// use rimage::{Encoder, Image};
+    /// use rimage::Encoder;
     /// # use std::fs::File;
-    /// # let image_data = vec![RGBA8::new(0, 0, 0, 0); 800 * 600];
+    /// use image::{DynamicImage, RgbaImage};
+    /// # let image_data = vec![0; 800 * 600 * 4];
     ///
-    /// let image = Image::new(image_data, 800, 600);
+    /// let image = RgbaImage::from_raw(800, 600, image_data).unwrap();
     ///
     /// let file = File::create("output.jpg").expect("Failed to create file");
     ///
-    /// let encoder = Encoder::new(file, image); // uses default config
+    /// let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)); // uses default config
     /// ```
     #[inline]
-    pub fn new(w: W, data: Image) -> Self {
+    pub fn new(w: W, data: DynamicImage) -> Self {
         Self {
             w,
             data,
@@ -56,12 +61,13 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     ///
     /// ```
     /// # use rimage::rgb::RGBA8;
-    /// use rimage::{Encoder, Image, config::{EncoderConfig, Codec}};
+    /// use rimage::{Encoder, config::{EncoderConfig, Codec}};
     /// # use std::fs::File;
     /// # use std::fs;
-    /// # let image_data = vec![RGBA8::new(0, 0, 0, 0); 800 * 600];
+    /// use image::{DynamicImage, RgbaImage};
+    /// # let image_data = vec![0; 800 * 600 * 4];
     ///
-    /// let image = Image::new(image_data, 800, 600);
+    /// let image = RgbaImage::from_raw(800, 600, image_data).unwrap();
     ///
     /// let file = File::create("output.png").expect("Failed to create file");
     ///
@@ -69,7 +75,7 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     ///     .with_quality(90.0)
     ///     .unwrap();
     ///
-    /// let encoder = Encoder::new(file, image).with_config(config);
+    /// let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)).with_config(config);
     ///
     /// # fs::remove_file("output.png").unwrap_or(());
     /// # Ok::<(), rimage::error::EncoderError>(())
@@ -89,34 +95,121 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
     /// # Examples
     ///
     /// ```
-    /// use rimage::rgb::RGBA8;
-    /// use rimage::{Encoder, Image, config::EncoderConfig};
+    /// use rimage::{Encoder, config::EncoderConfig};
     /// # use std::fs;
     /// use std::fs::File;
+    /// use image::{DynamicImage, RgbaImage};
     ///
-    /// let image_data = vec![RGBA8::new(0, 0, 0, 0); 800 * 600];
-    /// let image = Image::new(image_data, 800, 600);
+    /// let image_data = vec![0; 800 * 600 * 4];
+    /// let image = RgbaImage::from_raw(800, 600, image_data).unwrap();
     ///
     /// let file = File::create("output.jpg").expect("Failed to create file");
     ///
     /// let config = EncoderConfig::default();
     ///
-    /// let encoder = Encoder::new(file, image).with_config(config);
+    /// let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)).with_config(config);
     ///
     /// encoder.encode()?;
     /// # fs::remove_file("output.jpg")?;
-    /// # Ok::<(), rimage::error::EncoderError>(())
+    /// # Ok::<(), image::ImageError>(())
     /// ```
     #[allow(unused_mut)]
-    pub fn encode(mut self) -> Result<(), EncoderError> {
+    pub fn encode(mut self) -> ImageResult<()> {
+        // TODO: Move resize out from encoder to operations
         #[cfg(feature = "resizing")]
         if let Some(resize_config) = self.conf.resize_config() {
-            self.data.resize(resize_config)?;
+            let aspect_ratio = self.data.width() as f64 / self.data.height() as f64;
+
+            let width = resize_config.width().unwrap_or(
+                resize_config
+                    .height()
+                    .map(|h| (h as f64 * aspect_ratio) as usize)
+                    .unwrap_or(self.data.width() as usize),
+            );
+            let height = resize_config.height().unwrap_or(
+                resize_config
+                    .width()
+                    .map(|w| (w as f64 / aspect_ratio) as usize)
+                    .unwrap_or(self.data.height() as usize),
+            );
+
+            let filter = match resize_config.filter_type() {
+                ResizeType::Point => image::imageops::Nearest,
+                ResizeType::Triangle => image::imageops::Triangle,
+                ResizeType::CatmullRom => image::imageops::CatmullRom,
+                ResizeType::Mitchell => image::imageops::Gaussian, // TODO: rename Mitchell to Gaussian
+                ResizeType::Lanczos3 => image::imageops::Lanczos3,
+            };
+
+            self.data.resize(width as u32, height as u32, filter);
         }
 
+        // TODO: Move quantization out from encoder to operations
         #[cfg(feature = "quantization")]
         if let Some(quantization_config) = self.conf.quantization_config() {
-            self.data.quantize(quantization_config)?;
+            let mut image = self.data.to_rgba8();
+
+            let pixels = image.as_raw();
+
+            let mut liq = imagequant::new();
+
+            liq.set_quality(0, quantization_config.quality())
+                .map_err(|e| {
+                    ImageError::Encoding(EncodingError::new(
+                        ImageFormatHint::Name("Quantization".to_string()),
+                        e,
+                    ))
+                })?;
+
+            let mut img = liq
+                .new_image_borrowed(
+                    pixels.as_rgba(),
+                    image.width() as usize,
+                    image.height() as usize,
+                    0.0,
+                )
+                .map_err(|e| {
+                    ImageError::Encoding(EncodingError::new(
+                        ImageFormatHint::Name("Quantization".to_string()),
+                        e,
+                    ))
+                })?;
+
+            let mut res = liq.quantize(&mut img).map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Name("Quantization".to_string()),
+                    e,
+                ))
+            })?;
+
+            res.set_dithering_level(quantization_config.dithering_level())
+                .map_err(|e| {
+                    ImageError::Encoding(EncodingError::new(
+                        ImageFormatHint::Name("Quantization".to_string()),
+                        e,
+                    ))
+                })?;
+
+            let (palette, pixels) = res.remapped(&mut img).map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Name("Quantization".to_string()),
+                    e,
+                ))
+            })?;
+
+            self.data = DynamicImage::ImageRgba8(
+                ImageBuffer::from_raw(
+                    image.width(),
+                    image.height(),
+                    pixels
+                        .iter()
+                        .flat_map(|pix| palette[*pix as usize].iter())
+                        .collect::<Vec<u8>>(),
+                )
+                .ok_or(ImageError::Encoding(EncodingError::from_format_hint(
+                    ImageFormatHint::Name("Quantization".to_string()),
+                )))?,
+            );
         }
 
         match self.conf.codec() {
@@ -133,126 +226,206 @@ impl<W: Write + std::panic::UnwindSafe> Encoder<W> {
         }
     }
 
-    fn encode_mozjpeg(self) -> Result<(), EncoderError> {
+    fn encode_mozjpeg(self) -> ImageResult<()> {
         let width = self.data.width();
         let height = self.data.height();
         let quality = self.conf.quality();
 
-        std::panic::catch_unwind(|| -> Result<(), EncoderError> {
-            let mut comp = mozjpeg::Compress::new(mozjpeg::ColorSpace::JCS_EXT_RGBA);
+        std::panic::catch_unwind(|| -> ImageResult<()> {
+            let format = match self.data.color() {
+                ColorType::L8 | ColorType::L16 => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+                ColorType::La8 | ColorType::La16 => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+                ColorType::Rgb8 | ColorType::Rgb16 | ColorType::Rgb32F => {
+                    mozjpeg::ColorSpace::JCS_RGB
+                }
+                ColorType::Rgba8 | ColorType::Rgba16 | ColorType::Rgba32F => {
+                    mozjpeg::ColorSpace::JCS_EXT_RGBA
+                }
+                _ => mozjpeg::ColorSpace::JCS_EXT_RGBA,
+            };
 
-            comp.set_size(width, height);
+            let data = match self.data.color() {
+                ColorType::La8 | ColorType::La16 => {
+                    DynamicImage::ImageLuma8(self.data.into_luma8())
+                }
+                _ => self.data,
+            };
+
+            let mut comp = mozjpeg::Compress::new(format);
+
+            comp.set_size(width as usize, height as usize);
             comp.set_quality(quality);
             comp.set_progressive_mode();
 
             let mut comp = comp.start_compress(self.w)?;
 
-            comp.write_scanlines(self.data.data().as_bytes())?;
+            comp.write_scanlines(data.as_bytes())?;
 
             comp.finish()?;
 
             Ok(())
         })
-        .map_err(|_| EncoderError::General)?
+        .map_err(|_| {
+            ImageError::Encoding(EncodingError::from_format_hint(ImageFormatHint::Exact(
+                ImageFormat::Jpeg,
+            )))
+        })?
     }
 
-    fn encode_png(self) -> Result<(), EncoderError> {
-        let width: u32 = self.data.width().try_into()?;
-        let height: u32 = self.data.height().try_into()?;
-
-        let mut encoder = png::Encoder::new(self.w, width, height);
-
-        encoder.set_color(png::ColorType::Rgba);
-        encoder.set_depth(png::BitDepth::Eight);
-
-        let mut writer = encoder.write_header()?;
-
-        writer.write_image_data(self.data.data().as_bytes())?;
-        writer.finish()?;
-
-        Ok(())
+    fn encode_png(mut self) -> ImageResult<()> {
+        self.data.write_to(&mut self.w, ImageFormat::Png)
     }
 
     #[cfg(feature = "jxl")]
-    fn encode_jpegxl(mut self) -> Result<(), EncoderError> {
-        #[cfg(feature = "parallel")]
-        let runner = jpegxl_rs::ThreadsRunner::default();
-        use std::f32::consts::E;
+    fn encode_jpegxl(mut self) -> ImageResult<()> {
+        use crate::error::JxlEncodingError;
+        use zune_core::bit_depth::BitDepth;
+        use zune_core::colorspace::ColorSpace;
+        use zune_core::options::EncoderOptions;
+        use zune_jpegxl::JxlSimpleEncoder;
 
-        let quality = 15.0 * E.powf(-0.1 * self.conf.quality());
+        let width = self.data.width();
+        let height = self.data.height();
 
-        #[cfg(feature = "parallel")]
-        let mut encoder = jpegxl_rs::encoder_builder()
-            .parallel_runner(&runner)
-            .quality(quality)
-            .speed(jpegxl_rs::encode::EncoderSpeed::Falcon)
-            .build()?;
+        let (color_space, bit_depth) = match self.data.color() {
+            ColorType::L8 => (ColorSpace::Luma, BitDepth::Eight),
+            ColorType::La8 => (ColorSpace::LumaA, BitDepth::Eight),
+            ColorType::Rgb8 => (ColorSpace::RGB, BitDepth::Eight),
+            ColorType::Rgba8 => (ColorSpace::RGBA, BitDepth::Eight),
+            ColorType::L16 => (ColorSpace::Luma, BitDepth::Sixteen),
+            ColorType::La16 => (ColorSpace::LumaA, BitDepth::Sixteen),
+            ColorType::Rgb16 => (ColorSpace::RGB, BitDepth::Sixteen),
+            ColorType::Rgba16 => (ColorSpace::RGBA, BitDepth::Sixteen),
+            ColorType::Rgb32F => (ColorSpace::RGB, BitDepth::Float32),
+            ColorType::Rgba32F => (ColorSpace::RGBA, BitDepth::Float32),
+            color => Err(ImageError::Unsupported(
+                UnsupportedError::from_format_and_kind(
+                    ImageFormatHint::Name("JpegXL".to_string()),
+                    UnsupportedErrorKind::Color(color.into()),
+                ),
+            ))?,
+        };
 
-        #[cfg(not(feature = "parallel"))]
-        let mut encoder = jpegxl_rs::encoder_builder()
-            .quality(quality)
-            .speed(jpegxl_rs::encode::EncoderSpeed::Falcon)
-            .build()?;
+        let options = EncoderOptions::new(width as usize, height as usize, color_space, bit_depth);
+        let encoder = JxlSimpleEncoder::new(self.data.as_bytes(), options);
 
-        let buf: jpegxl_rs::encode::EncoderResult<u8> = encoder.encode(
-            self.data
-                .data()
-                .iter()
-                .map(|pix| pix.rgb())
-                .collect::<Vec<rgb::RGB8>>()
-                .as_bytes(),
-            self.data.width().try_into()?,
-            self.data.height().try_into()?,
-        )?;
+        let data = encoder.encode().map_err(|e| {
+            ImageError::Encoding(EncodingError::new(
+                ImageFormatHint::Name("JpegXL".to_string()),
+                JxlEncodingError(e),
+            ))
+        })?;
 
-        self.w.write_all(&buf)?;
-        self.w.flush()?;
+        self.w.write_all(&data)?;
 
         Ok(())
     }
 
     #[cfg(feature = "oxipng")]
-    fn encode_oxipng(mut self) -> Result<(), EncoderError> {
-        let width: u32 = self.data.width().try_into()?;
-        let height: u32 = self.data.height().try_into()?;
+    fn encode_oxipng(mut self) -> ImageResult<()> {
+        let width = self.data.width();
+        let height = self.data.height();
 
         let options = oxipng::Options::default();
+
+        let (color_type, bit_depth) = match self.data.color() {
+            ColorType::L8 => (
+                oxipng::ColorType::Grayscale {
+                    transparent_shade: None,
+                },
+                oxipng::BitDepth::Eight,
+            ),
+            ColorType::La8 => (oxipng::ColorType::GrayscaleAlpha, oxipng::BitDepth::Eight),
+            ColorType::Rgb8 => (
+                oxipng::ColorType::RGB {
+                    transparent_color: None,
+                },
+                oxipng::BitDepth::Eight,
+            ),
+            ColorType::Rgba8 => (oxipng::ColorType::RGBA, oxipng::BitDepth::Eight),
+            ColorType::L16 => (
+                oxipng::ColorType::Grayscale {
+                    transparent_shade: None,
+                },
+                oxipng::BitDepth::Sixteen,
+            ),
+            ColorType::La16 => (oxipng::ColorType::GrayscaleAlpha, oxipng::BitDepth::Sixteen),
+            ColorType::Rgb16 => (
+                oxipng::ColorType::RGB {
+                    transparent_color: None,
+                },
+                oxipng::BitDepth::Sixteen,
+            ),
+            ColorType::Rgba16 => (oxipng::ColorType::RGBA, oxipng::BitDepth::Sixteen),
+            color => Err(ImageError::Unsupported(
+                UnsupportedError::from_format_and_kind(
+                    ImageFormatHint::Exact(ImageFormat::Png),
+                    UnsupportedErrorKind::Color(color.into()),
+                ),
+            ))?,
+        };
 
         let img = oxipng::RawImage::new(
             width,
             height,
-            oxipng::ColorType::RGBA,
-            oxipng::BitDepth::Eight,
-            self.data.data().as_bytes().to_vec(),
-        )?;
+            color_type,
+            bit_depth,
+            self.data.as_bytes().to_vec(),
+        )
+        .map_err(|e| {
+            ImageError::Encoding(EncodingError::new(
+                ImageFormatHint::Exact(ImageFormat::Png),
+                e,
+            ))
+        })?;
 
-        self.w.write_all(&img.create_optimized_png(&options)?)?;
+        self.w
+            .write_all(&img.create_optimized_png(&options).map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Png),
+                    e,
+                ))
+            })?)?;
 
         Ok(())
     }
 
     #[cfg(feature = "webp")]
-    fn encode_webp(mut self) -> Result<(), EncoderError> {
-        let width: u32 = self.data.width().try_into()?;
-        let height: u32 = self.data.height().try_into()?;
+    fn encode_webp(self) -> ImageResult<()> {
+        use image::codecs::webp::WebPQuality;
 
-        let encoder = webp::Encoder::from_rgba(self.data.data().as_bytes(), width, height);
+        let image = match self.data.color() {
+            ColorType::Rgb8 | ColorType::Rgba8 => self.data,
+            _ => DynamicImage::ImageRgba8(self.data.into_rgba8()),
+        };
 
-        self.w.write_all(&encoder.encode(self.conf.quality()))?;
-        self.w.flush()?;
+        let encoder = image::codecs::webp::WebPEncoder::new_with_quality(
+            self.w,
+            WebPQuality::lossy(self.conf.quality().round() as u8),
+        );
 
-        Ok(())
+        image.write_with_encoder(encoder)
     }
 
     #[cfg(feature = "avif")]
-    fn encode_avif(mut self) -> Result<(), EncoderError> {
+    fn encode_avif(mut self) -> ImageResult<()> {
         let width = self.data.width();
         let height = self.data.height();
 
         let img = ravif::Encoder::new()
             .with_quality(self.conf.quality())
             .with_speed(4)
-            .encode_rgba(ravif::Img::new(self.data.data(), width, height))?;
+            .encode_rgba(ravif::Img::new(
+                self.data.into_rgba8().as_rgba(),
+                width as usize,
+                height as usize,
+            ))
+            .map_err(|e| {
+                ImageError::Encoding(EncodingError::new(
+                    ImageFormatHint::Exact(ImageFormat::Avif),
+                    e,
+                ))
+            })?;
 
         self.w.write_all(&img.avif_file)?;
         self.w.flush()?;

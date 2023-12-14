@@ -1,4 +1,4 @@
-name: Combine PRs
+name: combine pr's
 
 on:
   workflow_dispatch:
