@@ -137,7 +137,7 @@ jobs:
         if: matrix.target == 'wasm32-unknown-emscripten'
         run: |
           export EMSCRIPTEN_CMAKE_FILE="$(brew --cellar emscripten)/$(brew list --versions emscripten | tr ' ' '\n' | tail -1)/libexec/cmake/Modules/Platform/Emscripten.cmake"
-          cargo check --all-features
+          cargo check --no-default-features -F quantization,resizing,exif,oxipng,avif,jxl,webp
         env:
           CC: "emcc"
           CXX: "emcc"
