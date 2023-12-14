@@ -78,6 +78,7 @@ jobs:
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
+          sudo ln -s /bin/g++ /bin/musl-g++
 
       - name: install aarch64 cross compiler
         if: startsWith(matrix.target, 'aarch64-unknown-linux')
