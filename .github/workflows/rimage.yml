@@ -130,7 +130,7 @@ jobs:
         run: cargo build --all-features --release
 
       - name: test
-        if: contains('aarch64', matrix.target) == false
+        if: ! startsWith(matrix.target, 'aarch64') && matrix.target != 'wasm32-unknown-emscripten'
         run: cargo test --all-features
 
       - name: check wasm
