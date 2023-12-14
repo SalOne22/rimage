@@ -121,7 +121,7 @@ jobs:
         run: cargo build --all-features --release
 
       - name: test
-        if: ! contains('aarch64', matrix.target)
+        if: contains('aarch64', matrix.target) == false
         run: cargo test --all-features
 
       - name: check wasm
