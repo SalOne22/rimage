@@ -25,7 +25,7 @@ let decoder = Decoder::from_path(&path)?;
 let image = decoder.decode()?;
 
 // do something with the image data...
-# Ok::<(), rimage::error::DecoderError>(())
+# Ok::<(), image::error::ImageError>(())
 ```
 
 From memory:
@@ -41,7 +41,7 @@ let decoder = Decoder::new(reader).with_format(ImageFormat::Jpeg);
 let image = decoder.decode()?;
 
 // do something with the image data...
-# Ok::<(), rimage::error::DecoderError>(())
+# Ok::<(), image::error::ImageError>(())
 ```
 
 ## Encoding
@@ -49,20 +49,21 @@ let image = decoder.decode()?;
 ```
 use std::fs::File;
 
-use rimage::{rgb::RGBA8, Encoder, Image, config::{EncoderConfig, Codec}};
+use rimage::{rgb::RGBA8, Encoder, config::{EncoderConfig, Codec}};
+use image::{RgbaImage, DynamicImage};
 
-let image_data = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
-let image = Image::new(image_data, 100, 50);
+let image_data = vec![0; 100 * 50 * 4];
+let image = RgbaImage::from_raw(100, 50, image_data).unwrap();
 
 let config = EncoderConfig::new(Codec::MozJpeg).with_quality(80.0).unwrap();
 let file = File::create("output.jpg").expect("Failed to create file");
 
-let encoder = Encoder::new(file, image).with_config(config);
+let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)).with_config(config);
 
 encoder.encode()?;
 
 # std::fs::remove_file("output.jpg").unwrap_or(());
-# Ok::<(), rimage::error::EncoderError>(())
+# Ok::<(), image::ImageError>(())
 ```
 */
 
@@ -74,11 +75,10 @@ mod decoder;
 mod encoder;
 ///  Module for library errors.
 pub mod error;
-mod image;
 
 pub use decoder::Decoder;
 pub use encoder::Encoder;
-pub use image::Image;
+pub use image;
 
 #[cfg(feature = "resizing")]
 pub use resize;
