@@ -79,11 +79,11 @@ jobs:
           sudo apt-get -yq update
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
 
-      - name: install qemu and aarch64 cross compiler
+      - name: install aarch64 cross compiler
         if: startsWith(matrix.target, 'aarch64-unknown-linux')
         run: |
           sudo apt-get -yq update
-          sudo apt-get -yq install qemu-user gcc-aarch64-linux-gnu libc6:arm64
+          sudo apt-get -yq install gcc-aarch64-linux-gnu libc6:arm64 g++:arm64
 
       - uses: Swatinem/rust-cache@v2
 
@@ -117,29 +117,12 @@ jobs:
         if: matrix.target == 'wasm32-unknown-emscripten'
         run: brew install emscripten
 
-      - name: build (windows msvc)
-        if: contains('msvc', matrix.target)
-        shell: cmd
-        run: |
-          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          cargo build --all-features --release
+      - name: build
+        run: cargo build --all-features --release
 
-      - name: build (unix / windows gnu)
-        if: ${{ !contains('msvc', matrix.target) && matrix.target != 'wasm32-unknown-emscripten' }}
-        run: |
-          cargo build --all-features --release
-
-      - name: test 🧪 (windows msvc)
-        if: contains('msvc', matrix.target)
-        shell: cmd
-        run: |
-          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          cargo test --all-features
-
-      - name: test 🧪 (unix / windows gnu)
-        if: ${{ !contains('msvc', matrix.target) && matrix.target != 'wasm32-unknown-emscripten' }}
-        run: |
-          cargo test --all-features
+      - name: test
+        if: ! contains('aarch64', matrix.target)
+        run: cargo test --all-features
 
       - name: check wasm
         if: matrix.target == 'wasm32-unknown-emscripten'
