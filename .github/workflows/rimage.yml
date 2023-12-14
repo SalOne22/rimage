@@ -2,56 +2,66 @@ name: rimage
 
 on:
   push:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
   pull_request:
-    branches:
-      - main
-    paths-ignore:
-      - '**/*.md'
+    types:
+      - opened
+      - synchronize
+  workflow_dispatch:
 
 jobs:
   test:
     name: test
+
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+
+    if: github.ref_type != 'tag' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork)
 
     strategy:
       fail-fast: false
       matrix:
         target:
           - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
           - aarch64-unknown-linux-gnu
-          - x86_64-pc-windows-gnu
+          - aarch64-unknown-linux-musl
           - x86_64-pc-windows-msvc
+          - i686-pc-windows-msvc
           - x86_64-apple-darwin
           - aarch64-apple-darwin
+          - wasm32-unknown-emscripten
 
         include:
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
             target-apt-arch: amd64
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+            target-apt-arch: amd64
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
             target-apt-arch: arm64
-          - target: x86_64-pc-windows-gnu
-            os: windows-latest
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-latest
+            target-apt-arch: arm64
           - target: x86_64-pc-windows-msvc
-            os: windows-2019
+            os: windows-latest
+          - target: i686-pc-windows-msvc
+            os: windows-latest
           - target: x86_64-apple-darwin
             os: macos-latest
           - target: aarch64-apple-darwin
+            os: macos-latest
+          - target: wasm32-unknown-emscripten
             os: macos-latest
 
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
 
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Ubuntu multiarch ⚙️
+      - name: set up ubuntu multiarch
         if: startsWith(matrix.os, 'ubuntu') && matrix.target-apt-arch != 'amd64'
         run: |
           readonly DISTRO_CODENAME=jammy
@@ -62,58 +72,77 @@ jobs:
             echo "deb [arch=${{ matrix.target-apt-arch }}] http://ports.ubuntu.com/ $DISTRO_CODENAME$suite main universe multiverse" | \
             sudo tee -a /etc/apt/sources.list >/dev/null
           done
+
+      - name: install musl development files
+        if: endsWith(matrix.target, '-musl')
+        run: |
           sudo apt-get -yq update
-          sudo apt-get -yq install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
 
-      - name: Setup cache 💾
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ matrix.target }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: install aarch64 cross compiler
+        if: startsWith(matrix.target, 'aarch64-unknown-linux')
+        run: |
+          sudo apt-get -yq update
+          sudo apt-get -yq install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6:arm64
 
-      - name: Setup nasm 🧑‍💻
-        uses: ilammy/setup-nasm@v1
+      - name: set musl-g++
+        if: matrix.target == 'x86_64-unknown-linux-musl'
+        run: sudo ln -s /bin/g++ /bin/musl-g++
 
-      - name: Setup libjxl 🧑‍💻 (x86_64 macos)
-        if: matrix.target == 'x86_64-apple-darwin'
-        run: brew install jpeg-xl
+      - name: set aarch64-linux-musl-g++
+        if: matrix.target == 'aarch64-unknown-linux-musl'
+        run: sudo ln -s /bin/aarch64-linux-gnu-g++ /bin/aarch64-linux-musl-g++
 
-      - name: Setup rust toolchain 🦀
+      - uses: Swatinem/rust-cache@v2
+
+      - name: install rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           target: ${{ matrix.target }}
 
-      - name: Build 🏗 (not msvc)
-        if: matrix.target != 'x86_64-pc-windows-msvc'
-        uses: actions-rs/cargo@v1
-        with:
-          command: build
-          args: --all-features --release
+      - uses: ilammy/setup-nasm@v1
 
-      - name: Build 🏗 (msvc)
-        if: matrix.target == 'x86_64-pc-windows-msvc'
-        shell: cmd
+      - name: install dependencies (linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          call "C:/Program Files (x86)/Microsoft Visual Studio/2019/Enterprise/VC/Auxiliary/Build/vcvars64.bat"
-          set CC=C:/Program Files/LLVM/bin/clang.exe
-          set CXX=C:/Program Files/LLVM/bin/clang++.exe
-          cargo build --all-features --release
+          sudo apt-get -yq update
+          sudo apt-get -yq install ninja-build meson
 
-      - name: Test 🧪
-        if: matrix.target == 'x86_64-unknown-linux-gnu' || matrix.target == 'x86_64-apple-darwin'
-        uses: actions-rs/cargo@v1
-        with:
-          command: test
-          args: --all-features --release
+      - name: install dependencies (macos)
+        if: matrix.os == 'macos-latest'
+        run: |
+          brew install ninja meson
 
-      - name: Upload CLI binary as artifact 💾
+      - name: install dependencies (windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install -y ninja
+          pip install meson
+
+      - name: install emcc
+        if: matrix.target == 'wasm32-unknown-emscripten'
+        run: brew install emscripten
+
+      - name: build
+        if: matrix.target != 'wasm32-unknown-emscripten'
+        run: cargo build --all-features --release
+
+      - name: test
+        if: startsWith(matrix.target, 'aarch64') != true && matrix.target != 'wasm32-unknown-emscripten'
+        run: cargo test --all-features
+
+      - name: check wasm
+        if: matrix.target == 'wasm32-unknown-emscripten'
+        run: |
+          export EMSCRIPTEN_CMAKE_FILE="$(brew --cellar emscripten)/$(brew list --versions emscripten | tr ' ' '\n' | tail -1)/libexec/cmake/Modules/Platform/Emscripten.cmake"
+          cargo check --all-features
+        env:
+          CC: "emcc"
+          CXX: "emcc"
+
+      - name: upload cli binary as artifact
         uses: actions/upload-artifact@v3
         with:
           name: rimage binary (${{ matrix.target }})
@@ -126,38 +155,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout 🛎️
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup cache 💾
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      - name: install dependencies
+        run: |
+          sudo apt-get -yq update
+          sudo apt-get -yq install ninja-build meson nasm
 
-      - name: Setup nasm 🧑‍💻
-        uses: ilammy/setup-nasm@v1
+      - uses: Swatinem/rust-cache@v2
 
-      - name: Setup rust toolchain 🦀
+      - name: setup rust toolchain
         uses: actions-rs/toolchain@v1
         with:
           profile: minimal
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Formatting check 🪄
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: formatting check
+        run: cargo fmt --all -- --check
 
-      - name: Clippy check 🔎
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-features -- -D warnings
+      - name: clippy check
+        run: cargo clippy --all-features -- -D warnings
