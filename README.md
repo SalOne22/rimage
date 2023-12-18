@@ -32,13 +32,8 @@ Alternatively you can build rimage from source if you have `rust`, `cargo`, `nas
 cargo install rimage
 ```
 
-## Note
-
-1. Jxl(JpegXL) format on Microsoft Windows® is not support, because of its complexity.
-
-2. If you met the error of **"Could not find libstdc++-6.dll", etc.**, please download all 3 DLLs from **[HERE](https://github.com/Mikachu2333/rimage_gui/releases/tag/0.0.0.0)** and put these 3 DLLs near Rimage.
-
-3. If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
+### Note:
+If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
 
 ## Usage
 
@@ -152,29 +147,30 @@ rimage = "0.10.0"
 ```rs
 use rimage::Decoder;
 
-let path = std::path::PathBuf::from(/* Your path */);
-
-let decoder = Decoder::from_path(&path)?;
+let decoder = Decoder::from_path("image.jpg")?;
 
 let image = decoder.decode()?;
 
-// Handle the image...
+// do something with the image data...
 ```
 
 ### Encoding
 
 ```rs
-use rimage::{rgb::RGBA8, Encoder, Image, config::{EncoderConfig, Codec}};
+use std::fs::File;
 
-let image_data = vec![RGBA8::new(0, 0, 0, 0); 100 * 50];
-let image = Image::new(image_data, 100, 50);
+use rimage::{rgb::RGBA8, Encoder, config::{EncoderConfig, Codec}};
+use image::{RgbaImage, DynamicImage};
 
-let config = EncoderConfig::new(Codec::MozJpeg).with_quality(80.0).unwrap();
-let file = std::fs::File::create("output.jpg").expect("Failed to create file");
+let image_data = vec![0; 100 * 50 * 4];
+let image = RgbaImage::from_raw(100, 50, image_data)?;
 
-let encoder = Encoder::new(file, image).with_config(config);
+let config = EncoderConfig::new(Codec::MozJpeg).with_quality(80.0)?;
+let file = File::create("output.jpg")?;
 
-encoder.encode()?; // Writes image data to the file.
+let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)).with_config(config);
+
+encoder.encode()?;
 ```
 
 > For full API documentation, visit [docs.rs](https://docs.rs/rimage) page.
