@@ -1,7 +1,7 @@
 name: Bug report
 description: Create a report to help us improve
-title: '[Bug]: <title>'
-labels: ['bug']
+title: "[Bug]: <title>"
+labels: ["bug"]
 body:
   - type: checkboxes
     attributes:
@@ -28,7 +28,8 @@ body:
       label: Library Version
       description: Specify the version of the library where you encountered the issue
       options:
-        - 0.9.1 (latest)
+        - 0.10.0 (latest)
+        - 0.9.1
         - 0.9.0
         - 0.8.2
         - 0.8.1

@@ -2,6 +2,28 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
+## v0.10.0
+
+### Breaking Changes
+
+- Replaced `image` module: Now re-exporting the [`image`](https://crates.io/crates/image) crate, which may affect existing functionalities.
+- Refactored Decoder and Encoder: Changes in method signatures and behavior could potentially break existing code.
+
+### New features
+
+- Added support for musl targets
+- Added support for wasm targets (emscripten and wasi)
+- Added full support for all features on windows i686 (x86) and x86_64 targets
+
+### Changes
+
+- Changed codec for jxl compression. Shifted to support only lossless compression for improved efficiency and portability.
+- Integration with image crate: Refactored Decoder and Encoder modules to utilize the image crate, enhancing functionality.
+
+### Additional Notes
+
+- Dependencies Update: Adjusted dependencies to align with new implementations and removed outdated ones.
+
 ## [v0.9.1](https://github.com/SalOne22/rimage/releases/tag/v0.9.1)
 
 ### New features
