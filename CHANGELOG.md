@@ -8,6 +8,7 @@ All notable changes to the Rimage library will be documented in this file.
 
 - Replaced `image` module: Now re-exporting the [`image`](https://crates.io/crates/image) crate, which may affect existing functionalities.
 - Refactored Decoder and Encoder: Changes in method signatures and behavior could potentially break existing code.
+- Removed support for windows-gnu targets due to full msvc support.
 
 ### New features
 
