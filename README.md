@@ -32,7 +32,16 @@ Alternatively you can build rimage from source if you have `rust`, `cargo`, `nas
 cargo install rimage
 ```
 
+## Note
+
+1. The `-q` opinion is disabled when pics are converted to Jxl(JpegXL) format.
+
+2. You'd better not use the process to convert a pic with _ICC tag_ for avoiding color confusion.
+
+3. If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
+
 ### Note:
+
 If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
 
 ## Usage
@@ -48,9 +57,9 @@ Options:
   -V, --version  Print version
 
 General:
-  -q, --quality <QUALITY>         Optimization image quality
+  -q, --quality <QUALITY>         Optimization image quality, disabled when use Jpegxl format
                                   [range: 1 - 100] [default: 75]
-  -f, --codec <CODEC>             Image codec to use, jxl feature is disabled on Microsoft Windows®
+  -f, --codec <CODEC>             Image codec to use
                                   [default: jpg] [possible values: png, oxipng, jpegxl, webp, avif]
   -o, --output <DIR>              Write output file(s) to <DIR>, if "-r" option is not used
   -r, --recursive                 Saves output file(s) preserving folder structure
@@ -76,7 +85,7 @@ Resizing:
 
 Note that image formats may wary from features that are used when building `rimage`.
 
-List of supported codecs with all features:
+_Full_ List of supported codecs with all features:
 
 - `mozjpeg`, `jpeg`, `jpg` => **mozjpeg codec (common and small)**
 - `png` => browser png codec without compression
@@ -85,7 +94,7 @@ List of supported codecs with all features:
 - `webp` => webp codec
 - `avif` => avif codec
 
-List of available resize filters:
+_Full_ List of available resize filters:
 
 - `point` => Point resizing
 - `triangle` => Triangle (bilinear) resizing
