@@ -20,17 +20,27 @@ required-features = ["cli"]
 [profile.release]
 lto = true
 codegen-units = 1
+opt-level = "z"
 
 [features]
 default = ["cli", "parallel", "quantization", "resizing", "exif", "oxipng"]
+# enable usage of threads
 parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jxl-oxide?/rayon", "zune-jpegxl?/threads", "dep:rayon"]
+# enable quantization options
 quantization = ["dep:imagequant"]
+# enable resize options
 resizing = ["dep:resize"]
-transform = ["dep:transpose"]
+# enable automatic exif correction
+transform = []
+# enable avif encoding
 avif = ["dep:ravif", "dep:libavif-image"]
-exif = ["dep:kamadak-exif", "transform"]
+# enable exif metadata extraction
+exif = ["dep:kamadak-exif"]
+# enable jpegxl encoding
 jxl = ["dep:jxl-oxide", "dep:zune-jpegxl", "dep:zune-core"]
+# enable webp encoding
 webp = ["image/webp-encoder"]
+# enable cli dependencies (dont use as library)
 cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
 
 
@@ -41,7 +51,6 @@ thiserror = "1.0.51"
 png = "0.17.10"
 rayon = { version = "1.7.0", optional = true }
 resize = { version = "0.8.0", optional = true }
-transpose = { version = "0.2.2", optional = true }
 ravif = { version = "0.11.2", optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
 clap = { version = "4.4.2", optional = true }
@@ -87,3 +96,6 @@ optional = true
 [target.'cfg(windows)'.dependencies.glob]
 optional = true
 version = "0.3.1"
+
+[package.metadata.cargo-udeps.ignore]
+normal = ["kamadak-exif"]
