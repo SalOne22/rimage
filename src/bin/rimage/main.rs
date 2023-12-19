@@ -21,10 +21,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .next_help_heading("General")
         .args([
-            arg!(-q --quality <QUALITY> "Optimization image quality\n[range: 1 - 100]")
+            arg!(-q --quality <QUALITY> "Optimization image quality, disabled when use Jpegxl format\n[range: 1 - 100]")
                 .value_parser(value_parser!(f32))
                 .default_value("75"),
-            arg!(-f --codec <CODEC> "Image codec to use, jxl feature is disabled on Microsoft Windows®\n[possible values: png, oxipng, jpegxl, webp, avif]")
+            arg!(-f --codec <CODEC> "Image codec to use\n[possible values: png, oxipng, jpegxl, webp, avif]")
                 .value_parser(Codec::from_str)
                 .default_value("mozjpeg"),
             arg!(-o --output <DIR> "Write output file(s) to <DIR>, if \"-r\" option is not used")
