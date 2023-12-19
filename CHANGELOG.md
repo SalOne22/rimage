@@ -2,7 +2,15 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.10.0
+## v0.10.1
+
+### Changes
+
+- Removed unused dependencies
+- Updated readme and help section
+- Reduced size of the binary
+
+## [v0.10.0](https://github.com/SalOne22/rimage/releases/tag/v0.10.0)
 
 ### Breaking Changes
 
