@@ -2,7 +2,13 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.10.1
+## v0.10.2
+
+### Bug Fixes
+
+- fixed bug when resize option doesn't do anything
+
+## [v0.10.1](https://github.com/SalOne22/rimage/releases/tag/v0.10.1)
 
 ### Changes
 
