@@ -141,7 +141,7 @@ impl<W: Write + Seek + std::panic::UnwindSafe> Encoder<W> {
                 ResizeType::Lanczos3 => image::imageops::Lanczos3,
             };
 
-            self.data.resize(width as u32, height as u32, filter);
+            self.data = self.data.resize(width as u32, height as u32, filter);
         }
 
         // TODO: Move quantization out from encoder to operations
