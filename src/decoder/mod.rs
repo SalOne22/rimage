@@ -96,6 +96,7 @@ impl<R: BufRead + Seek> Decoder<R> {
         #[cfg(feature = "transform")]
         let orientation = self.fix_orientation;
 
+        #[allow(unused_mut)]
         let mut image = match self.format {
             #[cfg(feature = "jxl")]
             Some(ImageFormat::JpegXl) => self.decode_jpegxl(),
