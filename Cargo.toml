@@ -62,7 +62,7 @@ default-features = false
 features = ["codec-aom"]
 
 [dependencies.jxl-oxide]
-version = "0.5.1"
+version = "0.5.2"
 default-features = false
 optional = true
 
