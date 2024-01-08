@@ -661,9 +661,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-oxide"
-version = "0.5.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e986fe957d42be34043ed5b089c34c35a182524509e6cfee87d86527f61f9623"
+checksum = "093c775f47ec2e4b5cd16245c04c166ee90520ec106519d01a88da55b32bf0c0"
 dependencies = [
  "jxl-bitstream",
  "jxl-color",
@@ -677,9 +677,9 @@ dependencies = [
 
 [[package]]
 name = "jxl-render"
-version = "0.5.0"
+version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4b862f98f83049febe65feb40d75493638386721ff5dff4c6a5ad267035881bf"
+checksum = "cae08863f4ec7364674b75e2a434f99d1e47bff29a30a3d562ea9114fd669931"
 dependencies = [
  "jxl-bitstream",
  "jxl-coding",
