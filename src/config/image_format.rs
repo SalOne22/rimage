@@ -9,6 +9,8 @@ pub enum ImageFormat {
     Jpeg,
     /// PNG image format.
     Png,
+    /// TIFF image format.
+    Tiff,
     /// JPEG XL image format.
     #[cfg(feature = "jxl")]
     JpegXl,
@@ -55,6 +57,7 @@ impl ImageFormat {
             {
                 "jpg" | "jpeg" => Self::Jpeg,
                 "png" => Self::Png,
+                "tiff" | "tif" => Self::Tiff,
                 #[cfg(feature = "jxl")]
                 "jxl" => Self::JpegXl,
                 #[cfg(feature = "webp")]
