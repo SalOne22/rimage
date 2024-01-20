@@ -137,11 +137,11 @@ mod tests {
 
     #[test]
     fn to_unknown() {
-        let img_format = ImageFormat::from_ext("bmp");
+        let img_format = ImageFormat::from_ext("qex");
         assert!(img_format.is_err());
         assert_eq!(
             img_format.unwrap_err(),
-            ImageFormatError::Unknown("bmp".to_string())
+            ImageFormatError::Unknown("qex".to_string())
         );
     }
 
