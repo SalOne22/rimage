@@ -11,6 +11,26 @@ pub enum ImageFormat {
     Png,
     /// TIFF image format.
     Tiff,
+    /// GIF image format.
+    Gif,
+    /// TGA image format.
+    Tga,
+    /// DDS image format.
+    Dds,
+    /// BMP image format.
+    Bmp,
+    /// ICO image format.
+    Ico,
+    /// Radiance HDR image format.
+    Hdr,
+    /// OpenEXR image format.
+    OpenExr,
+    /// General PNM image format.
+    Pnm,
+    /// Farbfeld image format.
+    Farbfeld,
+    /// QOI image format.
+    Qoi,
     /// JPEG XL image format.
     #[cfg(feature = "jxl")]
     JpegXl,
@@ -55,15 +75,25 @@ impl ImageFormat {
                 .to_lowercase()
                 .as_str()
             {
-                "jpg" | "jpeg" => Self::Jpeg,
-                "png" => Self::Png,
-                "tiff" | "tif" => Self::Tiff,
-                #[cfg(feature = "jxl")]
-                "jxl" => Self::JpegXl,
-                #[cfg(feature = "webp")]
-                "webp" => Self::WebP,
                 #[cfg(feature = "avif")]
                 "avif" => Self::Avif,
+                "jpg" | "jpeg" => Self::Jpeg,
+                "png" => Self::Png,
+                "gif" => Self::Gif,
+                #[cfg(feature = "webp")]
+                "webp" => Self::WebP,
+                "tif" | "tiff" => Self::Tiff,
+                "tga" => Self::Tga,
+                "dds" => Self::Dds,
+                "bmp" => Self::Bmp,
+                "ico" => Self::Ico,
+                "hdr" => Self::Hdr,
+                "exr" => Self::OpenExr,
+                "pbm" | "pam" | "ppm" | "pgm" => Self::Pnm,
+                "ff" | "farbfeld" => Self::Farbfeld,
+                "qoi" => Self::Qoi,
+                #[cfg(feature = "jxl")]
+                "jxl" => Self::JpegXl,
                 ext => return Err(ImageFormatError::Unknown(ext.to_string())),
             },
         )
