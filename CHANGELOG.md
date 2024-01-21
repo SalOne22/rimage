@@ -2,7 +2,13 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.10.2
+## v0.10.3
+
+### Changes
+
+- Added support for all image formats that supported by `image` crate
+
+## [v0.10.2](https://github.com/SalOne22/rimage/releases/tag/v0.10.2)
 
 ### Bug Fixes
 

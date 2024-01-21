@@ -142,7 +142,7 @@ Or add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-rimage = "0.10.2"
+rimage = "0.10.3"
 ```
 
 ## Library Usage
