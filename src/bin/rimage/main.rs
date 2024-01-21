@@ -12,7 +12,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let matches = Command::new("rimage")
         .version(env!("CARGO_PKG_VERSION"))
         .author("Vladyslav Vladinov <vladinov.dev@gmail.com>")
-        .about("A tool to convert/optimize/resize images in different formats")
+        .about("Rimage is a tool to convert/optimize/resize images in different formats")
         .arg(
             arg!(<FILES> "Input file(s) to process")
                 .num_args(1..)
@@ -21,10 +21,10 @@ fn main() -> Result<(), Box<dyn Error>> {
         )
         .next_help_heading("General")
         .args([
-            arg!(-q --quality <QUALITY> "Optimization image quality, disabled when use Jpegxl format\n[range: 1 - 100]")
+            arg!(-q --quality <QUALITY> "Optimization image quality, disabled when use Jxl format\n[range: 1 - 100]")
                 .value_parser(value_parser!(f32))
                 .default_value("75"),
-            arg!(-f --codec <CODEC> "Image codec to use\n[possible values: png, oxipng, jpegxl, webp, avif]")
+            arg!(-f --codec <CODEC> "Image codec for output\n[possible values: jpg, png, oxipng, jxl, webp, avif]")
                 .value_parser(Codec::from_str)
                 .default_value("mozjpeg"),
             arg!(-o --output <DIR> "Write output file(s) to <DIR>, if \"-r\" option is not used")
