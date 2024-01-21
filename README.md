@@ -53,10 +53,10 @@ Options:
   -V, --version  Print version
 
 General:
-  -q, --quality <QUALITY>         Optimization image quality, disabled when use Jpegxl format
+  -q, --quality <QUALITY>         Optimization image quality, disabled when use Jxl format
                                   [range: 1 - 100] [default: 75]
-  -f, --codec <CODEC>             Image codec to use
-                                  [default: jpg] [possible values: png, oxipng, jpegxl, webp, avif]
+  -f, --codec <CODEC>             Image codec for output
+                                  [possible values: jpg, png, oxipng, jxl, webp, avif] [default: jpg]
   -o, --output <DIR>              Write output file(s) to <DIR>, if "-r" option is not used
   -r, --recursive                 Saves output file(s) preserving folder structure
   -s, --suffix [<SUFFIX>]         Appends suffix to output file(s) names
@@ -76,14 +76,37 @@ Resizing:
       --height <HEIGHT>           Resize image with specified height
                                   [integer only]
       --filter <FILTER>           Filter used for image resizing
-                                  [possible values: point, triangle, catrom, mitchell] [default: lanczos3]
+                                  [possible values: point, triangle, catrom, mitchell, lanczos3] [default: lanczos3]
 ```
 
 Note that image formats may wary from features that are used when building `rimage`.
 
-_Full_ List of supported codecs with all features:
+### List of supprted codec (Format)
 
-- `mozjpeg`, `jpeg`, `jpg` => **mozjpeg codec (common and small)**
+| Codec (Format)             | Input | Output | Notes                      |
+| -------------------------- | ----- | ------ | -------------------------- |
+| `avif`                     | √     | √      |                            |
+| **`jpg`/`jpeg`/`mozjpeg`** | √     | √      | **DEFAULT**, Common&Small  |
+| `webp`                     | √     | √      |                            |
+| **`png`**                  | √     | √      |                            |
+| -------------------------- | ----- | ------ | -------------------------- |
+| `jxl`/`jpegxl`             | √     | √ \| X | `-q` opinion is disabled   |
+| `oxipng`                   | X     | √      |                            |
+| -------------------------- | ----- | ------ | -------------------------- |
+| `bmp`                      | √     | X      |                            |
+| `dds`                      | √     | X      |                            |
+| `exr`                      | √     | X      |                            |
+| `ff`/`farbfeld`            | √     | X      |                            |
+| `gif`                      | √     | X      |                            |
+| `hdr`                      | √     | X      |                            |
+| `ico`                      | √     | X      |                            |
+| `pam`/`pbm`/`pgm`/`ppm`    | √     | X      |                            |
+| `qoi`                      | √     | X      |                            |
+| `tga`                      | √     | X      |                            |
+| `tif`/`tiff`               | √     | X      |                            |
+
+_Full_ List of supported **output** codecs with all features:
+
 - `png` => browser png codec without compression
 - `oxipng` => oxipng codec with compression
 - `jpegxl`, `jxl` => jpeg xl codec
