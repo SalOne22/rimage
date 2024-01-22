@@ -14,7 +14,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         .author("Vladyslav Vladinov <vladinov.dev@gmail.com>")
         .about("Rimage is a tool to convert/optimize/resize images in different formats")
         .arg(
-            arg!(<FILES> "Input file(s) to process")
+            arg!(<FILES> "Input file(s) to process\n(When the file path contains spaces, double quotation marks should be used\nto wrap the file path on both sides.)")
                 .num_args(1..)
                 .value_delimiter(None)
                 .value_parser(value_parser!(PathBuf)),
