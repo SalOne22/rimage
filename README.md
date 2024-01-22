@@ -40,6 +40,8 @@ cargo install rimage
 
 3. If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
 
+4. Image formats may wary from features that are used when building `rimage`.
+
 ## Usage
 
 ```text
@@ -47,6 +49,7 @@ Usage: rimage [OPTIONS] <FILES>...
 
 Arguments:
   <FILES>...  Input file(s) to process
+              (When the file path contains spaces, double quotation marks should be used to wrap the file path on both sides.)
 
 Options:
   -h, --help     Print help
@@ -79,41 +82,31 @@ Resizing:
                                   [possible values: point, triangle, catrom, mitchell, lanczos3] [default: lanczos3]
 ```
 
-Note that image formats may wary from features that are used when building `rimage`.
+### _Full_ list of supported Codec (Format)
 
-### List of supprted codec (Format)
+| Codec (Format)                 | Input | Output | Notes                      |
+| ------------------------------ | ----- | ------ | -------------------------- |
+| `avif`                         | √     | √      |                            |
+| **`jpg` / `jpeg` / `mozjpeg`** | √     | √      | **DEFAULT**, Common&Small  |
+| `webp`                         | √     | √      |                            |
+| **`png`**                      | √     | √      |                            |
+| --------------------------     | ----- | ------ | -------------------------- |
+| `jxl` / `jpegxl`               | √     | √ \| X | `-q` opinion is disabled   |
+| `oxipng`                       | X     | √      |                            |
+| --------------------------     | ----- | ------ | -------------------------- |
+| `bmp`                          | √     | X      |                            |
+| `dds`                          | √     | X      |                            |
+| `exr`                          | √     | X      |                            |
+| `ff` / `farbfeld`              | √     | X      |                            |
+| `gif`                          | √     | X      |                            |
+| `hdr`                          | √     | X      |                            |
+| `ico`                          | √     | X      |                            |
+| `pam` / `pbm` / `pgm` / `ppm`  | √     | X      |                            |
+| `qoi`                          | √     | X      |                            |
+| `tga`                          | √     | X      |                            |
+| `tif` / `tiff`                 | √     | X      |                            |
 
-| Codec (Format)             | Input | Output | Notes                      |
-| -------------------------- | ----- | ------ | -------------------------- |
-| `avif`                     | √     | √      |                            |
-| **`jpg`/`jpeg`/`mozjpeg`** | √     | √      | **DEFAULT**, Common&Small  |
-| `webp`                     | √     | √      |                            |
-| **`png`**                  | √     | √      |                            |
-| -------------------------- | ----- | ------ | -------------------------- |
-| `jxl`/`jpegxl`             | √     | √ \| X | `-q` opinion is disabled   |
-| `oxipng`                   | X     | √      |                            |
-| -------------------------- | ----- | ------ | -------------------------- |
-| `bmp`                      | √     | X      |                            |
-| `dds`                      | √     | X      |                            |
-| `exr`                      | √     | X      |                            |
-| `ff`/`farbfeld`            | √     | X      |                            |
-| `gif`                      | √     | X      |                            |
-| `hdr`                      | √     | X      |                            |
-| `ico`                      | √     | X      |                            |
-| `pam`/`pbm`/`pgm`/`ppm`    | √     | X      |                            |
-| `qoi`                      | √     | X      |                            |
-| `tga`                      | √     | X      |                            |
-| `tif`/`tiff`               | √     | X      |                            |
-
-_Full_ List of supported **output** codecs with all features:
-
-- `png` => browser png codec without compression
-- `oxipng` => oxipng codec with compression
-- `jpegxl`, `jxl` => jpeg xl codec
-- `webp` => webp codec
-- `avif` => avif codec
-
-_Full_ List of available resize filters:
+### _Full_ list of supported Resize Filters
 
 - `point` => Point resizing
 - `triangle` => Triangle (bilinear) resizing
@@ -143,14 +136,14 @@ rimage.exe "D:\\Desktop\\input [text].png" -q 90 -f jpg -o "D:\\Desktop\\OutputT
 rimage.exe "C:\\中  文\\ソフトウェア.PNG" -q 40 --codec png -s "_문자" -r --quantization 95 --dithering 85
 ```
 
-### jpg => webp & threads &resize width and height (both are opinional)
+### pbm => webp & threads &resize width and height (both are opinional)
 
 | Image Path                  | Quality | Out Format | Out Dir             | Threads | Width | Height |
 | --------------------------- | ------- | ---------- | ------------------- | ------- | ----- | ------ |
-| "C:\\Docs\\justfortest.JPG" | 40      | webp       | "C:\\Desktop\\Test" | 4       | 60    | 10     |
+| "C:\\Docs\\justfortest.PBM" | 40      | webp       | "C:\\Desktop\\Test" | 4       | 60    | 10     |
 
 ```sh
-rimage.exe "C:\\Docs\\justfortest.PNG" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
+rimage.exe "C:\\Docs\\justfortest.PBM" --quality 40 --codec webp --output "C:\\Desktop\\Test" --threads 4 --width 60 --height 10
 ```
 
 ## Library Installation
