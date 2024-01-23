@@ -101,7 +101,7 @@ All notable changes to the Rimage library will be documented in this file.
 
 ### Enhancements
 
-- Updated progress bar. ![Updated version](./assets/progress_bar.gif)
+- Updated progress bar. ![progress_bar](https://github.com/SalOne22/rimage/assets/111443297/847d30df-54e4-40c8-9d02-f67a66f140a8)
 - Rimage now uses the rayon crate for parallel optimizations.
 - Added `--quiet` flag that disables the progress bar.
 
