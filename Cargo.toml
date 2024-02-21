@@ -67,7 +67,7 @@ default-features = false
 optional = true
 
 [dependencies.zune-core]
-version = "0.4.11"
+version = "0.4.12"
 default-features = false
 optional = true
 

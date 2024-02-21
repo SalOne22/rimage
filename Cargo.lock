@@ -1909,9 +1909,9 @@ dependencies = [
 
 [[package]]
 name = "zune-core"
-version = "0.4.11"
+version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "aae122f32a8e2a653acb430c9af5e79e7056c519fa8bac46e51e670868e5c0f2"
+checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
 
 [[package]]
 name = "zune-inflate"
