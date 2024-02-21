@@ -10,7 +10,7 @@ license = "MIT OR Apache-2.0"
 name = "rimage"
 readme = "README.md"
 repository = "https://github.com/SalOne22/rimage"
-version = "0.10.2"
+version = "0.10.3"
 edition = "2021"
 
 [[bin]]
@@ -53,7 +53,7 @@ rayon = { version = "1.7.0", optional = true }
 resize = { version = "0.8.0", optional = true }
 ravif = { version = "0.11.2", optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
-clap = { version = "4.4.12", optional = true }
+clap = { version = "4.5.1", optional = true }
 
 [dependencies.libavif-image]
 version = "0.11.0"
