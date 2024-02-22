@@ -1,101 +1,21 @@
 [package]
+name = "rimage"
+version = "0.11.0-next"
+edition = "2021"
+description = "Optimize images natively with best-in-class codecs"
+license = "MIT OR Apache-2.0"
+readme = "README.md"
 authors = ["Vladyslav Vladinov <vladinov.dev@gmail.com>"]
+keywords = ["image", "compression", "encoder"]
 categories = ["compression", "multimedia::images"]
-description = "A library to convert/optimize/resize images in different formats"
+repository = "https://github.com/SalOne22/rimage"
 documentation = "https://docs.rs/rimage"
 homepage = "https://lib.rs/rimage"
 include = ["/README.md", "/Cargo.toml", "/src/**/*.rs"]
-keywords = ["image", "compression", "encoder", "decoder"]
-license = "MIT OR Apache-2.0"
-name = "rimage"
-readme = "README.md"
-repository = "https://github.com/SalOne22/rimage"
-version = "0.10.3"
-edition = "2021"
-
-[[bin]]
-name = "rimage"
-required-features = ["cli"]
 
 [profile.release]
 lto = true
 codegen-units = 1
 opt-level = "z"
 
-[features]
-default = ["cli", "parallel", "quantization", "resizing", "exif", "oxipng"]
-# enable usage of threads
-parallel = ["mozjpeg/parallel", "imagequant?/threads", "oxipng?/parallel", "jxl-oxide?/rayon", "zune-jpegxl?/threads", "dep:rayon"]
-# enable quantization options
-quantization = ["dep:imagequant"]
-# enable resize options
-resizing = ["dep:resize"]
-# enable automatic exif correction
-transform = []
-# enable avif encoding
-avif = ["dep:ravif", "dep:libavif-image"]
-# enable exif metadata extraction
-exif = ["dep:kamadak-exif"]
-# enable jpegxl encoding
-jxl = ["dep:jxl-oxide", "dep:zune-jpegxl", "dep:zune-core"]
-# enable webp encoding
-webp = ["image/webp-encoder"]
-# enable cli dependencies (dont use as library)
-cli = ["dep:clap", "dep:glob", "quantization", "resizing", "exif"]
-
-
 [dependencies]
-image = "0.24.7"
-rgb = "0.8.36"
-thiserror = "1.0.57"
-png = "0.17.10"
-rayon = { version = "1.7.0", optional = true }
-resize = { version = "0.8.0", optional = true }
-ravif = { version = "0.11.4", optional = true }
-kamadak-exif = { version = "0.5.5", optional = true }
-clap = { version = "4.5.1", optional = true }
-
-[dependencies.libavif-image]
-version = "0.11.0"
-optional = true
-default-features = false
-features = ["codec-aom"]
-
-[dependencies.jxl-oxide]
-version = "0.5.2"
-default-features = false
-optional = true
-
-[dependencies.zune-core]
-version = "0.4.12"
-default-features = false
-optional = true
-
-[dependencies.zune-jpegxl]
-version = "0.4.0"
-default-features = false
-features = ["std"]
-optional = true
-
-[dependencies.imagequant]
-version = "4.2.1"
-default-features = false
-optional = true
-
-[dependencies.mozjpeg]
-version = "0.10.4"
-features = ["with_simd"]
-default-features = false
-
-[dependencies.oxipng]
-version = "9.0.0"
-features = ["zopfli", "filetime"]
-default-features = false
-optional = true
-
-[target.'cfg(windows)'.dependencies.glob]
-optional = true
-version = "0.3.1"
-
-[package.metadata.cargo-udeps.ignore]
-normal = ["kamadak-exif"]
