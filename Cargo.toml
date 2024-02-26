@@ -19,3 +19,5 @@ codegen-units = 1
 opt-level = "z"
 
 [dependencies]
+clap = { version = "4.5.1", features = ["cargo", "string"] }
+indoc = "2.0.4"
