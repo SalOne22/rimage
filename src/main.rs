@@ -1,6 +1,7 @@
 use cli::cli;
 
 mod cli;
+mod codecs;
 mod preprocessors;
 mod utils;
 

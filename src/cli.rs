@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::{arg, command, value_parser, Command};
 use indoc::indoc;
 
-use crate::{preprocessors::Preprocessors, utils::threads};
+use crate::{codecs::Codecs, preprocessors::Preprocessors, utils::threads};
 
 pub fn cli() -> Command {
     command!()
@@ -53,6 +53,7 @@ pub fn cli() -> Command {
                 .value_parser(value_parser!(u8).range(1..=threads::num_threads() as i64)),
         )
         .preprocessors()
+        .codecs()
 }
 
 #[cfg(test)]
