@@ -53,3 +53,13 @@ pub fn cli() -> Command {
                 .value_parser(value_parser!(u8).range(1..=threads::num_threads() as i64)),
         )
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn verify_app() {
+        cli().debug_assert();
+    }
+}
