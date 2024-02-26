@@ -3,10 +3,10 @@ use std::path::PathBuf;
 use clap::{arg, command, value_parser, Command};
 use indoc::indoc;
 
-use crate::{preprocessors::preprocessors, utils::threads};
+use crate::{preprocessors::Preprocessors, utils::threads};
 
 pub fn cli() -> Command {
-    let cmd = command!()
+    command!()
         .arg_required_else_help(true)
         .arg(
             arg!([FILES] ... "Input file(s) to process")
@@ -51,9 +51,8 @@ pub fn cli() -> Command {
                 Usage of multiple threads can speed up the execution of tasks, especially on multi-core processors.
                 By default, the number of available threads is utilized"})
                 .value_parser(value_parser!(u8).range(1..=threads::num_threads() as i64)),
-        );
-
-    preprocessors(cmd)
+        )
+        .preprocessors()
 }
 
 #[cfg(test)]
