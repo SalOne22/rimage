@@ -6,6 +6,7 @@ use resize::ResizeValue;
 use crate::preprocessors::resize::{ResizeFilter, ResizeFit};
 
 pub mod pipeline;
+mod quantization;
 mod resize;
 
 impl Preprocessors for Command {
