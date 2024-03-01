@@ -1,8 +1,10 @@
 use anyhow::anyhow;
 use clap::{builder::PossibleValue, ValueEnum};
+use fast_image_resize as fr;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResizeFilter {
+    Nearest,
     Box,
     Bilinear,
     Hamming,
@@ -14,6 +16,7 @@ pub enum ResizeFilter {
 impl ValueEnum for ResizeFilter {
     fn value_variants<'a>() -> &'a [Self] {
         &[
+            ResizeFilter::Nearest,
             ResizeFilter::Box,
             ResizeFilter::Bilinear,
             ResizeFilter::Hamming,
@@ -25,6 +28,7 @@ impl ValueEnum for ResizeFilter {
 
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
         Some(match self {
+            ResizeFilter::Nearest => PossibleValue::new("nearest").help("Simplest filter, for each destination pixel gets nearest source pixel"),
             ResizeFilter::Box => PossibleValue::new("box").help("Each pixel contributes equally to destination. For upscaling, like Nearest."),
             ResizeFilter::Bilinear => PossibleValue::new("bilinear").help("Uses linear interpolation among contributing pixels for output"),
             ResizeFilter::Hamming => PossibleValue::new("hamming").help("Provides quality akin to bicubic for downscaling, sharper than Bilinear, but not optimal for upscaling"),
@@ -54,5 +58,19 @@ impl std::str::FromStr for ResizeFilter {
             }
         }
         Err(anyhow!("invalid variant: {s}"))
+    }
+}
+
+impl From<ResizeFilter> for fr::ResizeAlg {
+    fn from(value: ResizeFilter) -> Self {
+        match value {
+            ResizeFilter::Nearest => fr::ResizeAlg::Nearest,
+            ResizeFilter::Box => fr::ResizeAlg::Convolution(fr::FilterType::Box),
+            ResizeFilter::Bilinear => fr::ResizeAlg::Convolution(fr::FilterType::Bilinear),
+            ResizeFilter::Hamming => fr::ResizeAlg::Convolution(fr::FilterType::Hamming),
+            ResizeFilter::CatmullRom => fr::ResizeAlg::Convolution(fr::FilterType::CatmullRom),
+            ResizeFilter::Mitchell => fr::ResizeAlg::Convolution(fr::FilterType::Mitchell),
+            ResizeFilter::Lanczos3 => fr::ResizeAlg::Convolution(fr::FilterType::Lanczos3),
+        }
     }
 }

@@ -1,10 +1,43 @@
 use anyhow::anyhow;
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResizeValue {
     Multiplier(f32),
     Percentage(f32),
     Dimensions(Option<u32>, Option<u32>),
+}
+
+impl ResizeValue {
+    pub fn map_dimensions(&self, width: u32, height: u32) -> (u32, u32) {
+        match self {
+            ResizeValue::Multiplier(multiplier) => (
+                (width as f32 * multiplier) as u32,
+                (height as f32 * multiplier) as u32,
+            ),
+
+            ResizeValue::Percentage(percentage) => (
+                (width as f32 * (percentage / 100.)) as u32,
+                (height as f32 * (percentage / 100.)) as u32,
+            ),
+
+            ResizeValue::Dimensions(new_width, new_height) => {
+                let aspect_ratio = width as f32 / height as f32;
+
+                let width = new_width.unwrap_or(
+                    new_height
+                        .map(|h| (h as f32 * aspect_ratio) as u32)
+                        .unwrap_or(width),
+                );
+                let height = new_height.unwrap_or(
+                    new_width
+                        .map(|w| (w as f32 / aspect_ratio) as u32)
+                        .unwrap_or(height),
+                );
+
+                (width, height)
+            }
+        }
+    }
 }
 
 impl std::fmt::Display for ResizeValue {
@@ -152,5 +185,41 @@ mod tests {
             "_x_".parse::<ResizeValue>().unwrap(),
             ResizeValue::Dimensions(None, None)
         );
+    }
+
+    #[test]
+    fn map_dimensions_multiplier() {
+        let resize_value = ResizeValue::Multiplier(2.0);
+        assert_eq!(resize_value.map_dimensions(100, 200), (200, 400));
+    }
+
+    #[test]
+    fn map_dimensions_percentage() {
+        let resize_value = ResizeValue::Percentage(50.0);
+        assert_eq!(resize_value.map_dimensions(100, 200), (50, 100));
+    }
+
+    #[test]
+    fn map_dimensions_dimensions() {
+        let resize_value = ResizeValue::Dimensions(Some(300), Some(600));
+        assert_eq!(resize_value.map_dimensions(100, 200), (300, 600));
+    }
+
+    #[test]
+    fn map_dimensions_dimensions_with_width() {
+        let resize_value = ResizeValue::Dimensions(Some(300), None);
+        assert_eq!(resize_value.map_dimensions(100, 200), (300, 600));
+    }
+
+    #[test]
+    fn map_dimensions_dimensions_with_height() {
+        let resize_value = ResizeValue::Dimensions(None, Some(600));
+        assert_eq!(resize_value.map_dimensions(100, 200), (300, 600));
+    }
+
+    #[test]
+    fn map_dimensions_dimensions_with_none() {
+        let resize_value = ResizeValue::Dimensions(None, None);
+        assert_eq!(resize_value.map_dimensions(100, 200), (100, 200));
     }
 }
