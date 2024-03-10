@@ -19,10 +19,10 @@ codegen-units = 1
 opt-level = "z"
 
 [features]
-default = ["resize", "quantization"]
+default = ["resize", "quantization", "threads"]
 
 # Enables utilization of threads
-threads = ["zune-image/threads", "zune-imageprocs/threads", "imagequant?/threads"]
+threads = ["imagequant?/threads"]
 
 # Enables resize operation
 resize = ["dep:fast_image_resize"]
@@ -31,8 +31,7 @@ quantization = ["dep:imagequant", "dep:rgb"]
 
 [dependencies]
 zune-core = "0.4.12"
-zune-image = { version = "0.4.15", default-features = false, features = ["simd"]}
-zune-imageprocs = { version = "0.4.15", default-features = false, features = ["avx2", "sse2", "sse3", "sse41" ] }
+zune-image = { version = "0.4.15", default-features = false }
 fast_image_resize = { version = "3.0.4", optional = true }
 imagequant = { version = "4.3.0", default-features = false, optional = true }
 rgb = { version = "0.8.37", optional = true }
