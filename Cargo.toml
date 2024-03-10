@@ -20,6 +20,8 @@ opt-level = "z"
 
 [dependencies]
 fast_image_resize = "3.0.4"
+imagequant = "4.3.0"
+rgb = "0.8.37"
 zune-core = "0.4.12"
 zune-image = "0.4.15"
 zune-imageprocs = "0.4.15"
