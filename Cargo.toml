@@ -18,10 +18,21 @@ lto = true
 codegen-units = 1
 opt-level = "z"
 
+[features]
+default = ["resize", "quantization"]
+
+# Enables utilization of threads
+threads = ["zune-image/threads", "zune-imageprocs/threads", "imagequant?/threads"]
+
+# Enables resize operation
+resize = ["dep:fast_image_resize"]
+# Enables quantize operation
+quantization = ["dep:imagequant", "dep:rgb"]
+
 [dependencies]
-fast_image_resize = "3.0.4"
-imagequant = "4.3.0"
-rgb = "0.8.37"
 zune-core = "0.4.12"
-zune-image = "0.4.15"
-zune-imageprocs = "0.4.15"
+zune-image = { version = "0.4.15", default-features = false, features = ["simd"]}
+zune-imageprocs = { version = "0.4.15", default-features = false, features = ["avx2", "sse2", "sse3", "sse41" ] }
+fast_image_resize = { version = "3.0.4", optional = true }
+imagequant = { version = "4.3.0", default-features = false, optional = true }
+rgb = { version = "0.8.37", optional = true }
