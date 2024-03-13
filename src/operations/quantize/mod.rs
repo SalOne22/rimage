@@ -7,12 +7,18 @@ use zune_image::{
     traits::OperationsTrait,
 };
 
+/// Reduce image palette
 pub struct Quantize {
     quality: u8,
     dithering: Option<f32>,
 }
 
 impl Quantize {
+    /// Create a new quantization operation
+    ///
+    /// # Arguments
+    /// - quality: resulting quality of the palette
+    /// - dithering: overall "smoothness" of the resulting image
     #[must_use]
     pub fn new(quality: u8, dithering: Option<f32>) -> Self {
         Self { quality, dithering }

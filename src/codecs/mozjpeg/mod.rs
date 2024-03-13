@@ -4,6 +4,7 @@ use mozjpeg::qtable::QTable;
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
 use zune_image::{codecs::ImageFormat, errors::ImageErrors, image::Image, traits::EncoderTrait};
 
+/// Advanced options for MozJpeg encoding
 pub struct MozJpegOptions {
     quality: f32,
     progressive: bool,
@@ -16,6 +17,7 @@ pub struct MozJpegOptions {
     chroma_qtable: Option<&'static QTable>,
 }
 
+/// A MozJpeg encoder
 pub struct MozJpegEncoder {
     options: MozJpegOptions,
 }
@@ -45,10 +47,12 @@ impl Default for MozJpegEncoder {
 }
 
 impl MozJpegEncoder {
+    /// Create a new encoder
     pub fn new() -> MozJpegEncoder {
         MozJpegEncoder::default()
     }
 
+    /// Create a new encoder with specified options
     pub fn new_with_options(options: MozJpegOptions) -> MozJpegEncoder {
         MozJpegEncoder { options }
     }

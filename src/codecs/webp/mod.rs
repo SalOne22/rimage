@@ -5,8 +5,10 @@ use zune_image::{
     traits::EncoderTrait,
 };
 
+/// Alias to [`webp::WebPConfig`]
 pub type WebPOptions = webp::WebPConfig;
 
+/// A WebP encoder
 pub struct WebPEncoder {
     options: WebPOptions,
 }
@@ -20,10 +22,12 @@ impl Default for WebPEncoder {
 }
 
 impl WebPEncoder {
+    /// Create a new encoder
     pub fn new() -> WebPEncoder {
         WebPEncoder::default()
     }
 
+    /// Create a new encoder with specified options
     pub fn new_with_options(options: WebPOptions) -> WebPEncoder {
         WebPEncoder { options }
     }

@@ -7,6 +7,7 @@ use zune_image::{
     traits::EncoderTrait,
 };
 
+/// Advanced options for AVIF encoding
 pub struct AvifOptions {
     quality: f32,
     alpha_quality: Option<f32>,
@@ -15,6 +16,7 @@ pub struct AvifOptions {
     alpha_color_mode: ravif::AlphaColorMode,
 }
 
+/// A AVIF encoder
 pub struct AvifEncoder {
     options: AvifOptions,
 }
@@ -40,10 +42,12 @@ impl Default for AvifEncoder {
 }
 
 impl AvifEncoder {
+    /// Create a new encoder
     pub fn new() -> AvifEncoder {
         AvifEncoder::default()
     }
 
+    /// Create a new encoder with specified options
     pub fn new_with_options(options: AvifOptions) -> AvifEncoder {
         AvifEncoder { options }
     }

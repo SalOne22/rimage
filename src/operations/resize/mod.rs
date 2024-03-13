@@ -10,12 +10,20 @@ use zune_image::{
     traits::OperationsTrait,
 };
 
+/// Resize an image to a new dimensions
+/// using the resize algorithm specified
 pub struct Resize {
     new_dimensions: (usize, usize),
     algorithm: fr::ResizeAlg,
 }
 
 impl Resize {
+    /// Create a new resize operation
+    ///
+    /// # Argument
+    /// - width: The new image width
+    /// - height: The new image height.
+    /// - algorithm: The resize algorithm to use
     #[must_use]
     pub fn new(width: usize, height: usize, algorithm: fr::ResizeAlg) -> Self {
         Self {

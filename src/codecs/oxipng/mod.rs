@@ -5,8 +5,10 @@ use zune_image::{
     traits::EncoderTrait,
 };
 
+/// Alias to [`oxipng::Options`]
 pub type OxiPngOptions = oxipng::Options;
 
+/// A OxiPNG encoder
 pub struct OxiPngEncoder {
     options: OxiPngOptions,
 }
@@ -20,10 +22,11 @@ impl Default for OxiPngEncoder {
 }
 
 impl OxiPngEncoder {
+    /// Create a new encoder
     pub fn new() -> OxiPngEncoder {
         OxiPngEncoder::default()
     }
-
+    /// Create a new encoder with specified options
     pub fn new_with_options(options: OxiPngOptions) -> OxiPngEncoder {
         OxiPngEncoder { options }
     }
