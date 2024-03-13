@@ -19,7 +19,7 @@ codegen-units = 1
 opt-level = "z"
 
 [features]
-default = ["resize", "quantization", "mozjpeg", "oxipng", "webp", "threads"]
+default = ["resize", "quantization", "mozjpeg", "oxipng", "webp", "avif", "threads"]
 
 # Enables utilization of threads
 threads = ["imagequant?/threads", "mozjpeg?/parallel", "oxipng?/parallel"]
@@ -35,6 +35,8 @@ mozjpeg = ["dep:mozjpeg"]
 oxipng = ["dep:oxipng"]
 # Enables webp codec
 webp = ["dep:webp"]
+# Enables avif codec
+avif = ["dep:ravif", "dep:rgb"]
 
 [dependencies]
 zune-core = "0.4.12"
@@ -46,3 +48,4 @@ rgb = { version = "0.8.37", optional = true }
 mozjpeg = { version = "0.10.7", default-features = false, features = ["with_simd"], optional = true }
 oxipng = { version = "9.0", default-features = false, features = ["zopfli", "filetime"], optional = true }
 webp = { version = "0.2.6", default-features = false, optional = true }
+ravif = { version = "0.11.4", optional = true }

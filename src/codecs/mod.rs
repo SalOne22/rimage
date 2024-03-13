@@ -1,3 +1,5 @@
+#[cfg(feature = "avif")]
+pub mod avif;
 #[cfg(feature = "mozjpeg")]
 pub mod mozjpeg;
 #[cfg(feature = "oxipng")]
