@@ -52,6 +52,58 @@ impl OperationsTrait for Resize {
         let dst_width = NonZeroU32::new(dst_width as u32).unwrap();
         let dst_height = NonZeroU32::new(dst_height as u32).unwrap();
 
+        #[cfg(feature = "threads")]
+        std::thread::scope(|f| {
+            let mut errors = vec![];
+
+            for old_channel in image.channels_mut(false) {
+                let result = f.spawn(|| {
+                    let mut new_channel = Channel::new_with_bit_type(new_length, depth);
+
+                    let src_image = fr::Image::from_slice_u8(
+                        width,
+                        height,
+                        unsafe { old_channel.alias_mut() },
+                        match depth {
+                            BitType::U8 => fr::PixelType::U8,
+                            BitType::U16 => fr::PixelType::U16,
+                            BitType::F32 => fr::PixelType::F32,
+
+                            d => {
+                                return Err(ImageErrors::ImageOperationNotImplemented("resize", d))
+                            }
+                        },
+                    )
+                    .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
+
+                    let mut dst_image =
+                        fr::Image::new(dst_width, dst_height, src_image.pixel_type());
+
+                    let mut dst_view = dst_image.view_mut();
+
+                    let mut resizer = fr::Resizer::new(self.algorithm);
+
+                    resizer
+                        .resize(&src_image.view(), &mut dst_view)
+                        .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
+
+                    unsafe {
+                        new_channel.alias_mut().copy_from_slice(dst_image.buffer());
+                    }
+
+                    *old_channel = new_channel;
+                    Ok(())
+                });
+                errors.push(result);
+            }
+
+            errors
+                .into_iter()
+                .map(|x| x.join().unwrap())
+                .collect::<Result<Vec<()>, ImageErrors>>()
+        })?;
+
+        #[cfg(not(feature = "threads"))]
         for old_channel in image.channels_mut(false) {
             let mut new_channel = Channel::new_with_bit_type(new_length, depth);
 
@@ -85,6 +137,7 @@ impl OperationsTrait for Resize {
 
             *old_channel = new_channel;
         }
+
         image.set_dimensions(dst_width.get() as usize, dst_height.get() as usize);
 
         Ok(())
