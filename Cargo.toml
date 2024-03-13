@@ -19,15 +19,18 @@ codegen-units = 1
 opt-level = "z"
 
 [features]
-default = ["resize", "quantization", "threads"]
+default = ["resize", "quantization", "mozjpeg", "threads"]
 
 # Enables utilization of threads
-threads = ["imagequant?/threads"]
+threads = ["imagequant?/threads", "mozjpeg?/parallel"]
 
 # Enables resize operation
 resize = ["dep:fast_image_resize"]
 # Enables quantize operation
 quantization = ["dep:imagequant", "dep:rgb"]
+
+# Enables mozjpeg codec
+mozjpeg = ["dep:mozjpeg"]
 
 [dependencies]
 zune-core = "0.4.12"
@@ -35,3 +38,5 @@ zune-image = { version = "0.4.15", default-features = false }
 fast_image_resize = { version = "3.0.4", optional = true }
 imagequant = { version = "4.3.0", default-features = false, optional = true }
 rgb = { version = "0.8.37", optional = true }
+mozjpeg = { version = "0.10.7", default-features = false, features = ["with_simd"], optional = true }
+log = "0.4.21"
