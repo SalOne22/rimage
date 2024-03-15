@@ -9,10 +9,13 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
 
 ## Features
 
-- **Flexible Format Conversion**: Supports modern image formats: JPEG, JPEG XL, PNG, AVIF, WebP.
-- **Quality Control**: Fine-tune image quality with an flexible interface.
-- **Pipeline Optimization**: Use preprocessor pipeline for image manipulations.
-- **Parallel Optimization**: Optimize multiple images in parallel.
+- Modern codecs:
+  - Rimage uses modern codecs optimized to produce tiny images
+  - Under the hood uses `zune_image` crate that enhances performance
+- Optimization operations:
+  - Rimage provides several image optimization operation
+  - Resize - uses `fast_image_resize` crate that has incredible performance
+  - Quantization - allowing to reduce image palette
 
 ## Installation
 
@@ -27,24 +30,31 @@ cargo install rimage
 > ### Note
 >
 > If you're a user who just want to **use Rimage easily with a friendly GUI**, [Rimage_gui](https://github.com/Mikachu2333/rimage_gui/releases/) may be fit for you, it support both Chinese and English. Just select the version you need and download it to use.
->
-> Library create is deprecated since TODO, please use `zune-image` for a more trusted crate.
 
 ## Usage
 
-TODO
+For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 ### List of supported Codecs
 
-TODO
+| Image Format | Decoder       | Encoder                 |
+| ------------ | ------------- | ----------------------- |
+| bmp          | zune-bmp      | -                       |
+| jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |
+| png          | zune-png      | oxipng or zune-png      |
+| avif         | libavif       | ravif                   |
+| webp         | webp          | webp                    |
+| ppm          | zune-ppm      | zune-ppm                |
+| qoi          | zune-qoi      | zune-qoi                |
+| farbfeld     | zune-farbfeld | zune-farbfeld           |
+| psd          | zune-psd      | -                       |
+| jpeg-xl      | jxl-oxide     | zune-jpegxl             |
+| hdr          | zune-hdr      | zune-hdr                |
 
 ### List of supported preprocessing options
 
-TODO
-
-## Examples
-
-TODO
+- Resize
+- Quantization
 
 ## Contributing
 

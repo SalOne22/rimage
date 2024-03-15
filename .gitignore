@@ -1,3 +1,9 @@
+# build artifacts
 /target
+
+# editor directories
 /.vscode
 /.idea
+
+# code coverage
+lcov.info
