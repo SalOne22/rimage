@@ -9,11 +9,11 @@ use zune_image::{
 
 /// Advanced options for AVIF encoding
 pub struct AvifOptions {
-    quality: f32,
-    alpha_quality: Option<f32>,
-    speed: u8,
-    color_space: ravif::ColorSpace,
-    alpha_color_mode: ravif::AlphaColorMode,
+    pub quality: f32,
+    pub alpha_quality: Option<f32>,
+    pub speed: u8,
+    pub color_space: ravif::ColorSpace,
+    pub alpha_color_mode: ravif::AlphaColorMode,
 }
 
 /// A AVIF encoder

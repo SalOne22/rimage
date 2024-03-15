@@ -6,15 +6,15 @@ use zune_image::{codecs::ImageFormat, errors::ImageErrors, image::Image, traits:
 
 /// Advanced options for MozJpeg encoding
 pub struct MozJpegOptions {
-    quality: f32,
-    progressive: bool,
-    optimize_coding: bool,
-    smoothing: u8,
-    color_space: mozjpeg::ColorSpace,
-    trellis_multipass: bool,
-    chroma_subsample: Option<u8>,
-    luma_qtable: Option<&'static QTable>,
-    chroma_qtable: Option<&'static QTable>,
+    pub quality: f32,
+    pub progressive: bool,
+    pub optimize_coding: bool,
+    pub smoothing: u8,
+    pub color_space: mozjpeg::ColorSpace,
+    pub trellis_multipass: bool,
+    pub chroma_subsample: Option<u8>,
+    pub luma_qtable: Option<&'static QTable>,
+    pub chroma_qtable: Option<&'static QTable>,
 }
 
 /// A MozJpeg encoder
