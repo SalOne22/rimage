@@ -36,7 +36,7 @@ oxipng = ["dep:oxipng"]
 # Enables webp codec
 webp = ["dep:webp"]
 # Enables avif codec
-avif = ["dep:ravif", "dep:rgb"]
+avif = ["dep:ravif", "dep:libavif", "dep:rgb"]
 
 [dependencies]
 zune-core = "0.4.12"
@@ -49,3 +49,8 @@ mozjpeg = { version = "0.10.7", default-features = false, features = ["with_simd
 oxipng = { version = "9.0", default-features = false, features = ["zopfli", "filetime"], optional = true }
 webp = { version = "0.2.6", default-features = false, optional = true }
 ravif = { version = "0.11.4", optional = true }
+libavif = { version = "0.13.0", optional = true }
+
+[dev-dependencies]
+zune-core = { version = "0.4.12", features = ["std"] }
+zune-image = "0.4.15"
