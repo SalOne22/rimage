@@ -1,12 +1,10 @@
 use clap::{arg, value_parser, ArgAction, ArgGroup, Command};
 use indoc::indoc;
 
-use resize::ResizeValue;
+#[cfg(feature = "resize")]
+pub use resize::{ResizeFilter, ResizeValue};
 
-use crate::cli::preprocessors::resize::{ResizeFilter, ResizeFit};
-
-pub mod pipeline;
-mod quantization;
+#[cfg(feature = "resize")]
 mod resize;
 
 impl Preprocessors for Command {
@@ -17,10 +15,11 @@ impl Preprocessors for Command {
                     .multiple(true)
             )
             .next_help_heading("Preprocessors")
-            .arg(
+            .args([
+                #[cfg(feature = "resize")]
                 arg!(--resize <RESIZE> "Resize the image(s) according to the specified criteria")
                     .long_help(indoc! {"Resize the image(s) according to the specified criteria
-    
+
                     Possible values:
                     - @1.5:    Enlarge image size by this multiplier
                     - 150%:    Adjust image size by this percentage
@@ -28,38 +27,32 @@ impl Preprocessors for Command {
                     - 200x_:   Adjust image dimensions while maintaining the aspect ratio based on the specified dimension"})
                     .value_parser(value_parser!(ResizeValue))
                     .action(ArgAction::Append),
-            )
-            .arg(
+
+                #[cfg(feature = "resize")]
                 arg!(--filter <FILTER> "Filter that used when resizing an image")
                     .value_parser(value_parser!(ResizeFilter))
                     .default_value("lanczos3")
                     .requires("resize"),
-            )
-            .arg(
-                arg!(--fit <FIT> "Specifies how to fit image")
-                    .value_parser(value_parser!(ResizeFit))
-                    .default_value("stretch")
-                    .requires("resize"),
-            )
-            .arg(
+
+                #[cfg(feature = "quantization")]
                 arg!(--quantization [QUALITY] "Enables quantization with optional quality")
                     .long_help(indoc! {"Enables quantization with optional quality
-    
+
                     If quality is not provided default 75% quality is used"})
                     .value_parser(value_parser!(u8).range(1..=100))
                     .action(ArgAction::Append)
-                    .default_missing_value("75")
-            )
-            .arg(
+                    .default_missing_value("75"),
+
+                #[cfg(feature = "quantization")]
                 arg!(--dithering [QUALITY] "Enables dithering with optional quality")
                     .long_help(indoc! {"Enables dithering with optional quality
-    
+
                     Used with --quantization flag.
                     If quality is not provided default 75% quality is used"})
                     .value_parser(value_parser!(u8).range(1..=100))
                     .default_missing_value("75")
                     .requires("quantization")
-            )
+            ])
     }
 }
 

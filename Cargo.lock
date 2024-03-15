@@ -1099,6 +1099,7 @@ dependencies = [
  "webp",
  "zune-core",
  "zune-image",
+ "zune-imageprocs",
 ]
 
 [[package]]
@@ -1601,6 +1602,16 @@ dependencies = [
  "zune-ppm",
  "zune-psd",
  "zune-qoi",
+]
+
+[[package]]
+name = "zune-imageprocs"
+version = "0.4.15"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "040e6261294629b9718608e0df791309137f4d8619816e1dc4245ddc2f0e882c"
+dependencies = [
+ "zune-core",
+ "zune-image",
 ]
 
 [[package]]

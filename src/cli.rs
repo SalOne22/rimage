@@ -6,6 +6,7 @@ use indoc::indoc;
 use self::{codecs::Codecs, preprocessors::Preprocessors, utils::threads};
 
 pub mod codecs;
+pub mod pipeline;
 pub mod preprocessors;
 pub mod utils;
 
@@ -13,7 +14,7 @@ pub fn cli() -> Command {
     command!()
         .arg_required_else_help(true)
         .arg(
-            arg!([FILES] ... "Input file(s) to process")
+            arg!([files] ... "Input file(s) to process")
                 .long_help(indoc! {"Input file(s) to process
 
                 If the file path contains spaces, enclose the path with double quotation marks on both sides."})

@@ -4,20 +4,20 @@ use anyhow::anyhow;
 pub enum ResizeValue {
     Multiplier(f32),
     Percentage(f32),
-    Dimensions(Option<u32>, Option<u32>),
+    Dimensions(Option<usize>, Option<usize>),
 }
 
 impl ResizeValue {
-    pub fn map_dimensions(&self, width: u32, height: u32) -> (u32, u32) {
+    pub fn map_dimensions(&self, width: usize, height: usize) -> (usize, usize) {
         match self {
             ResizeValue::Multiplier(multiplier) => (
-                (width as f32 * multiplier) as u32,
-                (height as f32 * multiplier) as u32,
+                (width as f32 * multiplier) as usize,
+                (height as f32 * multiplier) as usize,
             ),
 
             ResizeValue::Percentage(percentage) => (
-                (width as f32 * (percentage / 100.)) as u32,
-                (height as f32 * (percentage / 100.)) as u32,
+                (width as f32 * (percentage / 100.)) as usize,
+                (height as f32 * (percentage / 100.)) as usize,
             ),
 
             ResizeValue::Dimensions(new_width, new_height) => {
@@ -25,12 +25,12 @@ impl ResizeValue {
 
                 let width = new_width.unwrap_or(
                     new_height
-                        .map(|h| (h as f32 * aspect_ratio) as u32)
+                        .map(|h| (h as f32 * aspect_ratio) as usize)
                         .unwrap_or(width),
                 );
                 let height = new_height.unwrap_or(
                     new_width
-                        .map(|w| (w as f32 / aspect_ratio) as u32)
+                        .map(|w| (w as f32 / aspect_ratio) as usize)
                         .unwrap_or(height),
                 );
 
@@ -71,13 +71,13 @@ impl std::str::FromStr for ResizeValue {
                 let width = if dimensions[0] == "_" {
                     None
                 } else {
-                    Some(dimensions[0].parse::<u32>()?)
+                    Some(dimensions[0].parse::<usize>()?)
                 };
 
                 let height = if dimensions[1] == "_" {
                     None
                 } else {
-                    Some(dimensions[1].parse::<u32>()?)
+                    Some(dimensions[1].parse::<usize>()?)
                 };
 
                 Ok(Self::Dimensions(width, height))
