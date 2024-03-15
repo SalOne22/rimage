@@ -109,10 +109,8 @@ impl EncoderTrait for WebPEncoder {
         &[BitDepth::Eight]
     }
 
-    fn default_depth(&self, depth: BitDepth) -> BitDepth {
-        match depth {
-            _ => BitDepth::Eight,
-        }
+    fn default_depth(&self, _depth: BitDepth) -> BitDepth {
+        BitDepth::Eight
     }
 
     fn supports_animated_images(&self) -> bool {

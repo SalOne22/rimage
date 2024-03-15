@@ -17,6 +17,7 @@ pub struct AvifOptions {
 }
 
 /// A AVIF encoder
+#[derive(Default)]
 pub struct AvifEncoder {
     options: AvifOptions,
 }
@@ -29,14 +30,6 @@ impl Default for AvifOptions {
             speed: 6,
             color_space: ravif::ColorSpace::YCbCr,
             alpha_color_mode: ravif::AlphaColorMode::UnassociatedClean,
-        }
-    }
-}
-
-impl Default for AvifEncoder {
-    fn default() -> Self {
-        Self {
-            options: Default::default(),
         }
     }
 }
@@ -104,10 +97,8 @@ impl EncoderTrait for AvifEncoder {
         &[BitDepth::Eight]
     }
 
-    fn default_depth(&self, depth: BitDepth) -> BitDepth {
-        match depth {
-            _ => BitDepth::Eight,
-        }
+    fn default_depth(&self, _depth: BitDepth) -> BitDepth {
+        BitDepth::Eight
     }
 }
 

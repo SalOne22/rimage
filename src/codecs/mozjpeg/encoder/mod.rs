@@ -18,6 +18,7 @@ pub struct MozJpegOptions {
 }
 
 /// A MozJpeg encoder
+#[derive(Default)]
 pub struct MozJpegEncoder {
     options: MozJpegOptions,
 }
@@ -34,14 +35,6 @@ impl Default for MozJpegOptions {
             chroma_subsample: None,
             luma_qtable: None,
             chroma_qtable: None,
-        }
-    }
-}
-
-impl Default for MozJpegEncoder {
-    fn default() -> Self {
-        Self {
-            options: Default::default(),
         }
     }
 }
@@ -128,7 +121,7 @@ impl EncoderTrait for MozJpegEncoder {
 
             let mut comp = comp.start_compress(Vec::new())?;
 
-            comp.write_scanlines(&data)?;
+            comp.write_scanlines(data)?;
 
             Ok(comp.finish()?)
         })

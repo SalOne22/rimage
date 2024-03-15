@@ -15,9 +15,7 @@ impl<R: Read> WebPDecoder<R> {
         source.read_to_end(&mut buf)?;
 
         let decoder = AnimDecoder::new(&buf);
-        let img = decoder
-            .decode()
-            .map_err(|e| ImageErrors::ImageDecodeErrors(e))?;
+        let img = decoder.decode().map_err(ImageErrors::ImageDecodeErrors)?;
 
         Ok(WebPDecoder {
             inner: img,

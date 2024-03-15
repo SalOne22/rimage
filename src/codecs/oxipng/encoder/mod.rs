@@ -9,16 +9,9 @@ use zune_image::{
 pub type OxiPngOptions = oxipng::Options;
 
 /// A OxiPNG encoder
+#[derive(Default)]
 pub struct OxiPngEncoder {
     options: OxiPngOptions,
-}
-
-impl Default for OxiPngEncoder {
-    fn default() -> Self {
-        Self {
-            options: Default::default(),
-        }
-    }
 }
 
 impl OxiPngEncoder {
