@@ -1,7 +1,7 @@
 use std::{collections::BTreeMap, fs::read, path::Path};
 
 use clap::ArgMatches;
-use zune_core::bytestream::ZByteReader;
+use zune_core::{bytestream::ZByteReader, options::EncoderOptions};
 use zune_image::{
     codecs::{
         farbfeld::FarbFeldEncoder, jpeg::JpegEncoder, jpeg_xl::JxlEncoder, png::PngEncoder,
@@ -119,7 +119,17 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
     match matches.subcommand() {
         Some((name, matches)) => match name {
             "farbfeld" => Ok((Box::new(FarbFeldEncoder::new()), "ff")),
-            "jpeg" => Ok((Box::new(JpegEncoder::new()), "jpg")),
+            "jpeg" => {
+                let options = EncoderOptions::default();
+
+                if let Some(quality) = matches.get_one::<u8>("quality") {
+                    options.set_quality(*quality);
+                }
+
+                options.set_jpeg_encode_progressive(matches.get_flag("progressive"));
+
+                Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
+            }
             "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
             "png" => Ok((Box::new(PngEncoder::new()), "png")),
             "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
