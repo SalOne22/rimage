@@ -87,7 +87,6 @@ fn main() {
             Ok(()) => {}
             Err(e) => {
                 log::error!("{f:?}: {e}");
-                return;
             }
         };
     });
