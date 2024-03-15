@@ -3,7 +3,11 @@ use std::path::PathBuf;
 use clap::{arg, command, value_parser, Command};
 use indoc::indoc;
 
-use crate::{codecs::Codecs, preprocessors::Preprocessors, utils::threads};
+use self::{codecs::Codecs, preprocessors::Preprocessors, utils::threads};
+
+pub mod codecs;
+pub mod preprocessors;
+pub mod utils;
 
 pub fn cli() -> Command {
     command!()

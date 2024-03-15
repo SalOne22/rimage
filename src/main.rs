@@ -1,11 +1,7 @@
-use cli::cli;
-use preprocessors::pipeline::PreprocessorPipeline;
+use cli::{cli, preprocessors::pipeline::PreprocessorPipeline};
 use zune_image::{image::Image, pipelines::Pipeline};
 
 mod cli;
-mod codecs;
-mod preprocessors;
-mod utils;
 
 fn main() {
     pretty_env_logger::init();

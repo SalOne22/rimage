@@ -3,7 +3,7 @@ use indoc::indoc;
 
 use resize::ResizeValue;
 
-use crate::preprocessors::resize::{ResizeFilter, ResizeFit};
+use crate::cli::preprocessors::resize::{ResizeFilter, ResizeFit};
 
 pub mod pipeline;
 mod quantization;
