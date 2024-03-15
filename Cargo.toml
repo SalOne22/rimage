@@ -18,8 +18,16 @@ lto = true
 codegen-units = 1
 opt-level = "z"
 
+[[bin]]
+name = "rimage"
+path = "./src/main.rs"
+required-features = ["build-binary"]
+
 [features]
 default = ["resize", "quantization", "mozjpeg", "oxipng", "webp", "avif", "threads"]
+
+# Used for binary
+build-binary = ["dep:anyhow", "dep:clap", "dep:indoc", "dep:rayon", "dep:pretty_env_logger", "zune-image/default"]
 
 # Enables utilization of threads
 threads = ["imagequant?/threads", "mozjpeg?/parallel", "oxipng?/parallel"]
