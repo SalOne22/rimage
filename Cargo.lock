@@ -588,6 +588,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "libaom-sys"
+version = "0.16.0+libaom.3.8.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1b523abfa428fefad65baec6aecb8ba1dea86925c3977595386ea13ec174cac"
+dependencies = [
+ "cmake",
+]
+
+[[package]]
 name = "libavif"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -603,9 +612,8 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7eb05b7f9437ad312ad3dec250781fc95df54d4a1ec69d8b6cf5d503c5f5a51d"
 dependencies = [
  "cmake",
+ "libaom-sys",
  "libc",
- "libdav1d-sys",
- "rav1e",
 ]
 
 [[package]]
@@ -613,15 +621,6 @@ name = "libc"
 version = "0.2.153"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
-
-[[package]]
-name = "libdav1d-sys"
-version = "0.7.0+libdav1d.1.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0de922cdce0f7aca62567c9c454cbf49e5b1a7a79a10f97a3130547692aca71"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "libdeflate-sys"
@@ -989,7 +988,6 @@ dependencies = [
  "profiling",
  "rand",
  "rand_chacha",
- "scan_fmt",
  "simd_helpers",
  "system-deps",
  "thiserror",
@@ -1116,12 +1114,6 @@ checksum = "bfa0f585226d2e68097d4f95d113b15b83a82e819ab25717ec0590d9584ef366"
 dependencies = [
  "semver",
 ]
-
-[[package]]
-name = "scan_fmt"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b53b0a5db882a8e2fdaae0a43f7b39e7e9082389e978398bdf223a55b581248"
 
 [[package]]
 name = "semver"
