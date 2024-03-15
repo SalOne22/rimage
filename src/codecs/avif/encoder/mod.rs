@@ -9,10 +9,20 @@ use zune_image::{
 
 /// Advanced options for AVIF encoding
 pub struct AvifOptions {
+    /// Quality `1..=100`
     pub quality: f32,
+    /// Separate quality for alpha channel `1..=100`
     pub alpha_quality: Option<f32>,
+    /// Compression speed (effort) `1..=10`
+    ///
+    /// 1 = very very slow, but max compression
+    /// 10 = quick, but larger file sizes and lower quality.
     pub speed: u8,
+    /// Changes how color channels are stored in the image.
+    ///
+    /// Note that this is only internal detail for the AVIF file, and doesn't change color space of inputs to encode functions.
     pub color_space: ravif::ColorSpace,
+    /// Configure handling of color channels in transparent images
     pub alpha_color_mode: ravif::AlphaColorMode,
 }
 

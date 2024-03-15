@@ -3,6 +3,7 @@ use std::{io::Read, marker::PhantomData};
 use zune_core::{bytestream::ZReaderTrait, colorspace::ColorSpace};
 use zune_image::{errors::ImageErrors, image::Image, traits::DecoderTrait};
 
+/// A AVIF decoder
 pub struct AvifDecoder<R: Read> {
     inner: Vec<u8>,
     dimensions: Option<(usize, usize)>,
@@ -10,6 +11,7 @@ pub struct AvifDecoder<R: Read> {
 }
 
 impl<R: Read> AvifDecoder<R> {
+    /// Create a new avif decoder that reads data from `source`
     pub fn try_new(mut source: R) -> Result<AvifDecoder<R>, ImageErrors> {
         let mut buf = Vec::new();
         source.read_to_end(&mut buf)?;

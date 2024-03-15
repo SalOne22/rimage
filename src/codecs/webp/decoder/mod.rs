@@ -4,12 +4,14 @@ use webp::{AnimDecoder, DecodeAnimImage};
 use zune_core::{bit_depth::BitDepth, bytestream::ZReaderTrait, colorspace::ColorSpace};
 use zune_image::{errors::ImageErrors, frame::Frame, image::Image, traits::DecoderTrait};
 
+/// A WebP decoder
 pub struct WebPDecoder<R: Read> {
     inner: DecodeAnimImage,
     phantom: PhantomData<R>,
 }
 
 impl<R: Read> WebPDecoder<R> {
+    /// Create a new webp decoder that reads data from `source`
     pub fn try_new(mut source: R) -> Result<WebPDecoder<R>, ImageErrors> {
         let mut buf = Vec::new();
         source.read_to_end(&mut buf)?;

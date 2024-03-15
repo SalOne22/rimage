@@ -6,14 +6,23 @@ use zune_image::{codecs::ImageFormat, errors::ImageErrors, image::Image, traits:
 
 /// Advanced options for MozJpeg encoding
 pub struct MozJpegOptions {
+    /// Quality, values 60-80 are recommended. `1..=100`
     pub quality: f32,
+    /// Sets progressive mode for image
     pub progressive: bool,
+    /// Set to false to make files larger for no reason
     pub optimize_coding: bool,
+    /// If `1..=100` (non-zero), it will use MozJPEG's smoothing.
     pub smoothing: u8,
+    /// Set color space of JPEG being written, different from input color space
     pub color_space: mozjpeg::ColorSpace,
+    /// Specifies whether multiple scans should be considered during trellis quantization.
     pub trellis_multipass: bool,
+    /// Sets chroma subsampling, leave as `None` to use auto subsampling
     pub chroma_subsample: Option<u8>,
+    /// Instead of quality setting, use a specific quantization table.
     pub luma_qtable: Option<&'static QTable>,
+    /// Instead of quality setting, use a specific quantization table for color.
     pub chroma_qtable: Option<&'static QTable>,
 }
 
