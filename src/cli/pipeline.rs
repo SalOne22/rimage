@@ -1,6 +1,8 @@
 use std::{collections::BTreeMap, fs::read, path::Path};
 
 use clap::ArgMatches;
+use mozjpeg::qtable;
+use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
 use zune_core::{bytestream::ZByteReader, options::EncoderOptions};
 use zune_image::{
     codecs::{
@@ -131,6 +133,84 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
                 Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
             }
             "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
+            "mozjpeg" => {
+                let quality = *matches.get_one::<u8>("quality").unwrap() as f32;
+                let chroma_quality = matches
+                    .get_one::<u8>("chroma_quality")
+                    .map(|q| *q as f32)
+                    .unwrap_or(quality);
+
+                let options = MozJpegOptions {
+                    quality,
+                    progressive: !matches.get_flag("baseline"),
+                    optimize_coding: !matches.get_flag("no_optimize_coding"),
+                    smoothing: matches
+                        .get_one::<u8>("smoothing")
+                        .copied()
+                        .unwrap_or_default(),
+                    color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
+                        "ycbcr" => mozjpeg::ColorSpace::JCS_YCbCr,
+                        "rgb" => mozjpeg::ColorSpace::JCS_EXT_RGB,
+                        "grayscale" => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+                        _ => unreachable!(),
+                    },
+                    trellis_multipass: matches.get_flag("multipass"),
+                    chroma_subsample: matches.get_one::<u8>("subsample").copied(),
+
+                    luma_qtable: matches
+                        .get_one::<String>("qtable")
+                        .map(|c| match c.as_str() {
+                            "AhumadaWatsonPeterson" => {
+                                qtable::AhumadaWatsonPeterson.scaled(quality, quality)
+                            }
+                            "AnnexK" => qtable::AnnexK_Luma.scaled(quality, quality),
+                            "Flat" => qtable::Flat.scaled(quality, quality),
+                            "KleinSilversteinCarney" => {
+                                qtable::KleinSilversteinCarney.scaled(quality, quality)
+                            }
+                            "MSSSIM" => qtable::MSSSIM_Luma.scaled(quality, quality),
+                            "NRobidoux" => qtable::NRobidoux.scaled(quality, quality),
+                            "PSNRHVS" => qtable::PSNRHVS_Luma.scaled(quality, quality),
+                            "PetersonAhumadaWatson" => {
+                                qtable::PetersonAhumadaWatson.scaled(quality, quality)
+                            }
+                            "WatsonTaylorBorthwick" => {
+                                qtable::WatsonTaylorBorthwick.scaled(quality, quality)
+                            }
+                            _ => unreachable!(),
+                        }),
+
+                    chroma_qtable: matches
+                        .get_one::<String>("qtable")
+                        .map(|c| match c.as_str() {
+                            "AhumadaWatsonPeterson" => {
+                                qtable::AhumadaWatsonPeterson.scaled(chroma_quality, chroma_quality)
+                            }
+                            "AnnexK" => {
+                                qtable::AnnexK_Chroma.scaled(chroma_quality, chroma_quality)
+                            }
+                            "Flat" => qtable::Flat.scaled(chroma_quality, chroma_quality),
+                            "KleinSilversteinCarney" => qtable::KleinSilversteinCarney
+                                .scaled(chroma_quality, chroma_quality),
+                            "MSSSIM" => {
+                                qtable::MSSSIM_Chroma.scaled(chroma_quality, chroma_quality)
+                            }
+                            "NRobidoux" => qtable::NRobidoux.scaled(chroma_quality, chroma_quality),
+                            "PSNRHVS" => {
+                                qtable::PSNRHVS_Chroma.scaled(chroma_quality, chroma_quality)
+                            }
+                            "PetersonAhumadaWatson" => {
+                                qtable::PetersonAhumadaWatson.scaled(chroma_quality, chroma_quality)
+                            }
+                            "WatsonTaylorBorthwick" => {
+                                qtable::WatsonTaylorBorthwick.scaled(chroma_quality, chroma_quality)
+                            }
+                            _ => unreachable!(),
+                        }),
+                };
+
+                Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
+            }
             "png" => Ok((Box::new(PngEncoder::new()), "png")),
             "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
             "qoi" => Ok((Box::new(QoiEncoder::new()), "qoi")),
