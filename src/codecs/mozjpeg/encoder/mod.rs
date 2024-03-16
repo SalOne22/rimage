@@ -21,9 +21,9 @@ pub struct MozJpegOptions {
     /// Sets chroma subsampling, leave as `None` to use auto subsampling
     pub chroma_subsample: Option<u8>,
     /// Instead of quality setting, use a specific quantization table.
-    pub luma_qtable: Option<&'static QTable>,
+    pub luma_qtable: Option<QTable>,
     /// Instead of quality setting, use a specific quantization table for color.
-    pub chroma_qtable: Option<&'static QTable>,
+    pub chroma_qtable: Option<QTable>,
 }
 
 /// A MozJpeg encoder
@@ -68,6 +68,9 @@ impl EncoderTrait for MozJpegEncoder {
     fn encode_inner(&mut self, image: &Image) -> Result<Vec<u8>, ImageErrors> {
         let (width, height) = image.dimensions();
         let data = &image.flatten_to_u8()[0];
+
+        let luma_qtable = self.options.luma_qtable.as_ref();
+        let chroma_qtable = self.options.chroma_qtable.as_ref();
 
         std::panic::catch_unwind(|| -> Result<Vec<u8>, ImageErrors> {
             let format = match image.colorspace() {
@@ -120,11 +123,11 @@ impl EncoderTrait for MozJpegEncoder {
                 comp.set_chroma_sampling_pixel_sizes((sb, sb), (sb, sb))
             }
 
-            if let Some(qtable) = self.options.luma_qtable {
+            if let Some(qtable) = luma_qtable {
                 comp.set_luma_qtable(qtable)
             }
 
-            if let Some(qtable) = self.options.chroma_qtable {
+            if let Some(qtable) = chroma_qtable {
                 comp.set_chroma_qtable(qtable)
             }
 
