@@ -2,7 +2,10 @@ use std::{collections::BTreeMap, fs::read, path::Path};
 
 use clap::ArgMatches;
 use mozjpeg::qtable;
-use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
+use rimage::codecs::{
+    mozjpeg::{MozJpegEncoder, MozJpegOptions},
+    oxipng::{OxiPngEncoder, OxiPngOptions},
+};
 use zune_core::{bytestream::ZByteReader, options::EncoderOptions};
 use zune_image::{
     codecs::{
@@ -210,6 +213,18 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
                 };
 
                 Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
+            }
+            "oxipng" => {
+                let mut options =
+                    OxiPngOptions::from_preset(*matches.get_one::<u8>("effort").unwrap_or(&2));
+
+                options.interlace = if matches.get_flag("interlace") {
+                    Some(oxipng::Interlacing::Adam7)
+                } else {
+                    None
+                };
+
+                Ok((Box::new(OxiPngEncoder::new_with_options(options)), "png"))
             }
             "png" => Ok((Box::new(PngEncoder::new()), "png")),
             "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
