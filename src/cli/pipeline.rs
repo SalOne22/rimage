@@ -3,6 +3,7 @@ use std::{collections::BTreeMap, fs::read, path::Path};
 use clap::ArgMatches;
 use mozjpeg::qtable;
 use rimage::codecs::{
+    avif::{AvifEncoder, AvifOptions},
     mozjpeg::{MozJpegEncoder, MozJpegOptions},
     oxipng::{OxiPngEncoder, OxiPngOptions},
 };
@@ -225,6 +226,30 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
                 };
 
                 Ok((Box::new(OxiPngEncoder::new_with_options(options)), "png"))
+            }
+            "avif" => {
+                let options = AvifOptions {
+                    quality: *matches.get_one::<u8>("quality").unwrap() as f32,
+                    alpha_quality: matches.get_one::<u8>("alpha_quality").map(|q| *q as f32),
+                    speed: *matches.get_one::<u8>("speed").unwrap(),
+                    color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
+                        "ycbcr" => ravif::ColorSpace::YCbCr,
+                        "rgb" => ravif::ColorSpace::RGB,
+                        _ => unreachable!(),
+                    },
+                    alpha_color_mode: match matches
+                        .get_one::<String>("alpha_mode")
+                        .unwrap()
+                        .as_str()
+                    {
+                        "UnassociatedDirty" => ravif::AlphaColorMode::UnassociatedDirty,
+                        "UnassociatedClean" => ravif::AlphaColorMode::UnassociatedClean,
+                        "Premultiplied" => ravif::AlphaColorMode::Premultiplied,
+                        _ => unreachable!(),
+                    },
+                };
+
+                Ok((Box::new(AvifEncoder::new_with_options(options)), "avif"))
             }
             "png" => Ok((Box::new(PngEncoder::new()), "png")),
             "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),

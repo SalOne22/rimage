@@ -1,10 +1,11 @@
 use clap::Command;
 
 use self::{
-    farbfeld::farbfeld, jpeg::jpeg, jpeg_xl::jpeg_xl, mozjpeg::mozjpeg, oxipng::oxipng, png::png,
-    ppm::ppm, qoi::qoi,
+    avif::avif, farbfeld::farbfeld, jpeg::jpeg, jpeg_xl::jpeg_xl, mozjpeg::mozjpeg, oxipng::oxipng,
+    png::png, ppm::ppm, qoi::qoi,
 };
 
+mod avif;
 mod farbfeld;
 mod jpeg;
 mod jpeg_xl;
@@ -17,6 +18,7 @@ mod qoi;
 impl Codecs for Command {
     fn codecs(self) -> Self {
         self.subcommands([
+            avif(),
             farbfeld(),
             jpeg(),
             jpeg_xl(),
