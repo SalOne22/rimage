@@ -42,7 +42,7 @@ pub fn get_paths(
             if let Some(s) = &suffix {
                 out_path.push(format!("{file_name}{s}"));
             } else {
-                out_path.push(format!("{file_name}"));
+                out_path.push(file_name);
             }
 
             Some((path, out_path))
