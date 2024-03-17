@@ -21,7 +21,7 @@ use zune_image::{
 
 pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
-        if matches!(e, ImageErrors::ImageDecoderNotIncluded(_)) {
+        if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
             let file_content = read("tests/files/avif/f1t.avif")?;
 
             #[cfg(feature = "avif")]

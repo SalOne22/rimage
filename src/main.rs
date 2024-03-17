@@ -3,16 +3,29 @@ use std::{fs, path::PathBuf};
 use cli::{
     cli,
     pipeline::{decode, encoder, operations},
+    utils::paths::{collect_files, get_paths},
 };
-use rayon::iter::{IntoParallelRefIterator, ParallelIterator};
+use rayon::prelude::*;
 use zune_core::colorspace::ColorSpace;
 use zune_image::{
     core_filters::colorspace::ColorspaceConv, image::Image, metadata::AlphaState,
     pipelines::Pipeline,
 };
-use zune_imageprocs::premul_alpha::PremultiplyAlpha;
+use zune_imageprocs::{auto_orient::AutoOrient, premul_alpha::PremultiplyAlpha};
 
 mod cli;
+
+macro_rules! handle_error {
+    ( $path:expr, $e:expr ) => {
+        match $e {
+            Ok(v) => v,
+            Err(e) => {
+                log::error!("{:?}: {e}", $path);
+                return;
+            }
+        }
+    };
+}
 
 fn main() {
     pretty_env_logger::init();
@@ -26,29 +39,30 @@ fn main() {
             .unwrap();
     }
 
-    let files = matches
-        .get_many::<PathBuf>("files")
-        .expect("`files` is required")
-        .collect::<Vec<_>>();
+    let files = collect_files(
+        matches
+            .get_many::<PathBuf>("files")
+            .expect("`files` is required")
+            .collect::<Vec<_>>()
+            .as_ref(),
+    );
 
-    files.par_iter().for_each(|f| {
+    let out_dir = matches.get_one::<PathBuf>("directory").cloned();
+
+    let recursive = matches.get_flag("recursive");
+    let backup = matches.get_flag("backup");
+
+    let suffix = matches.get_one::<String>("suffix").cloned();
+
+    get_paths(files, out_dir, suffix, recursive).for_each(|(input, mut output)| {
         let mut pipeline = Pipeline::<Image>::new();
 
-        let img = match decode(f) {
-            Ok(img) => img,
-            Err(e) => {
-                log::error!("{f:?}: {e}");
-                return;
-            }
-        };
+        let img = handle_error!(input, decode(&input));
 
-        let (encoder, ext) = match encoder(&matches) {
-            Ok(encoder) => encoder,
-            Err(e) => {
-                log::error!("{f:?}: {e}");
-                return;
-            }
-        };
+        let (encoder, ext) = handle_error!(input, encoder(&matches));
+        output.set_extension(ext);
+
+        pipeline.add_operation(Box::new(AutoOrient));
 
         operations(&matches, &img)
             .into_iter()
@@ -75,19 +89,25 @@ fn main() {
         pipeline.add_decoder(img);
         pipeline.add_encoder(encoder);
 
-        match pipeline.advance_to_end() {
-            Ok(()) => {}
-            Err(e) => {
-                log::error!("{f:?}: {e}");
-                return;
-            }
-        };
+        handle_error!(input, pipeline.advance_to_end());
 
-        match fs::write(format!("image.{ext}"), pipeline.get_results()[0].data()) {
-            Ok(()) => {}
-            Err(e) => {
-                log::error!("{f:?}: {e}");
-            }
-        };
+        let data = pipeline.get_results()[0].data();
+
+        if backup {
+            handle_error!(
+                input,
+                fs::rename(
+                    &input,
+                    format!(
+                        "{}@backup.{}",
+                        input.file_stem().unwrap().to_str().unwrap(),
+                        input.extension().unwrap().to_str().unwrap()
+                    ),
+                )
+            );
+        }
+
+        handle_error!(output, fs::create_dir_all(output.parent().unwrap()));
+        handle_error!(output, fs::write(&output, data));
     });
 }

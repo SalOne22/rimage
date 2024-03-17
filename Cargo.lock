@@ -1084,6 +1084,7 @@ dependencies = [
  "anyhow",
  "clap",
  "fast_image_resize",
+ "glob",
  "imagequant",
  "indoc",
  "libavif",
@@ -1602,6 +1603,7 @@ version = "0.4.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "040e6261294629b9718608e0df791309137f4d8619816e1dc4245ddc2f0e882c"
 dependencies = [
+ "kamadak-exif",
  "zune-core",
  "zune-image",
 ]
