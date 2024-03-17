@@ -2,7 +2,7 @@ use clap::Command;
 
 use self::{
     avif::avif, farbfeld::farbfeld, jpeg::jpeg, jpeg_xl::jpeg_xl, mozjpeg::mozjpeg, oxipng::oxipng,
-    png::png, ppm::ppm, qoi::qoi,
+    png::png, ppm::ppm, qoi::qoi, webp::webp,
 };
 
 mod avif;
@@ -14,6 +14,7 @@ mod oxipng;
 mod png;
 mod ppm;
 mod qoi;
+mod webp;
 
 impl Codecs for Command {
     fn codecs(self) -> Self {
@@ -27,6 +28,7 @@ impl Codecs for Command {
             png(),
             ppm(),
             qoi(),
+            webp(),
         ])
     }
 }

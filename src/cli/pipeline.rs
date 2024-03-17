@@ -6,6 +6,7 @@ use rimage::codecs::{
     avif::{AvifEncoder, AvifOptions},
     mozjpeg::{MozJpegEncoder, MozJpegOptions},
     oxipng::{OxiPngEncoder, OxiPngOptions},
+    webp::{WebPEncoder, WebPOptions},
 };
 use zune_core::{bytestream::ZByteReader, options::EncoderOptions};
 use zune_image::{
@@ -250,6 +251,16 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
                 };
 
                 Ok((Box::new(AvifEncoder::new_with_options(options)), "avif"))
+            }
+            "webp" => {
+                let mut options = WebPOptions::new().unwrap();
+
+                options.quality = *matches.get_one::<u8>("quality").unwrap() as f32;
+                options.lossless = matches.get_flag("lossless") as i32;
+                options.near_lossless = 100 - *matches.get_one::<u8>("slight_loss").unwrap() as i32;
+                options.exact = matches.get_flag("exact") as i32;
+
+                Ok((Box::new(WebPEncoder::new_with_options(options)), "webp"))
             }
             "png" => Ok((Box::new(PngEncoder::new()), "png")),
             "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
