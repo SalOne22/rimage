@@ -83,7 +83,7 @@ default-features = false
 optional = true
 
 [dependencies.mozjpeg]
-version = "0.10.4"
+version = "0.10.7"
 features = ["with_simd"]
 default-features = false
 
