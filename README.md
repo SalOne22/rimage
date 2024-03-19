@@ -39,7 +39,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 | Image Format | Decoder       | Encoder                 | NOTE                                                 |
 | ------------ | ------------- | ----------------------- | ---------------------------------------------------- |
-| bmp          | zune-bmp      | -                       | Input only                                           |
+| bmp          | zune-bmp      | X                       | Input only                                           |
 | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |                                                      |
 | png          | zune-png      | oxipng or zune-png      | Static pics only                                     |
 | avif         | libavif       | ravif                   | Only common features are supported, Static pics only |
@@ -47,7 +47,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                                      |
-| psd          | zune-psd      | -                       | Input only                                           |
+| psd          | zune-psd      | X                       | Input only                                           |
 | jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless Output only                                 |
 | hdr          | zune-hdr      | zune-hdr                |                                                      |
 
