@@ -37,19 +37,19 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 ### List of supported Codecs
 
-| Image Format | Decoder       | Encoder                 |
-| ------------ | ------------- | ----------------------- |
-| bmp          | zune-bmp      | -                       |
-| jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |
-| png          | zune-png      | oxipng or zune-png      |
-| avif         | libavif       | ravif                   |
-| webp         | webp          | webp                    |
-| ppm          | zune-ppm      | zune-ppm                |
-| qoi          | zune-qoi      | zune-qoi                |
-| farbfeld     | zune-farbfeld | zune-farbfeld           |
-| psd          | zune-psd      | -                       |
-| jpeg-xl      | jxl-oxide     | zune-jpegxl             |
-| hdr          | zune-hdr      | zune-hdr                |
+| Image Format | Decoder       | Encoder                 | NOTE                                                 |
+| ------------ | ------------- | ----------------------- | ---------------------------------------------------- |
+| bmp          | zune-bmp      | -                       | Input only                                           |
+| jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |                                                      |
+| png          | zune-png      | oxipng or zune-png      | Static pics only                                     |
+| avif         | libavif       | ravif                   | Only common features are supported, Static pics only |
+| webp         | webp          | webp                    | Static pics only                                     |
+| ppm          | zune-ppm      | zune-ppm                |                                                      |
+| qoi          | zune-qoi      | zune-qoi                |                                                      |
+| farbfeld     | zune-farbfeld | zune-farbfeld           |                                                      |
+| psd          | zune-psd      | -                       | Input only                                           |
+| jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless Output only                                 |
+| hdr          | zune-hdr      | zune-hdr                |                                                      |
 
 ### List of supported preprocessing options
 
