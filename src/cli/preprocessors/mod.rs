@@ -1,3 +1,5 @@
+#![allow(unused_imports)]
+
 use clap::{arg, value_parser, ArgAction, ArgGroup, Command};
 use indoc::indoc;
 
@@ -8,10 +10,16 @@ pub use resize::{ResizeFilter, ResizeValue};
 mod resize;
 
 impl Preprocessors for Command {
+    #[cfg(any(feature = "resize", feature = "quantization"))]
     fn preprocessors(self) -> Self {
         self.group(
                 ArgGroup::new("preprocessors")
-                    .args(["resize", "quantization"])
+                    .args([
+                        #[cfg(feature = "resize")]
+                        "resize",
+                        #[cfg(feature = "quantization")]
+                         "quantization",
+                    ])
                     .multiple(true)
             )
             .next_help_heading("Preprocessors")
@@ -53,6 +61,11 @@ impl Preprocessors for Command {
                     .default_missing_value("75")
                     .requires("quantization")
             ])
+    }
+
+    #[cfg(not(any(feature = "resize", feature = "quantization")))]
+    fn preprocessors(self) -> Self {
+        self
     }
 }
 

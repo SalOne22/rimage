@@ -1,14 +1,7 @@
-use std::{collections::BTreeMap, fs::read, path::Path};
+use std::{collections::BTreeMap, path::Path};
 
 use clap::ArgMatches;
-use mozjpeg::qtable;
-use rimage::codecs::{
-    avif::{AvifEncoder, AvifOptions},
-    mozjpeg::{MozJpegEncoder, MozJpegOptions},
-    oxipng::{OxiPngEncoder, OxiPngOptions},
-    webp::{WebPEncoder, WebPOptions},
-};
-use zune_core::{bytestream::ZByteReader, options::EncoderOptions};
+use zune_core::options::EncoderOptions;
 use zune_image::{
     codecs::{
         farbfeld::FarbFeldEncoder, jpeg::JpegEncoder, jpeg_xl::JxlEncoder, png::PngEncoder,
@@ -16,17 +9,20 @@ use zune_image::{
     },
     errors::ImageErrors,
     image::Image,
-    traits::{DecoderTrait, EncoderTrait, OperationsTrait},
+    traits::{EncoderTrait, OperationsTrait},
 };
 
 pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
-            let file_content = read("tests/files/avif/f1t.avif")?;
+            #[cfg(any(feature = "avif", feature = "webp"))]
+            let file_content = std::fs::read("tests/files/avif/f1t.avif")?;
 
             #[cfg(feature = "avif")]
             if libavif::is_avif(&file_content) {
                 use rimage::codecs::avif::AvifDecoder;
+                use zune_core::bytestream::ZByteReader;
+                use zune_image::traits::DecoderTrait;
 
                 let reader = ZByteReader::new(file_content);
 
@@ -43,6 +39,8 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 .is_some_and(|f| f.eq_ignore_ascii_case("webp"))
             {
                 use rimage::codecs::webp::WebPDecoder;
+                use zune_core::bytestream::ZByteReader;
+                use zune_image::traits::DecoderTrait;
 
                 let reader = ZByteReader::new(file_content);
 
@@ -62,6 +60,8 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     })
 }
 
+#[allow(unused_variables)]
+#[allow(unused_mut)]
 pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn OperationsTrait>> {
     let mut map: BTreeMap<usize, Box<dyn OperationsTrait>> = BTreeMap::new();
 
@@ -138,7 +138,11 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
                 Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
             }
             "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
+            #[cfg(feature = "mozjpeg")]
             "mozjpeg" => {
+                use mozjpeg::qtable;
+                use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
+
                 let quality = *matches.get_one::<u8>("quality").unwrap() as f32;
                 let chroma_quality = matches
                     .get_one::<u8>("chroma_quality")
@@ -216,7 +220,10 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
 
                 Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
             }
+            #[cfg(feature = "oxipng")]
             "oxipng" => {
+                use rimage::codecs::oxipng::{OxiPngEncoder, OxiPngOptions};
+
                 let mut options =
                     OxiPngOptions::from_preset(*matches.get_one::<u8>("effort").unwrap_or(&2));
 
@@ -228,7 +235,10 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
 
                 Ok((Box::new(OxiPngEncoder::new_with_options(options)), "png"))
             }
+            #[cfg(feature = "avif")]
             "avif" => {
+                use rimage::codecs::avif::{AvifEncoder, AvifOptions};
+
                 let options = AvifOptions {
                     quality: *matches.get_one::<u8>("quality").unwrap() as f32,
                     alpha_quality: matches.get_one::<u8>("alpha_quality").map(|q| *q as f32),
@@ -252,7 +262,10 @@ pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static 
 
                 Ok((Box::new(AvifEncoder::new_with_options(options)), "avif"))
             }
+            #[cfg(feature = "webp")]
             "webp" => {
+                use rimage::codecs::webp::{WebPEncoder, WebPOptions};
+
                 let mut options = WebPOptions::new().unwrap();
 
                 options.quality = *matches.get_one::<u8>("quality").unwrap() as f32;
