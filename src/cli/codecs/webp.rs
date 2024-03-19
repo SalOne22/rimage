@@ -2,7 +2,7 @@ use clap::{arg, value_parser, Command};
 
 pub fn webp() -> Command {
     Command::new("webp")
-        .about("Encode images into WebP format. (Common and Lossless-able)")
+        .about("Encode images into WebP format. (Lossless-able)")
         .args([
             arg!(--lossless "Encode image without quality loss.").conflicts_with_all(["quality"]),
             arg!(-q --quality <NUM> "Quality, values 60-80 are recommended.")

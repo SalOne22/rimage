@@ -36,19 +36,19 @@ impl Preprocessors for Command {
 
                 #[cfg(feature = "quantization")]
                 arg!(--quantization [QUALITY] "Enables quantization with optional quality.")
-                    .long_help(indoc! {r#"Enables quantization with optional quality.
+                    .long_help(indoc! {r#"Enables quantization with optional quality in percentage.
 
-                    If quality is not provided, default 75 (of 100) quality is used"#})
+                    If quality is not provided, default 75 is used"#})
                     .value_parser(value_parser!(u8).range(1..=100))
                     .action(ArgAction::Append)
                     .default_missing_value("75"),
 
                 #[cfg(feature = "quantization")]
-                arg!(--dithering [QUALITY] "Enables dithering with optional quality")
-                    .long_help(indoc! {r#"Enables dithering with optional quality
+                arg!(--dithering [QUALITY] "Enables dithering with optional quality.")
+                    .long_help(indoc! {r#"Enables dithering with optional quality in percentage.
 
                     Used with --quantization flag.
-                    If quality is not provided, default 75 (of 100) quality is used"#})
+                    If quality is not provided, default 75 is used."#})
                     .value_parser(value_parser!(u8).range(1..=100))
                     .default_missing_value("75")
                     .requires("quantization")

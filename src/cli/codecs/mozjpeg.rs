@@ -3,7 +3,7 @@ use clap::{arg, value_parser, Command};
 pub fn mozjpeg() -> Command {
     Command::new("mozjpeg")
         .alias("moz")
-        .about("Encode images into JPEG format using MozJpeg codec. (RECOMMANDED and Small)")
+        .about("Encode images into JPEG format using MozJpeg codec. (RECOMMENDED and Small)")
         .args([
             arg!(-q --quality <NUM> "Quality, values 60-80 are recommended.")
                 .value_parser(value_parser!(u8).range(1..=100))
