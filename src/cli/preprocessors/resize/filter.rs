@@ -28,13 +28,13 @@ impl ValueEnum for ResizeFilter {
 
     fn to_possible_value(&self) -> Option<clap::builder::PossibleValue> {
         Some(match self {
-            ResizeFilter::Nearest => PossibleValue::new("nearest").help("Simplest filter, for each destination pixel gets nearest source pixel"),
+            ResizeFilter::Nearest => PossibleValue::new("nearest").help("Simplest filter, for each destination pixel gets nearest source pixel."),
             ResizeFilter::Box => PossibleValue::new("box").help("Each pixel contributes equally to destination. For upscaling, like Nearest."),
-            ResizeFilter::Bilinear => PossibleValue::new("bilinear").help("Uses linear interpolation among contributing pixels for output"),
-            ResizeFilter::Hamming => PossibleValue::new("hamming").help("Provides quality akin to bicubic for downscaling, sharper than Bilinear, but not optimal for upscaling"),
-            ResizeFilter::CatmullRom => PossibleValue::new("catmull-rom").help("Employs cubic interpolation for output pixel calculation"),
-            ResizeFilter::Mitchell => PossibleValue::new("mitchell").help("Utilizes cubic interpolation for output pixel calculation"),
-            ResizeFilter::Lanczos3 => PossibleValue::new("lanczos3").help("Applies high-quality Lanczos filter for output pixel calculation"),
+            ResizeFilter::Bilinear => PossibleValue::new("bilinear").help("Uses linear interpolation among contributing pixels for output."),
+            ResizeFilter::Hamming => PossibleValue::new("hamming").help("Provides quality akin to bicubic for downscaling, sharper than Bilinear, but not optimal for upscaling."),
+            ResizeFilter::CatmullRom => PossibleValue::new("catmull-rom").help("Employs cubic interpolation for output pixel calculation."),
+            ResizeFilter::Mitchell => PossibleValue::new("mitchell").help("Utilizes cubic interpolation for output pixel calculation."),
+            ResizeFilter::Lanczos3 => PossibleValue::new("lanczos3").help("Applies high-quality Lanczos filter for output pixel calculation."),
         })
     }
 }
