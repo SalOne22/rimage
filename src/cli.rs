@@ -14,7 +14,7 @@ pub fn cli() -> Command {
     command!()
         .arg_required_else_help(true)
         .arg(
-            arg!([files] "Input file(s) to process.")
+            arg!([files] ... "Input file(s) to process.")
                 .long_help(indoc! {r#"Input file(s) to process.
 
                 If the file path contains spaces, enclose the path with double quotation marks on both sides."#})

@@ -3,7 +3,7 @@ use indoc::indoc;
 
 pub fn avif() -> Command {
     Command::new("avif")
-        .about("Encode images into AVIF format")
+        .about("Encode images into AVIF format. (Small and Efficient)")
         .args([
             arg!(-q --quality <NUM> "Quality which the image will be encoded with.")
                 .value_parser(value_parser!(u8).range(1..=100))

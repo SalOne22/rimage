@@ -4,10 +4,12 @@ use indoc::indoc;
 pub fn oxipng() -> Command {
     Command::new("oxipng")
         .alias("oxi")
-        .about("Encode images into PNG format using OxiPNG codec.")
+        .about("Encode images into PNG format using OxiPNG codec. (Progressive-able)")
         .args([
             arg!(--interlace "Set interlace mode (progressive)."),
-            arg!(--effort <NUM> "Optimization level (0-6, or max)").long_help(indoc! {r#"Set the optimization level preset. The default level 2 is quite fast and provides good compression.
+            arg!(--effort <NUM> "Optimization level (0-6)").long_help(indoc! {r#"Set the optimization level preset.
+            The default level 2 is quite fast and provides good compression.
+            
             Lower levels are faster, higher levels provide better compression, though with increasingly diminishing returns.
 
             0   => (1 trial, determined heuristically)
