@@ -1,6 +1,8 @@
 use clap::{arg, value_parser, Command};
 use indoc::indoc;
 
+use crate::cli::common::CommonArgs;
+
 pub fn avif() -> Command {
     Command::new("avif")
         .about("Encode images into AVIF format. (Small and Efficient)")
@@ -23,5 +25,5 @@ pub fn avif() -> Command {
             arg!(--alpha_mode <MODE> "Configure handling of color channels in transparent images.")
                 .value_parser(["UnassociatedDirty", "UnassociatedClean", "Premultiplied"])
                 .default_value("UnassociatedClean")
-        ])
+        ]).common_args()
 }

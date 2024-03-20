@@ -122,167 +122,158 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
     map
 }
 
-pub fn encoder(matches: &ArgMatches) -> Result<(Box<dyn EncoderTrait>, &'static str), ImageErrors> {
-    match matches.subcommand() {
-        Some((name, matches)) => match name {
-            "farbfeld" => Ok((Box::new(FarbFeldEncoder::new()), "ff")),
-            "jpeg" => {
-                let options = EncoderOptions::default();
+pub fn encoder(
+    name: &str,
+    matches: &ArgMatches,
+) -> Result<(Box<dyn EncoderTrait>, &'static str), ImageErrors> {
+    match name {
+        "farbfeld" => Ok((Box::new(FarbFeldEncoder::new()), "ff")),
+        "jpeg" => {
+            let options = EncoderOptions::default();
 
-                if let Some(quality) = matches.get_one::<u8>("quality") {
-                    options.set_quality(*quality);
-                }
-
-                options.set_jpeg_encode_progressive(matches.get_flag("progressive"));
-
-                Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
+            if let Some(quality) = matches.get_one::<u8>("quality") {
+                options.set_quality(*quality);
             }
-            "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
-            #[cfg(feature = "mozjpeg")]
-            "mozjpeg" => {
-                use mozjpeg::qtable;
-                use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
 
-                let quality = *matches.get_one::<u8>("quality").unwrap() as f32;
-                let chroma_quality = matches
-                    .get_one::<u8>("chroma_quality")
-                    .map(|q| *q as f32)
-                    .unwrap_or(quality);
+            options.set_jpeg_encode_progressive(matches.get_flag("progressive"));
 
-                let options = MozJpegOptions {
-                    quality,
-                    progressive: !matches.get_flag("baseline"),
-                    optimize_coding: !matches.get_flag("no_optimize_coding"),
-                    smoothing: matches
-                        .get_one::<u8>("smoothing")
-                        .copied()
-                        .unwrap_or_default(),
-                    color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
-                        "ycbcr" => mozjpeg::ColorSpace::JCS_YCbCr,
-                        "rgb" => mozjpeg::ColorSpace::JCS_EXT_RGB,
-                        "grayscale" => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+            Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
+        }
+        "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
+        #[cfg(feature = "mozjpeg")]
+        "mozjpeg" => {
+            use mozjpeg::qtable;
+            use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
+
+            let quality = *matches.get_one::<u8>("quality").unwrap() as f32;
+            let chroma_quality = matches
+                .get_one::<u8>("chroma_quality")
+                .map(|q| *q as f32)
+                .unwrap_or(quality);
+
+            let options = MozJpegOptions {
+                quality,
+                progressive: !matches.get_flag("baseline"),
+                optimize_coding: !matches.get_flag("no_optimize_coding"),
+                smoothing: matches
+                    .get_one::<u8>("smoothing")
+                    .copied()
+                    .unwrap_or_default(),
+                color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
+                    "ycbcr" => mozjpeg::ColorSpace::JCS_YCbCr,
+                    "rgb" => mozjpeg::ColorSpace::JCS_EXT_RGB,
+                    "grayscale" => mozjpeg::ColorSpace::JCS_GRAYSCALE,
+                    _ => unreachable!(),
+                },
+                trellis_multipass: matches.get_flag("multipass"),
+                chroma_subsample: matches.get_one::<u8>("subsample").copied(),
+
+                luma_qtable: matches
+                    .get_one::<String>("qtable")
+                    .map(|c| match c.as_str() {
+                        "AhumadaWatsonPeterson" => {
+                            qtable::AhumadaWatsonPeterson.scaled(quality, quality)
+                        }
+                        "AnnexK" => qtable::AnnexK_Luma.scaled(quality, quality),
+                        "Flat" => qtable::Flat.scaled(quality, quality),
+                        "KleinSilversteinCarney" => {
+                            qtable::KleinSilversteinCarney.scaled(quality, quality)
+                        }
+                        "MSSSIM" => qtable::MSSSIM_Luma.scaled(quality, quality),
+                        "NRobidoux" => qtable::NRobidoux.scaled(quality, quality),
+                        "PSNRHVS" => qtable::PSNRHVS_Luma.scaled(quality, quality),
+                        "PetersonAhumadaWatson" => {
+                            qtable::PetersonAhumadaWatson.scaled(quality, quality)
+                        }
+                        "WatsonTaylorBorthwick" => {
+                            qtable::WatsonTaylorBorthwick.scaled(quality, quality)
+                        }
                         _ => unreachable!(),
-                    },
-                    trellis_multipass: matches.get_flag("multipass"),
-                    chroma_subsample: matches.get_one::<u8>("subsample").copied(),
+                    }),
 
-                    luma_qtable: matches
-                        .get_one::<String>("qtable")
-                        .map(|c| match c.as_str() {
-                            "AhumadaWatsonPeterson" => {
-                                qtable::AhumadaWatsonPeterson.scaled(quality, quality)
-                            }
-                            "AnnexK" => qtable::AnnexK_Luma.scaled(quality, quality),
-                            "Flat" => qtable::Flat.scaled(quality, quality),
-                            "KleinSilversteinCarney" => {
-                                qtable::KleinSilversteinCarney.scaled(quality, quality)
-                            }
-                            "MSSSIM" => qtable::MSSSIM_Luma.scaled(quality, quality),
-                            "NRobidoux" => qtable::NRobidoux.scaled(quality, quality),
-                            "PSNRHVS" => qtable::PSNRHVS_Luma.scaled(quality, quality),
-                            "PetersonAhumadaWatson" => {
-                                qtable::PetersonAhumadaWatson.scaled(quality, quality)
-                            }
-                            "WatsonTaylorBorthwick" => {
-                                qtable::WatsonTaylorBorthwick.scaled(quality, quality)
-                            }
-                            _ => unreachable!(),
-                        }),
-
-                    chroma_qtable: matches
-                        .get_one::<String>("qtable")
-                        .map(|c| match c.as_str() {
-                            "AhumadaWatsonPeterson" => {
-                                qtable::AhumadaWatsonPeterson.scaled(chroma_quality, chroma_quality)
-                            }
-                            "AnnexK" => {
-                                qtable::AnnexK_Chroma.scaled(chroma_quality, chroma_quality)
-                            }
-                            "Flat" => qtable::Flat.scaled(chroma_quality, chroma_quality),
-                            "KleinSilversteinCarney" => qtable::KleinSilversteinCarney
-                                .scaled(chroma_quality, chroma_quality),
-                            "MSSSIM" => {
-                                qtable::MSSSIM_Chroma.scaled(chroma_quality, chroma_quality)
-                            }
-                            "NRobidoux" => qtable::NRobidoux.scaled(chroma_quality, chroma_quality),
-                            "PSNRHVS" => {
-                                qtable::PSNRHVS_Chroma.scaled(chroma_quality, chroma_quality)
-                            }
-                            "PetersonAhumadaWatson" => {
-                                qtable::PetersonAhumadaWatson.scaled(chroma_quality, chroma_quality)
-                            }
-                            "WatsonTaylorBorthwick" => {
-                                qtable::WatsonTaylorBorthwick.scaled(chroma_quality, chroma_quality)
-                            }
-                            _ => unreachable!(),
-                        }),
-                };
-
-                Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
-            }
-            #[cfg(feature = "oxipng")]
-            "oxipng" => {
-                use rimage::codecs::oxipng::{OxiPngEncoder, OxiPngOptions};
-
-                let mut options =
-                    OxiPngOptions::from_preset(*matches.get_one::<u8>("effort").unwrap_or(&2));
-
-                options.interlace = if matches.get_flag("interlace") {
-                    Some(oxipng::Interlacing::Adam7)
-                } else {
-                    None
-                };
-
-                Ok((Box::new(OxiPngEncoder::new_with_options(options)), "png"))
-            }
-            #[cfg(feature = "avif")]
-            "avif" => {
-                use rimage::codecs::avif::{AvifEncoder, AvifOptions};
-
-                let options = AvifOptions {
-                    quality: *matches.get_one::<u8>("quality").unwrap() as f32,
-                    alpha_quality: matches.get_one::<u8>("alpha_quality").map(|q| *q as f32),
-                    speed: *matches.get_one::<u8>("speed").unwrap(),
-                    color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
-                        "ycbcr" => ravif::ColorSpace::YCbCr,
-                        "rgb" => ravif::ColorSpace::RGB,
+                chroma_qtable: matches
+                    .get_one::<String>("qtable")
+                    .map(|c| match c.as_str() {
+                        "AhumadaWatsonPeterson" => {
+                            qtable::AhumadaWatsonPeterson.scaled(chroma_quality, chroma_quality)
+                        }
+                        "AnnexK" => qtable::AnnexK_Chroma.scaled(chroma_quality, chroma_quality),
+                        "Flat" => qtable::Flat.scaled(chroma_quality, chroma_quality),
+                        "KleinSilversteinCarney" => {
+                            qtable::KleinSilversteinCarney.scaled(chroma_quality, chroma_quality)
+                        }
+                        "MSSSIM" => qtable::MSSSIM_Chroma.scaled(chroma_quality, chroma_quality),
+                        "NRobidoux" => qtable::NRobidoux.scaled(chroma_quality, chroma_quality),
+                        "PSNRHVS" => qtable::PSNRHVS_Chroma.scaled(chroma_quality, chroma_quality),
+                        "PetersonAhumadaWatson" => {
+                            qtable::PetersonAhumadaWatson.scaled(chroma_quality, chroma_quality)
+                        }
+                        "WatsonTaylorBorthwick" => {
+                            qtable::WatsonTaylorBorthwick.scaled(chroma_quality, chroma_quality)
+                        }
                         _ => unreachable!(),
-                    },
-                    alpha_color_mode: match matches
-                        .get_one::<String>("alpha_mode")
-                        .unwrap()
-                        .as_str()
-                    {
-                        "UnassociatedDirty" => ravif::AlphaColorMode::UnassociatedDirty,
-                        "UnassociatedClean" => ravif::AlphaColorMode::UnassociatedClean,
-                        "Premultiplied" => ravif::AlphaColorMode::Premultiplied,
-                        _ => unreachable!(),
-                    },
-                };
+                    }),
+            };
 
-                Ok((Box::new(AvifEncoder::new_with_options(options)), "avif"))
-            }
-            #[cfg(feature = "webp")]
-            "webp" => {
-                use rimage::codecs::webp::{WebPEncoder, WebPOptions};
+            Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
+        }
+        #[cfg(feature = "oxipng")]
+        "oxipng" => {
+            use rimage::codecs::oxipng::{OxiPngEncoder, OxiPngOptions};
 
-                let mut options = WebPOptions::new().unwrap();
+            let mut options =
+                OxiPngOptions::from_preset(*matches.get_one::<u8>("effort").unwrap_or(&2));
 
-                options.quality = *matches.get_one::<u8>("quality").unwrap() as f32;
-                options.lossless = matches.get_flag("lossless") as i32;
-                options.near_lossless = 100 - *matches.get_one::<u8>("slight_loss").unwrap() as i32;
-                options.exact = matches.get_flag("exact") as i32;
+            options.interlace = if matches.get_flag("interlace") {
+                Some(oxipng::Interlacing::Adam7)
+            } else {
+                None
+            };
 
-                Ok((Box::new(WebPEncoder::new_with_options(options)), "webp"))
-            }
-            "png" => Ok((Box::new(PngEncoder::new()), "png")),
-            "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
-            "qoi" => Ok((Box::new(QoiEncoder::new()), "qoi")),
+            Ok((Box::new(OxiPngEncoder::new_with_options(options)), "png"))
+        }
+        #[cfg(feature = "avif")]
+        "avif" => {
+            use rimage::codecs::avif::{AvifEncoder, AvifOptions};
 
-            name => Err(ImageErrors::GenericString(format!(
-                "Encoder \"{name}\" not found",
-            ))),
-        },
-        None => Err(ImageErrors::GenericStr("No encoder used")),
+            let options = AvifOptions {
+                quality: *matches.get_one::<u8>("quality").unwrap() as f32,
+                alpha_quality: matches.get_one::<u8>("alpha_quality").map(|q| *q as f32),
+                speed: *matches.get_one::<u8>("speed").unwrap(),
+                color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
+                    "ycbcr" => ravif::ColorSpace::YCbCr,
+                    "rgb" => ravif::ColorSpace::RGB,
+                    _ => unreachable!(),
+                },
+                alpha_color_mode: match matches.get_one::<String>("alpha_mode").unwrap().as_str() {
+                    "UnassociatedDirty" => ravif::AlphaColorMode::UnassociatedDirty,
+                    "UnassociatedClean" => ravif::AlphaColorMode::UnassociatedClean,
+                    "Premultiplied" => ravif::AlphaColorMode::Premultiplied,
+                    _ => unreachable!(),
+                },
+            };
+
+            Ok((Box::new(AvifEncoder::new_with_options(options)), "avif"))
+        }
+        #[cfg(feature = "webp")]
+        "webp" => {
+            use rimage::codecs::webp::{WebPEncoder, WebPOptions};
+
+            let mut options = WebPOptions::new().unwrap();
+
+            options.quality = *matches.get_one::<u8>("quality").unwrap() as f32;
+            options.lossless = matches.get_flag("lossless") as i32;
+            options.near_lossless = 100 - *matches.get_one::<u8>("slight_loss").unwrap() as i32;
+            options.exact = matches.get_flag("exact") as i32;
+
+            Ok((Box::new(WebPEncoder::new_with_options(options)), "webp"))
+        }
+        "png" => Ok((Box::new(PngEncoder::new()), "png")),
+        "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
+        "qoi" => Ok((Box::new(QoiEncoder::new()), "qoi")),
+
+        name => Err(ImageErrors::GenericString(format!(
+            "Encoder \"{name}\" not found",
+        ))),
     }
 }

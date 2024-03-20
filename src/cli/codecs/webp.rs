@@ -1,5 +1,7 @@
 use clap::{arg, value_parser, Command};
 
+use crate::cli::common::CommonArgs;
+
 pub fn webp() -> Command {
     Command::new("webp")
         .about("Encode images into WebP format. (Lossless-able)")
@@ -15,4 +17,5 @@ pub fn webp() -> Command {
             arg!(--discrete "Discrete tone image.").requires("lossless"),
             arg!(--exact "Preserve transparent data."),
         ])
+        .common_args()
 }

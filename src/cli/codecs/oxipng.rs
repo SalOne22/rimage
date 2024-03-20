@@ -1,6 +1,8 @@
 use clap::{arg, value_parser, Command};
 use indoc::indoc;
 
+use crate::cli::common::CommonArgs;
+
 pub fn oxipng() -> Command {
     Command::new("oxipng")
         .alias("oxi")
@@ -21,5 +23,5 @@ pub fn oxipng() -> Command {
             6   => (10 trials)"#})
             .value_parser(value_parser!(u8).range(0..=6))
             .default_value("2"),
-        ])
+        ]).common_args()
 }

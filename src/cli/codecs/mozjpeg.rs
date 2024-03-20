@@ -1,5 +1,7 @@
 use clap::{arg, value_parser, Command};
 
+use crate::cli::common::CommonArgs;
+
 pub fn mozjpeg() -> Command {
     Command::new("mozjpeg")
         .alias("moz")
@@ -33,5 +35,5 @@ pub fn mozjpeg() -> Command {
                     "WatsonTaylorBorthwick"
                 ])
                 .default_value("NRobidoux")
-        ])
+        ]).common_args()
 }
