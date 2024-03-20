@@ -66,7 +66,7 @@ fn main() {
 
                 pipeline.add_operation(Box::new(AutoOrient));
 
-                operations(&matches, &img)
+                operations(matches, &img)
                     .into_iter()
                     .for_each(|(_, operations)| match operations.name() {
                         "fast resize" => {
