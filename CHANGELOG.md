@@ -15,6 +15,7 @@ Benchmark data was taken from [sharp](https://github.com/lovell/sharp) repositor
 Options `--directory /tmp --resize 500x200 --filter lanczos3 mozjpeg --quality 80 -- ./2569067123_aca715a2ee_o.jpg`
 
 One image [from here](https://github.com/lovell/sharp/blob/main/test/fixtures/2569067123_aca715a2ee_o.jpg):
+
 ```
 Benchmark 1: rimage-0.11.0-next
   Time (mean ± σ):      48.6 ms ±   1.3 ms    [User: 43.9 ms, System: 8.4 ms]
@@ -37,6 +38,7 @@ Summary
 Options `--directory /tmp --resize 500x200 --filter lanczos3 mozjpeg --quality 80 -- ./*.jpg`
 
 Multiple images in parallel [from here](https://github.com/lovell/sharp/tree/main/test/fixtures) (only jpg):
+
 ```
 Benchmark 1: rimage-0.11.0-next
   Time (mean ± σ):     177.2 ms ±   4.6 ms    [User: 999.5 ms, System: 38.7 ms]
@@ -50,6 +52,54 @@ Summary
   rimage-0.11.0-next ran
   148.99 ± 4.31 times faster than rimage-0.10.3
 ```
+
+### Features
+
+- added avif decoder ([b64b931](https://github.com/SalOne22/rimage/commit/b64b931540c122ee3ba17ee97aa6e017d0ee9e0b))
+- added avif encoder ([18ee7e3](https://github.com/SalOne22/rimage/commit/18ee7e3163f591257e6f965cd90a8fbb58f4bd39))
+- added fast resize operation ([4317475](https://github.com/SalOne22/rimage/commit/4317475c63868e2e11039b36d012c7931f9ba0d8))
+- added features to reduce lib size ([e23823f](https://github.com/SalOne22/rimage/commit/e23823f23bc3925ca272028f4ce3f0677736b169))
+- added long_about to jxl codec ([8a19d4b](https://github.com/SalOne22/rimage/commit/8a19d4b71ed7e586b1b7a119ad83ff7369cd4bc3))
+- added mozjpeg encoder ([7f32068](https://github.com/SalOne22/rimage/commit/7f3206835505049203577aa67c0f12791aa650d2))
+- added options to jpeg codec ([ccd249c](https://github.com/SalOne22/rimage/commit/ccd249c60d898944ca03eb38158acc4be78427a1))
+- added oxipng encoder ([4a824dc](https://github.com/SalOne22/rimage/commit/4a824dc17a7eb4f7994cff9d5b5695216dd775fd))
+- added quantization operation ([25d0d78](https://github.com/SalOne22/rimage/commit/25d0d784202b730c8c1a5de072b189263e3bd1ab))
+- added threading to resize operation ([1e89b34](https://github.com/SalOne22/rimage/commit/1e89b345330d4a95d134af1203044f1f2be54e39))
+- added webp decoder ([3916d28](https://github.com/SalOne22/rimage/commit/3916d28f84b2dbb42814a8a15b3eee7075c9a3f7))
+- added webp encoder ([d542749](https://github.com/SalOne22/rimage/commit/d542749ff61c883ee01fd2a63b7f45c7c1df1c95))
+- **cli:** added avif codec ([aa89db5](https://github.com/SalOne22/rimage/commit/aa89db55b2aa4fa47ee72fce2ea5083d63069ff6))
+- **cli:** added base cli options ([a22a0aa](https://github.com/SalOne22/rimage/commit/a22a0aa1872a3c295b4812e9e7bc70ef3d4ded5f))
+- **cli:** added base codecs ([60d9aa5](https://github.com/SalOne22/rimage/commit/60d9aa58e3d606c99896421340cc7405fe02c315))
+- **cli:** added base preprocessors ([99d6a33](https://github.com/SalOne22/rimage/commit/99d6a3331ef43d3cbfbf6d9116b26651c57b742a))
+- **cli:** added mozjpeg codec ([37359e2](https://github.com/SalOne22/rimage/commit/37359e2d87372001b79af45ddb20439d4d75426d))
+- **cli:** added oxipng codec ([9658fce](https://github.com/SalOne22/rimage/commit/9658fce2475be5de31ec92d2d70da3ae89fe5f31))
+- **cli:** added webp codec ([57db180](https://github.com/SalOne22/rimage/commit/57db180cdcf3f0189c9ba83f97527a9bedc53242))
+- **cli:** changed general options placement ([5cf1e96](https://github.com/SalOne22/rimage/commit/5cf1e9678b6cdbe198da1f796ede25ef4edf00ee))
+- **cli:** implemented main cli ([a666dbf](https://github.com/SalOne22/rimage/commit/a666dbf294d14ddb8dbb73dcd240e4dfb2125834))
+- **encoders:** added exif write support for jpeg and png ([fcd4f5e](https://github.com/SalOne22/rimage/commit/fcd4f5e47fa6f5b8bf212329fa65019d5fed642c))
+- implemented base cli pipeline ([18bcbe0](https://github.com/SalOne22/rimage/commit/18bcbe0c2405d36e140c360547d700b8060abc96))
+- **preprocessors:** implemented quantization operation ([e527d69](https://github.com/SalOne22/rimage/commit/e527d698342e686b6bab1930a64aeefe52122fd1))
+- **preprocessors:** implemented resize operation ([7aa016e](https://github.com/SalOne22/rimage/commit/7aa016ea0d2d7e691bfb34754df2a6153225dbeb))
+
+### Bug Fixes
+
+- added binary feature ([ee148f1](https://github.com/SalOne22/rimage/commit/ee148f1e4a0d6d0d106290c057fe29117b890258))
+- added more image formats ([15aebe6](https://github.com/SalOne22/rimage/commit/15aebe609f744421429a0985847c7f4795c1e1b1))
+- **bin:** moved binary to root folder ([f637d14](https://github.com/SalOne22/rimage/commit/f637d1428adcc622c08631c1a858f25a579757bc))
+- **cargo:** updated cargo.toml ([4fba401](https://github.com/SalOne22/rimage/commit/4fba401d1d0ea61001459945e845acd305bb6581))
+- **cli:** updated features compilation ([0a70264](https://github.com/SalOne22/rimage/commit/0a7026492ddbbcc11b57f8d64c861d70600365e9))
+- **cli:** updated preprocessors using traits ([b8be3ff](https://github.com/SalOne22/rimage/commit/b8be3ff5445ee99cda5b9d5831a0c9e82bd257b3))
+- **codecs:** updated qtable type ([5a2c2f9](https://github.com/SalOne22/rimage/commit/5a2c2f98f0afc1935b174f5967642babd2632f8e))
+- **deps:** changed dav1d dependence to lib aom ([032b050](https://github.com/SalOne22/rimage/commit/032b050c05aa64195e66a54181677aa1555b19c7))
+- **deps:** optimized dependencies ([370f5d3](https://github.com/SalOne22/rimage/commit/370f5d3dc2696f7e02b59c54ef777bae930bbf32))
+- fixed clippy errors ([2ca79be](https://github.com/SalOne22/rimage/commit/2ca79beea7f6928aa5512074b2f69fb25ff2ae2e))
+- fixed clippy errors ([b2b7f79](https://github.com/SalOne22/rimage/commit/b2b7f79636c7febe58f59ecf5c0e549d4d5d35e8))
+- fixed clippy warnings ([d98091a](https://github.com/SalOne22/rimage/commit/d98091ab83158a4424df90a10011d744b689d97e))
+- fixed tests for image_format ([454f5c8](https://github.com/SalOne22/rimage/commit/454f5c800f303d01cafaac1b236df2ec465690e9))
+- **lib:** cleared lib ([5d7b2c6](https://github.com/SalOne22/rimage/commit/5d7b2c6d840c83a23e0392f9b91937a9d2c7d11f))
+- made options values public ([7d3fa3b](https://github.com/SalOne22/rimage/commit/7d3fa3bd105342a0eb03251546d30d59da842583))
+- moved cli modules to separate directory ([81593d0](https://github.com/SalOne22/rimage/commit/81593d0ca971e10a8ce917e84930ffd7afc8e615))
+- moved encoders to separate modules ([7c6816f](https://github.com/SalOne22/rimage/commit/7c6816f1bee2aff3f08fb765349f541ea182fa87))
 
 ## [v0.10.3](https://github.com/SalOne22/rimage/releases/tag/v0.10.3)
 
