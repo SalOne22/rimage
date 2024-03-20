@@ -133,6 +133,30 @@ impl EncoderTrait for MozJpegEncoder {
 
             let mut comp = comp.start_compress(Vec::new())?;
 
+            #[cfg(feature = "metadata")]
+            {
+                use exif::experimental::Writer;
+
+                if let Some(metadata) = &image.metadata().exif() {
+                    let mut writer = Writer::new();
+                    // write first tags for exif
+                    let mut buf = std::io::Cursor::new(b"Exif\x00\x00".to_vec());
+                    // set buffer position to be bytes written, to ensure we don't overwrite anything
+                    buf.set_position(6);
+
+                    for metadatum in *metadata {
+                        writer.push_field(metadatum);
+                    }
+                    let result = writer.write(&mut buf, false);
+                    if result.is_ok() {
+                        // add the exif tag to APP1 segment
+                        comp.write_marker(mozjpeg::Marker::APP(1), buf.get_ref());
+                    } else {
+                        log::warn!("Writing exif failed {:?}", result);
+                    }
+                }
+            }
+
             comp.write_scanlines(data)?;
 
             Ok(comp.finish()?)

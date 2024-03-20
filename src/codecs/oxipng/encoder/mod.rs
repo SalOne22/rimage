@@ -53,7 +53,8 @@ impl EncoderTrait for OxiPngEncoder {
         .next()
         .unwrap();
 
-        let img = oxipng::RawImage::new(
+        #[allow(unused_mut)]
+        let mut img = oxipng::RawImage::new(
             width as u32,
             height as u32,
             match image.colorspace() {
@@ -85,6 +86,27 @@ impl EncoderTrait for OxiPngEncoder {
             data,
         )
         .map_err(|e| ImgEncodeErrors::ImageEncodeErrors(e.to_string()))?;
+
+        #[cfg(feature = "metadata")]
+        {
+            use exif::experimental::Writer;
+
+            let mut buf = std::io::Cursor::new(vec![]);
+
+            if let Some(fields) = &image.metadata().exif() {
+                let mut writer = Writer::new();
+
+                for metadatum in *fields {
+                    writer.push_field(metadatum);
+                }
+                let result = writer.write(&mut buf, false);
+                if result.is_ok() {
+                    img.add_png_chunk(*b"eXIf", buf.into_inner());
+                } else {
+                    log::warn!("Writing exif failed {:?}", result);
+                }
+            }
+        }
 
         Ok(img
             .create_optimized_png(&self.options)
