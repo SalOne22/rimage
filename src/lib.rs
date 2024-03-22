@@ -1,85 +1,125 @@
 /*!
 # Rimage
 
-Rimage is a powerful Rust image optimization library designed to simplify and enhance your image optimization workflows. With Rimage, you can effortlessly optimize images for various formats, set quality levels, and apply advanced image optimization techniques with ease. Whether you're building a web application, mobile app, or desktop software, Rimage empowers you to deliver visually stunning content with minimal effort.
+Rimage is a powerful Rust image optimization library extending `zune_image` crate. Designed to enhance your image optimization workflows.
 
 ## Features
 
-1. **Flexible Format Conversion**: Rimage supports all modern image formats, including JPEG, JPEG XL, PNG, AVIF, and WebP.
-2. **Quality Control**: Fine-tune the quality of your images using a simple and intuitive interface.
-3. **Parallel Optimization**: Harness the power of parallel processing to optimize multiple images simultaneously.
-4. **Quantization and Dithering**: For advanced users, Rimage offers control over quantization and dithering.
-5. **Image Resizing**: Resize images with ease using `resize` crate.
+- Modern codecs:
+    - Rimage uses modern codecs optimized to produce tiny images
+    - Under the hood uses `zune_image` crate that enhances performance
+- Optimization operations:
+    - Rimage provides several image optimization operation
+    - Resize - uses `fast_image_resize` crate that has incredible performance
+    - Quantization - allowing to reduce image palette
 
-## Decoding
+## Formats
 
-From path:
+| Image Format | Decoder | Encoder |
+|--------------|---------|---------|
+| jpeg         | -       | mozjpeg |
+| png          | -       | oxipng  |
+| avif         | libavif | ravif   |
+| webp         | webp    | webp    |
 
-```
-use rimage::Decoder;
+## Usage
 
-let path = std::path::PathBuf::from("tests/files/jpg/f1t.jpg");
+This library is a extension for [`zune_image`] crate. For proper usage you will need to install it along with [`zune_core`].
 
-let decoder = Decoder::from_path(&path)?;
-
-let image = decoder.decode()?;
-
-// do something with the image data...
-# Ok::<(), image::error::ImageError>(())
-```
-
-From memory:
-```
-# use std::fs::File;
-use rimage::{Decoder, config::ImageFormat};
-
-# let f = File::open("tests/files/jpg/f1t.jpg").unwrap();
-let reader = std::io::BufReader::new(f); // you can use any reader
-
-let decoder = Decoder::new(reader).with_format(ImageFormat::Jpeg);
-
-let image = decoder.decode()?;
-
-// do something with the image data...
-# Ok::<(), image::error::ImageError>(())
-```
-
-## Encoding
+### Decoders
 
 ```
-use std::fs::File;
+use std::fs::read;
 
-use rimage::{rgb::RGBA8, Encoder, config::{EncoderConfig, Codec}};
-use image::{RgbaImage, DynamicImage};
+use rimage::codecs::avif::AvifDecoder;
+use zune_image::traits::DecoderTrait;
+use zune_core::bytestream::ZByteReader;
+# let path = "tests/files/avif/f1t.avif";
 
-let image_data = vec![0; 100 * 50 * 4];
-let image = RgbaImage::from_raw(100, 50, image_data).unwrap();
+let file_content = read(path).unwrap();
 
-let config = EncoderConfig::new(Codec::MozJpeg).with_quality(80.0).unwrap();
-let file = File::create("output.jpg").expect("Failed to create file");
+let reader = ZByteReader::new(file_content);
 
-let encoder = Encoder::new(file, DynamicImage::ImageRgba8(image)).with_config(config);
+let mut decoder = AvifDecoder::try_new(reader).unwrap();
 
-encoder.encode()?;
+let img =
+    <AvifDecoder<ZByteReader<Vec<u8>>> as DecoderTrait<Vec<u8>>>::decode(&mut decoder).unwrap();
+```
+> `zune_image` currently doesn't support custom decoders for `read` method. So for decoding you will need hacky approach to satisfy the compiler.
 
-# std::fs::remove_file("output.jpg").unwrap_or(());
-# Ok::<(), image::ImageError>(())
+### Encoders
+
+With default options
+
+```
+use rimage::codecs::mozjpeg::MozJpegEncoder;
+use zune_image::traits::EncoderTrait;
+# use zune_image::image::Image;
+# let img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
+
+let mut encoder = MozJpegEncoder::new();
+
+encoder.encode(&img).unwrap();
+```
+
+With custom options
+
+```
+use rimage::codecs::mozjpeg::{MozJpegOptions, MozJpegEncoder};
+use zune_image::traits::EncoderTrait;
+# use zune_image::image::Image;
+# let img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
+
+let options = MozJpegOptions {
+    quality: 80.,
+    ..Default::default()
+};
+
+let mut encoder = MozJpegEncoder::new_with_options(options);
+
+encoder.encode(&img).unwrap();
+```
+> Note that some codecs have own implementation of options, check their documentation to learn more
+
+### Operations
+
+Resize
+
+```
+use rimage::operations::resize::{Resize, ResizeAlg};
+use zune_image::traits::OperationsTrait;
+# use zune_image::image::Image;
+# let mut img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
+
+let resize = Resize::new(100, 100, ResizeAlg::Nearest);
+
+resize.execute(&mut img).unwrap();
+```
+> Check [`fast_image_resize`] documentation to learn more about resize algorithms
+
+Quantize
+
+```
+use rimage::operations::quantize::Quantize;
+use zune_image::traits::OperationsTrait;
+# use zune_image::image::Image;
+# use zune_core::colorspace::ColorSpace;
+# let mut img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
+# img.convert_color(ColorSpace::RGBA).unwrap();
+
+let quantize = Quantize::new(75, None); // without dithering
+
+quantize.execute(&mut img).unwrap();
 ```
 */
 
 #![warn(missing_docs)]
 
-///  Module for configuring image processing settings.
-pub mod config;
-mod decoder;
-mod encoder;
-///  Module for library errors.
-pub mod error;
+/// All additional operations for the zune_image
+pub mod operations;
 
-pub use decoder::Decoder;
-pub use encoder::Encoder;
-pub use image;
+/// All additional codecs for the zune_image
+pub mod codecs;
 
-#[cfg(feature = "resizing")]
-pub use resize;
-pub use rgb;
+#[cfg(test)]
+mod test_utils;
