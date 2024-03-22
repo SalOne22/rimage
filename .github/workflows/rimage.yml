@@ -2,6 +2,8 @@ name: rimage
 
 on:
   push:
+    branches:
+      - main
   pull_request:
     types:
       - opened
@@ -79,11 +81,11 @@ jobs:
           sudo apt-get -yq update
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
 
-      - name: install aarch64 cross compiler
+      - name: Install QEMU and AArch64 cross compiler
         if: startsWith(matrix.target, 'aarch64-unknown-linux')
         run: |
           sudo apt-get -yq update
-          sudo apt-get -yq install gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6:arm64
+          sudo apt-get -yq install qemu-user gcc-aarch64-linux-gnu libc6:arm64
 
       - name: set musl-g++
         if: matrix.target == 'x86_64-unknown-linux-musl'
@@ -103,6 +105,8 @@ jobs:
           target: ${{ matrix.target }}
 
       - uses: ilammy/setup-nasm@v1
+
+      - uses: taiki-e/install-action@nextest
 
       - name: install dependencies (linux)
         if: matrix.os == 'ubuntu-latest'
@@ -129,9 +133,15 @@ jobs:
         if: matrix.target != 'wasm32-unknown-emscripten'
         run: cargo build --all-features --release
 
-      - name: test
-        if: startsWith(matrix.target, 'aarch64') != true && matrix.target != 'wasm32-unknown-emscripten'
-        run: cargo test --all-features
+      - name: run tests
+        if: matrix.target != 'aarch64-apple-darwin' && matrix.target != 'wasm32-unknown-emscripten'
+        run: |
+          cargo nextest run --release --all-features
+          cargo test --doc --release --all-features
+
+      - name: build tests (arm64 macos only)
+        if: matrix.target == 'aarch64-apple-darwin'
+        run: cargo test --release --features sanity-checks --no-run
 
       - name: check wasm
         if: matrix.target == 'wasm32-unknown-emscripten'
