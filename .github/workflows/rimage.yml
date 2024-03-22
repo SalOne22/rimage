@@ -81,11 +81,11 @@ jobs:
           sudo apt-get -yq update
           sudo apt-get -yq install musl-tools musl-dev:${{ matrix.target-apt-arch }}
 
-      - name: Install QEMU and AArch64 cross compiler
+      - name: install qemu and aarch64 cross compiler
         if: startsWith(matrix.target, 'aarch64-unknown-linux')
         run: |
           sudo apt-get -yq update
-          sudo apt-get -yq install qemu-user gcc-aarch64-linux-gnu libc6:arm64
+          sudo apt-get -yq install qemu-user gcc-aarch64-linux-gnu g++-aarch64-linux-gnu libc6:arm64
 
       - name: set musl-g++
         if: matrix.target == 'x86_64-unknown-linux-musl'
@@ -141,7 +141,7 @@ jobs:
 
       - name: build tests (arm64 macos only)
         if: matrix.target == 'aarch64-apple-darwin'
-        run: cargo test --release --features sanity-checks --no-run
+        run: cargo test --release --all-features --no-run
 
       - name: check wasm
         if: matrix.target == 'wasm32-unknown-emscripten'
