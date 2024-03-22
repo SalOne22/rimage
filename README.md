@@ -21,10 +21,16 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
 
 You can download latest release from the [releases](https://github.com/SalOne22/rimage/releases) tab.
 
-Alternatively you can build rimage from source if you have `cargo` installed:
+If you're a Rust programmer, rimage can be installed with `cargo`.
 
 ```sh
 cargo install rimage
+```
+
+Alternatively, one can use [cargo binstall](https://github.com/cargo-bins/cargo-binstall) to install a rimage binary directly from GitHub:
+
+```sh
+cargo binstall rimage
 ```
 
 > ### Note
