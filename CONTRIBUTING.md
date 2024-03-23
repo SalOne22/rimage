@@ -13,7 +13,7 @@ To get started with contributing, you'll need to:
 1. Fork the repository on GitHub.
 2. Clone your fork locally.
 3. Install Rust and Cargo (if you haven't already).
-4. Install cmake and nasm for C libraries build.
+4. Install CMake and NASM for C libraries build.
 5. Run `cargo build` to ensure everything builds properly.
    > Note: On Windows, use a Visual Studio build environment like Developer PowerShell for VS 2019/2022.
 
@@ -26,6 +26,7 @@ Once you have a working environment set up, you can start making changes. Before
 3. Ensure that all tests pass before submitting a pull request.
 4. Ensure that your code adheres to the project's style guidelines (run `cargo fmt` to automatically format your code).
 5. Ensure that your code passes Clippy's linter (run `cargo clippy`).
+6. Commit changes according to the [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/).
 
 ## Submitting Changes
 
@@ -42,7 +43,6 @@ When submitting a pull request, please:
 1. Include a clear description of the changes you've made.
 2. Include a reference to any relevant issues or pull requests.
 3. Ensure that your code is well-documented and easy to understand.
-4. Sign your work (for more information, see [the Developer Certificate of Origin](https://developercertificate.org/)).
 
 ## Code Licensing
 
