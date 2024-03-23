@@ -76,6 +76,7 @@ Summary
 - **cli:** added webp codec ([57db180](https://github.com/SalOne22/rimage/commit/57db180cdcf3f0189c9ba83f97527a9bedc53242))
 - **cli:** changed general options placement ([5cf1e96](https://github.com/SalOne22/rimage/commit/5cf1e9678b6cdbe198da1f796ede25ef4edf00ee))
 - **cli:** implemented main cli ([a666dbf](https://github.com/SalOne22/rimage/commit/a666dbf294d14ddb8dbb73dcd240e4dfb2125834))
+- **cli:** add support for path-arg which end with "\" ([88e6b92](https://github.com/SalOne22/rimage/pull/189/commits/88e6b92a88eb0a8ba86db5153e90582d5942a819))
 - **encoders:** added exif write support for jpeg and png ([fcd4f5e](https://github.com/SalOne22/rimage/commit/fcd4f5e47fa6f5b8bf212329fa65019d5fed642c))
 - implemented base cli pipeline ([18bcbe0](https://github.com/SalOne22/rimage/commit/18bcbe0c2405d36e140c360547d700b8060abc96))
 - **preprocessors:** implemented quantization operation ([e527d69](https://github.com/SalOne22/rimage/commit/e527d698342e686b6bab1930a64aeefe52122fd1))
