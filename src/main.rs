@@ -30,7 +30,22 @@ macro_rules! handle_error {
 fn main() {
     pretty_env_logger::init();
 
-    let matches = cli().get_matches();
+    let matches = cli().get_matches_from(
+        #[cfg(not(windows))]
+        {
+            std::env::args()
+        },
+        #[cfg(windows)]
+        {
+            std::env::args().map(|mut arg| {
+                if let Some(s) = arg.strip_suffix("\"") {
+                    arg = s.to_string();
+                }
+
+                arg
+            })
+        },
+    );
 
     match matches.subcommand() {
         Some((subcommand, matches)) => {
