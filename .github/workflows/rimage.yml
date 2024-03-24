@@ -4,7 +4,17 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+        - '.github/**'
+        - '.gitignore'
+        - '**.md'
+        - 'LICENSE**'
   pull_request:
+    paths-ignore:
+        - '.github/**'
+        - '.gitignore'
+        - '**.md'
+        - 'LICENSE**'
     types:
       - opened
       - synchronize
