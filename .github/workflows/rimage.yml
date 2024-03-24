@@ -10,6 +10,11 @@ on:
         - '**.md'
         - 'LICENSE**'
   pull_request:
+    paths-ignore:
+        - '.github/**'
+        - '.gitignore'
+        - '**.md'
+        - 'LICENSE**'
     types:
       - opened
       - synchronize
