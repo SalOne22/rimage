@@ -4,6 +4,11 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+        - '.github/**'
+        - '.gitignore'
+        - '**.md'
+        - 'LICENSE**'
   pull_request:
     types:
       - opened
