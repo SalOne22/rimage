@@ -20,9 +20,7 @@ pub fn cli() -> Command {
 | avif          | O     | O      | Static only     |
 | bmp           | O     | X      |                 |
 | farbfeld      | O     | O      |                 |
-| gif           | O     | X      | Static only     |
 | hdr           | O     | O      |                 |
-| ico           | O     | X      | Single pic only |
 | jpeg          | O     | O      |                 |
 | jpeg-xl       | O     | O      |                 |
 | mozjpeg(jpeg) | O     | O      |                 |
@@ -30,7 +28,6 @@ pub fn cli() -> Command {
 | ppm           | O     | O      |                 |
 | psd           | O     | X      |                 |
 | qoi           | O     | O      |                 |
-| tiff          | O     | X      |                 |
 | webp          | O     | O      | Static only     |
 
 List of supported preprocessing options
