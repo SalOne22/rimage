@@ -14,25 +14,29 @@ pub fn cli() -> Command {
         .arg_required_else_help(true)
         .after_help(indoc! {r#"List of supported codecs
 
-| Image Format  | Input | Output | Note        |
-| ------------- | ----- | ------ | ----------- |
-| avif          | O     | O      | Static only |
-| bmp           | O     | X      |             |
-| farbfeld      | O     | O      |             |
-| hdr           | O     | O      |             |
-| jpeg          | O     | O      |             |
-| jpeg-xl       | O     | O      |             |
-| mozjpeg(jpeg) | O     | O      |             |
-| png           | O     | O      | Static only |
-| ppm           | O     | O      |             |
-| psd           | O     | X      |             |
-| qoi           | O     | O      |             |
-| webp          | O     | O      | Static only |
 
-        List of supported preprocessing options
+| Image Format  | Input | Output | Note            |
+| ------------- | ----- | ------ | --------------- |
+| avif          | O     | O      | Static only     |
+| bmp           | O     | X      |                 |
+| farbfeld      | O     | O      |                 |
+| gif           | O     | X      | Static only     |
+| hdr           | O     | O      |                 |
+| ico           | O     | X      | Single pic only |
+| jpeg          | O     | O      |                 |
+| jpeg-xl       | O     | O      |                 |
+| mozjpeg(jpeg) | O     | O      |                 |
+| png           | O     | O      | Static only     |
+| ppm           | O     | O      |                 |
+| psd           | O     | X      |                 |
+| qoi           | O     | O      |                 |
+| tiff          | O     | X      |                 |
+| webp          | O     | O      | Static only     |
 
-        - Resize
-        - Quantization"#})
+List of supported preprocessing options
+
+- Resize
+- Quantization"#})
         .codecs()
 }
 
