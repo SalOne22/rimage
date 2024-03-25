@@ -134,7 +134,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                   |
 | gif          |               | X                       | Static only                       |
 | hdr          | zune-hdr      | zune-hdr                |                                   |
-| ico          |               | X                       | Static only, Single pic only      |
+| ico          |               | X                       | Single pic only                   |
 | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |                                   |
 | jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless Output only              |
 | png          | zune-png      | oxipng or zune-png      | Staticonly                        |
