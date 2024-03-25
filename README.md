@@ -140,6 +140,9 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | psd          | zune-psd      | X                       | Input only                                           |
 | jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless Output only                                 |
 | hdr          | zune-hdr      | zune-hdr                |                                                      |
+| gif          |               | X                       | Static pics only                                     |
+| tiff         |               | X                       |                                                      |
+| ico          |               | X                       | Static and single pics only                          |
 
 ### List of supported preprocessing options
 
@@ -148,8 +151,21 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 ## Known bugs
 
-- If you using windows cmd, remove trailing backslash from paths.
-  This is a bug in cmd and rust `args()` method. [rust-lang/rust#72653](https://github.com/rust-lang/rust/issues/72653)
+- **`-d` arg must be placed at the end of command** due to a rust bug [#72653](https://github.com/rust-lang/rust/issues/72653).
+
+- Dir path end with `\`, `\\` or `/` may cause rimage crashes, you'd better remove it to avoid any accident.
+Example:
+<table>
+    <tr>
+        <td>Antiquated</td> 
+        <td> <code>riamge png "D:\\example.jpg" -s "suf test" -d "D:\\desktop\\"</code> </td> 
+   </tr>
+    <tr>
+  		<td>Recommanded</td> 
+        <td> <code>riamge png "D:\\example.jpg" -s "suf test" -d "D:\\desktop"</code> </td> 
+    </tr>
+</table>
+
 
 ## Contributing
 
