@@ -127,22 +127,19 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 ### List of supported Codecs
 
-| Image Format | Decoder       | Encoder                 | NOTE                              |
+| Image Codecs | Decoder       | Encoder                 | NOTE                              |
 | ------------ | ------------- | ----------------------- | --------------------------------- |
 | avif         | libavif       | ravif                   | Common features only, Static only |
 | bmp          | zune-bmp      | X                       | Input only                        |
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                   |
-| gif          |               | X                       | Static only                       |
 | hdr          | zune-hdr      | zune-hdr                |                                   |
-| ico          |               | X                       | Single pic only                   |
 | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |                                   |
-| jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless Output only              |
+| jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless only                     |
 | png          | zune-png      | oxipng or zune-png      | Staticonly                        |
 | ppm          | zune-ppm      | zune-ppm                |                                   |
 | psd          | zune-psd      | X                       | Input only                        |
 | qoi          | zune-qoi      | zune-qoi                |                                   |
-| tiff         |               | X                       |                                   |
-| webp         | webp          | webp                    | Static only, Single pic only      |
+| webp         | webp          | webp                    | Static only                       |
 
 ### List of supported preprocessing options
 
