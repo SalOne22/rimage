@@ -14,19 +14,20 @@ pub fn cli() -> Command {
         .arg_required_else_help(true)
         .after_help(indoc! {r#"List of supported codecs
 
-        | Image Format | Decoder       | Encoder                 |
-        | ------------ | ------------- | ----------------------- |
-        | bmp          | zune-bmp      | X                       |
-        | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder |
-        | png          | zune-png      | oxipng or zune-png      |
-        | avif         | libavif       | ravif                   |
-        | webp         | webp          | webp                    |
-        | ppm          | zune-ppm      | zune-ppm                |
-        | qoi          | zune-qoi      | zune-qoi                |
-        | farbfeld     | zune-farbfeld | zune-farbfeld           |
-        | psd          | zune-psd      | X                       |
-        | jpeg-xl      | jxl-oxide     | zune-jpegxl             |
-        | hdr          | zune-hdr      | zune-hdr                |
+| Image Format  | Input | Output | Note        |
+| ------------- | ----- | ------ | ----------- |
+| avif          | O     | O      | Static only |
+| bmp           | O     | X      |             |
+| farbfeld      | O     | O      |             |
+| hdr           | O     | O      |             |
+| jpeg          | O     | O      |             |
+| jpeg-xl       | O     | O      |             |
+| mozjpeg(jpeg) | O     | O      |             |
+| png           | O     | O      | Static only |
+| ppm           | O     | O      |             |
+| psd           | O     | X      |             |
+| qoi           | O     | O      |             |
+| webp          | O     | O      | Static only |
 
         List of supported preprocessing options
 
