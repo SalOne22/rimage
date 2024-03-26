@@ -34,7 +34,8 @@ pub fn cli() -> Command {
 List of supported preprocessing options
 
 - Resize
-- Quantization"#})
+- Quantization
+- Alpha premultiply"#})
         .codecs()
 }
 
