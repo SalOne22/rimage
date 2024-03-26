@@ -148,21 +148,23 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 ## Known bugs
 
-- **`-d` arg must be placed at the end of command** due to a rust bug [#72653](https://github.com/rust-lang/rust/issues/72653).
+- **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
 
-- Dir path end with `\`, `\\` or `/` may cause rimage crashes, you'd better remove it to avoid any accident.
-Example:
-<table>
-    <tr>
-        <td>Antiquated</td> 
-        <td> <code>riamge png "D:\\example.jpg" -s "suf test" -d "D:\\desktop\\"</code> </td> 
-   </tr>
-    <tr>
-  		<td>Recommanded</td> 
-        <td> <code>riamge png "D:\\example.jpg" -s "suf test" -d "D:\\desktop"</code> </td> 
-    </tr>
-</table>
+### Example:
 
+This will crash:
+
+```sh
+rimage png "D:\example.jpg" -d "D:\desktop\" -s "suffix"
+```
+
+This will work as expected:
+
+```sh
+rimage png "D:\example.jpg" -d "D:\desktop" -s "suf test" # without trailing backslash
+
+rimage png "D:\example.jpg" -s "suffix"  -d "D:\desktop\" # backslash at the end
+```
 
 ## Contributing
 
