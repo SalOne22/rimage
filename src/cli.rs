@@ -22,8 +22,8 @@ pub fn cli() -> Command {
 | farbfeld      | O     | O      |                 |
 | hdr           | O     | O      |                 |
 | jpeg          | O     | O      |                 |
-| jpeg-xl       | O     | O      |                 |
-| mozjpeg(jpeg) | O     | O      |                 |
+| jpeg_xl(jxl)  | O     | O      |                 |
+| mozjpeg(moz)  | O     | O      |                 |
 | png           | O     | O      | Static only     |
 | ppm           | O     | O      |                 |
 | psd           | O     | X      |                 |
