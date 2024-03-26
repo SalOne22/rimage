@@ -25,6 +25,7 @@ pub fn cli() -> Command {
 | jpeg_xl(jxl)  | O     | O      |                 |
 | mozjpeg(moz)  | O     | O      |                 |
 | png           | O     | O      | Static only     |
+| oxipng(oxi)   | O     | O      | Static only     |
 | ppm           | O     | O      |                 |
 | psd           | O     | X      |                 |
 | qoi           | O     | O      |                 |
