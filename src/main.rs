@@ -7,11 +7,8 @@ use cli::{
 };
 use rayon::prelude::*;
 use zune_core::colorspace::ColorSpace;
-use zune_image::{
-    core_filters::colorspace::ColorspaceConv, image::Image, metadata::AlphaState,
-    pipelines::Pipeline,
-};
-use zune_imageprocs::{auto_orient::AutoOrient, premul_alpha::PremultiplyAlpha};
+use zune_image::{core_filters::colorspace::ColorspaceConv, image::Image, pipelines::Pipeline};
+use zune_imageprocs::auto_orient::AutoOrient;
 
 mod cli;
 
@@ -84,17 +81,6 @@ fn main() {
                 operations(matches, &img)
                     .into_iter()
                     .for_each(|(_, operations)| match operations.name() {
-                        "fast resize" => {
-                            pipeline.add_operation(Box::new(PremultiplyAlpha::new(
-                                AlphaState::PreMultiplied,
-                            )));
-
-                            pipeline.add_operation(operations);
-
-                            pipeline.add_operation(Box::new(PremultiplyAlpha::new(
-                                AlphaState::NonPreMultiplied,
-                            )));
-                        }
                         "quantize" => {
                             pipeline.add_operation(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
                             pipeline.add_operation(operations);

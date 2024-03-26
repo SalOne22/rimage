@@ -145,6 +145,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 - Resize
 - Quantization
+- Alpha premultiply
 
 ## Known bugs
 
