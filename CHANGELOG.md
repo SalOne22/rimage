@@ -17,7 +17,7 @@ Options `--directory /tmp --resize 500x200 --filter lanczos3 mozjpeg --quality 8
 One image [from here](https://github.com/lovell/sharp/blob/main/test/fixtures/2569067123_aca715a2ee_o.jpg):
 
 ```
-Benchmark 1: rimage-0.11.0-next
+Benchmark 1: rimage-0.11.0-next.0
   Time (mean ± σ):      48.6 ms ±   1.3 ms    [User: 43.9 ms, System: 8.4 ms]
   Range (min … max):    46.7 ms …  53.3 ms    59 runs
 
@@ -30,7 +30,7 @@ Benchmark 3: squoosh-cli
   Range (min … max):   738.0 ms … 829.5 ms    10 runs
 
 Summary
-  rimage-0.11.0-next ran
+  rimage-0.11.0-next.0 ran
    14.23 ± 0.39 times faster than rimage-0.10.3
    15.65 ± 0.74 times faster than squoosh-cli
 ```
@@ -40,7 +40,7 @@ Options `--directory /tmp --resize 500x200 --filter lanczos3 mozjpeg --quality 8
 Multiple images in parallel [from here](https://github.com/lovell/sharp/tree/main/test/fixtures) (only jpg):
 
 ```
-Benchmark 1: rimage-0.11.0-next
+Benchmark 1: rimage-0.11.0-next.0
   Time (mean ± σ):     177.2 ms ±   4.6 ms    [User: 999.5 ms, System: 38.7 ms]
   Range (min … max):   169.3 ms … 184.7 ms    17 runs
 
@@ -49,7 +49,7 @@ Benchmark 2: rimage-0.10.3
   Range (min … max):   26.045 s … 27.297 s    10 runs
 
 Summary
-  rimage-0.11.0-next ran
+  rimage-0.11.0-next.0 ran
   148.99 ± 4.31 times faster than rimage-0.10.3
 ```
 

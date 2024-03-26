@@ -1079,7 +1079,7 @@ dependencies = [
 
 [[package]]
 name = "rimage"
-version = "0.11.0-next"
+version = "0.11.0-next.0"
 dependencies = [
  "anyhow",
  "clap",
