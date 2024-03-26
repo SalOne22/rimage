@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 
-use clap::{arg, value_parser, ArgAction, ArgGroup, Command};
+use clap::{arg, value_parser, Arg, ArgAction, ArgGroup, Command};
 use indoc::indoc;
 
 #[cfg(feature = "resize")]
@@ -59,14 +59,21 @@ impl Preprocessors for Command {
                     If quality is not provided, default 75 is used."#})
                     .value_parser(value_parser!(u8).range(1..=100))
                     .default_missing_value("75")
-                    .requires("quantization")
+                    .requires("quantization"),
+
+                position_sensitive_flag(arg!(--premultiply "Premultiply alpha before operation"))
+                    .action(ArgAction::Append)
             ])
     }
+}
 
-    #[cfg(not(any(feature = "resize", feature = "quantization")))]
-    fn preprocessors(self) -> Self {
-        self
-    }
+fn position_sensitive_flag(arg: Arg) -> Arg {
+    // Flags don't track the position of each occurrence, so we need to emulate flags with
+    // value-less options to get the same result
+    arg.num_args(0)
+        .value_parser(value_parser!(bool))
+        .default_missing_value("true")
+        .default_value("false")
 }
 
 pub trait Preprocessors {

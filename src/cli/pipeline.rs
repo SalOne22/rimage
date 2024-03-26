@@ -9,8 +9,10 @@ use zune_image::{
     },
     errors::ImageErrors,
     image::Image,
+    metadata::AlphaState,
     traits::{EncoderTrait, OperationsTrait},
 };
+use zune_imageprocs::premul_alpha::PremultiplyAlpha;
 
 pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
@@ -117,6 +119,35 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
                     );
                 })
         }
+    }
+
+    if let Some(values) = matches.get_many::<bool>("premultiply") {
+        values
+            .into_iter()
+            .zip(matches.indices_of("premultiply").unwrap())
+            .for_each(|(value, idx)| {
+                if let Some(op) = map.get(&(idx + 2)) {
+                    log::trace!("setup alpha premultiply for {}", op.name());
+
+                    map.insert(
+                        idx,
+                        Box::new(PremultiplyAlpha::new(AlphaState::PreMultiplied)),
+                    );
+
+                    assert!(
+                        map.get(&(idx + 3)).is_none(),
+                        "There is a operation at {} aborting",
+                        idx + 3
+                    );
+
+                    map.insert(
+                        idx + 3,
+                        Box::new(PremultiplyAlpha::new(AlphaState::NonPreMultiplied)),
+                    );
+                } else {
+                    log::warn!("No operation found for premultiply at index {idx}")
+                }
+            })
     }
 
     map
