@@ -62,7 +62,7 @@ Options:
   -V, --version  Print version
 ```
 
-### Basic optimization suitable for web
+### Basic optimization suitable for file transfer on web
 
 To optimize images with great defaults, you can simply call `rimage <command>`. For example:
 
@@ -106,7 +106,9 @@ Note that some preprocessing option are order independent. For example filter op
 
 ### Advanced options
 
-If you want customize optimization you can provide additional options to encoders. For mozjpeg this options are valid:
+If you want customize optimization you can provide additional options to encoders.
+
+For mozjpeg this options are valid:
 
 ```
 Options:
@@ -147,6 +149,38 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 - Quantization
 - Alpha premultiply
 
+### Detailed Examples
+
+#### png -> jpg & quality -> 90 & backup
+
+| Image Path                      | Quality | Out Format | Out Dir                   | Backup |
+| ------------------------------- | ------- | ---------- | ------------------------- | ------ |
+| "D:\\Desktop\\input [text].png" | 90      | jpg        | "D:\\Desktop\\OutputTest" | True   |
+
+```powershell
+rimage moz "D:\\Desktop\\input [text].png" -q 90 -d "D:\\Desktop\\OutputTest" -b
+```
+
+#### avif -> png & suffix & recursive & quantization & dithering
+
+| Image Path                     | Out Format | Suffix | Recursive | Quantization | Dithering |
+| ------------------------------ | ---------- | ------ | --------- | ------------ | --------- |
+| "C:\\中 &文\\ソフトウェア.AVIF" | avif       | \_문자 | Input dir | 95           | 85        |
+
+```powershell
+rimage oxi "C:\\中  &文\\ソフトウェア.AVIF" -s "_문자" -r --quantization 95 --dithering 85 -d "C:\\中  文"
+```
+
+#### png -> webp & quality -> lossless & resize & filter
+
+| Image Path     | Quality  | Out Format | Out Dir             | Width | Height |Filter|
+| -------------- | -------- | ---------- | ------------------- | ----- | ------ |---|
+| "C:\\test.png" | Lossless | png        | "C:\\Desktop\\Test" | 200   | Auto   |Bilinear|
+
+```powershell
+rimage webp "C:\\test.png" --lossless --resize 200x_ --filter bilinear -d "C:\\Desktop\\Test"
+```
+
 ## Known bugs
 
 - **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
@@ -166,11 +200,11 @@ These will work as expected:
 
 ```powershell
 rimage avif "D:\\example.jpg" -s "suffix" -d "D:\\desktop" #  Highly Recommended
-rimage moz "D:\\symble-^&-example.jpg" -s "suffix" -d "D:\\desktop\" #  Recommended
+rimage moz "D:\\example.jpg" -s "suffix" -d "D:\\desktop\" #  Recommended
 
-rimage jxl "D:\space example.jpg" -d "D:\desktop" -b # Acceptable (Without trailing backslash)
-rimage png "D:\“cjk中文”-example.jpg" --threads 4 -d "D:\desktop\" # Acceptable (Backslash at the end)
-rimage webp "D:\emojy-😄-example.jpg" -d ./desktop # Acceptable (Relative path)
+rimage jxl "D:\example.jpg" -d "D:\desktop" -b # Acceptable (Without trailing backslash)
+rimage png "D:\example.jpg" --threads 4 -d "D:\desktop\" # Acceptable (Backslash at the end)
+rimage webp "D:\example.jpg" -d ./desktop # Acceptable (Relative path)
 ```
 
 ## Contributing
