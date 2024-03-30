@@ -70,7 +70,7 @@ To optimize images with great defaults, you can simply call `rimage <command>`. 
 rimage mozjpeg ./image.jpg
 ```
 
-By default, rimage will place the output image directly in the same folder as the input image, which can cause OVERWRITING if the input and output images have the same file extension name. To change this behavior, you can use the following options:
+By default, rimage will place output images directly in the same folder of each input image, which may cause OVERWRITING if the input and output images have the same file extension name. To change this behavior, you can use the following options:
 
 ```powershell
 # Will place output images in `./output` directory, images may be overwritten if has the same name
