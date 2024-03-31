@@ -16,6 +16,9 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
   - Rimage provides several image optimization operation
   - Resize - uses `fast_image_resize` crate that has incredible performance
   - Quantization - allowing to reduce image palette
+- CJK and Punctuation marks support:
+  - Rimage supports full CJK (Chinese, Japanese and Korean) characters input and output
+  - Rimage allows special punctuation characters such as `|`, ` `, `&`, `$`, etc. to be included in file names
 
 ## Installation
 
@@ -88,17 +91,27 @@ rimage mozjpeg -d ./output -r ./inner/image.jpg ./image.jpg
 Rimage has pipeline preprocessing options. Simple usage:
 
 ```powershell
-# will resize image to specified dimensions
-rimage mozjpeg --resize 500x200 ./image.jpg
+# Will resize image to specified dimensions
+rimage mozjpeg --resize "500x200" ./image.jpg
+
+# Will zoom the image to the specified length (or width), and if another value is not specified, rimmage will automatically scale proportionally
+rimage mozjpeg --resize "_x600" ./image.jpg
+
+
+# Will resize the image by multiplier
+rimage mozjpeg --resize "@0.9" ./image.jpg
+
+# Will resize the image size by percentage
+rimage mozjpeg --resize "175%" ./image.jpg
 ```
 
 If you want to run preprocessing pipeline in specific order, you can do this:
 
 ```powershell
-# will quantize image with 80% quality, after run resize to 64x64 pixels using the Nearest filter.
+# Will quantize image with 80% quality, after run resize to 64x64 pixels using the Nearest filter.
 rimage mozjpeg --quantization 80 --resize 64x64 --filter nearest ./image.jpg
 
-# will resize image to 64x64 pixels using the Nearest filter, and after run quantization with 80% quality.
+# Will resize image to 64x64 pixels using the Nearest filter, and after run quantization with 80% quality.
 rimage mozjpeg --resize 64x64 --filter nearest --quantization 80 ./image.jpg
 ```
 
@@ -151,35 +164,11 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 ### Detailed Examples
 
-#### png -> jpg & quality -> 90 & backup
+| Image Path         | Out Format | Quality | Out Dir      | Backup |    Suffix    | Recursive | Threads |  ｜   | Command                                                              |
+| :----------------- | :--------: | :-----: | :----------- | :----: | :----------: | :-------: | :-----: | :---: | :------------------------------------------------------------------- |
+| `C:\\example.png`  |    jpg     |   90    | `D:\\Output` |  True  |    False     |   True    | Default |  ｜   | `rimage moz "C:\\example.png" -q 90 -r -d "D:\\Output" -b`           |
+| `C:\\example.AVIF` |    png     | Default | `D:\\Output` | False  | `_add_suf` |   False   |  True   |  ｜   | `rimage oxi "C:\\example.AVIF" -s "_add_suf" -t 3 -d "D:\\Output"` |
 
-| Image Path                      | Quality | Out Format | Out Dir                   | Backup |
-| ------------------------------- | ------- | ---------- | ------------------------- | ------ |
-| "D:\\Desktop\\input [text].png" | 90      | jpg        | "D:\\Desktop\\OutputTest" | True   |
-
-```powershell
-rimage moz "D:\\Desktop\\input [text].png" -q 90 -d "D:\\Desktop\\OutputTest" -b
-```
-
-#### avif -> png & suffix & recursive & quantization & dithering
-
-| Image Path                     | Out Format | Suffix | Recursive | Quantization | Dithering |
-| ------------------------------ | ---------- | ------ | --------- | ------------ | --------- |
-| "C:\\中 &文\\ソフトウェア.AVIF" | avif       | \_문자 | Input dir | 95           | 85        |
-
-```powershell
-rimage oxi "C:\\中  &文\\ソフトウェア.AVIF" -s "_문자" -r --quantization 95 --dithering 85 -d "C:\\中  文"
-```
-
-#### png -> webp & quality -> lossless & resize & filter
-
-| Image Path     | Quality  | Out Format | Out Dir             | Width | Height |Filter|
-| -------------- | -------- | ---------- | ------------------- | ----- | ------ |---|
-| "C:\\test.png" | Lossless | png        | "C:\\Desktop\\Test" | 200   | Auto   |Bilinear|
-
-```powershell
-rimage webp "C:\\test.png" --lossless --resize 200x_ --filter bilinear -d "C:\\Desktop\\Test"
-```
 
 ## Known bugs
 
@@ -193,18 +182,18 @@ rimage webp "C:\\test.png" --lossless --resize 200x_ --filter bilinear -d "C:\\D
 This will crash:
 
 ```powershell
-rimage png "D:\example.jpg" -d "D:\desktop\" -s "suffix"
+rimage png "D:\example.jpg" -d "D:\desktop\" -s "_suf"
 ```
 
 These will work as expected:
 
 ```powershell
-rimage avif "D:\\example.jpg" -s "suffix" -d "D:\\desktop" #  Highly Recommended
-rimage moz "D:\\example.jpg" -s "suffix" -d "D:\\desktop\" #  Recommended
+rimage avif "D:\\example.jpg" -d "D:\\desktop" -s "_suf"   # Highly Recommended
+rimage webp "D:\\example.jpg" -d "D:\\desktop\\" -s "_suf" # Recommended
 
-rimage jxl "D:\example.jpg" -d "D:\desktop" -b # Acceptable (Without trailing backslash)
-rimage png "D:\example.jpg" --threads 4 -d "D:\desktop\" # Acceptable (Backslash at the end)
-rimage webp "D:\example.jpg" -d ./desktop # Acceptable (Relative path)
+rimage jxl "D:\example.jpg" -d "D:\desktop" -s "_suf"      # Acceptable (Without trailing backslash)
+rimage png "D:\example.jpg" -d "D:\desktop\" -s "_suf"     # Acceptable (Backslash at the end)
+rimage moz "D:\example.jpg" -d ./desktop -s "_suf"         # Acceptable (Relative path)
 ```
 
 ## Contributing
