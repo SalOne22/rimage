@@ -1,6 +1,6 @@
 use std::{io::Read, marker::PhantomData};
 
-use zune_core::{bytestream::ZReaderTrait, colorspace::ColorSpace};
+use zune_core::colorspace::ColorSpace;
 use zune_image::{errors::ImageErrors, image::Image, traits::DecoderTrait};
 
 /// A AVIF decoder
@@ -24,10 +24,9 @@ impl<R: Read> AvifDecoder<R> {
     }
 }
 
-impl<R, T> DecoderTrait<T> for AvifDecoder<R>
+impl<R> DecoderTrait for AvifDecoder<R>
 where
     R: Read,
-    T: ZReaderTrait,
 {
     fn decode(&mut self) -> Result<Image, ImageErrors> {
         let img = libavif::decode_rgb(&self.inner)
