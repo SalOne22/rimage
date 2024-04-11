@@ -6,7 +6,7 @@ use super::*;
 fn decode() {
     let file_content = File::open("tests/files/avif/f1t.avif").unwrap();
 
-    let mut decoder = AvifDecoder::try_new(file_content).unwrap();
+    let decoder = AvifDecoder::try_new(file_content).unwrap();
 
     let img = Image::from_decoder(decoder).unwrap();
 

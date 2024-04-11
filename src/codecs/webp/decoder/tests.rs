@@ -6,7 +6,7 @@ use super::*;
 fn decode() {
     let file_content = File::open("tests/files/webp/f1t.webp").unwrap();
 
-    let mut decoder = WebPDecoder::try_new(file_content).unwrap();
+    let decoder = WebPDecoder::try_new(file_content).unwrap();
 
     let img = Image::from_decoder(decoder).unwrap();
 
