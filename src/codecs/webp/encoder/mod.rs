@@ -1,7 +1,12 @@
-use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
+use zune_core::{
+    bit_depth::BitDepth,
+    bytestream::{ZByteWriterTrait, ZWriter},
+    colorspace::ColorSpace,
+};
 use zune_image::{
     codecs::ImageFormat,
     errors::{ImageErrors, ImgEncodeErrors},
+    image::Image,
     traits::EncoderTrait,
 };
 
@@ -38,8 +43,14 @@ impl EncoderTrait for WebPEncoder {
         "webp"
     }
 
-    fn encode_inner(&mut self, image: &zune_image::image::Image) -> Result<Vec<u8>, ImageErrors> {
+    fn encode_inner<T: ZByteWriterTrait>(
+        &mut self,
+        image: &Image,
+        sink: T,
+    ) -> Result<usize, ImageErrors> {
         let (width, height) = image.dimensions();
+
+        let mut writer = ZWriter::new(sink);
 
         if image.is_animated() {
             let frames = image.flatten_to_u8();
@@ -74,7 +85,13 @@ impl EncoderTrait for WebPEncoder {
                 Ok(())
             })?;
 
-            Ok(vec![])
+            let res = encoder.encode();
+
+            writer.write(&res).map_err(|e| {
+                ImageErrors::EncodeErrors(ImgEncodeErrors::ImageEncodeErrors(format!("{e:?}")))
+            })?;
+
+            Ok(writer.bytes_written())
         } else {
             let data = &image.flatten_to_u8()[0];
 
@@ -92,7 +109,11 @@ impl EncoderTrait for WebPEncoder {
                 ImgEncodeErrors::ImageEncodeErrors(format!("webp encoding failed: {e:?}"))
             })?;
 
-            Ok(res.to_vec())
+            writer.write(&res).map_err(|e| {
+                ImageErrors::EncodeErrors(ImgEncodeErrors::ImageEncodeErrors(format!("{e:?}")))
+            })?;
+
+            Ok(writer.bytes_written())
         }
     }
 
