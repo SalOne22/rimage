@@ -1119,7 +1119,7 @@ dependencies = [
  "rayon",
  "rgb",
  "webp",
- "zune-core 0.4.12",
+ "zune-core 0.5.0-rc0",
  "zune-image 0.5.0-rc0",
  "zune-imageprocs",
 ]
