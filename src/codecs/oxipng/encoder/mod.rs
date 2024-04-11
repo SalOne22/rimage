@@ -1,7 +1,12 @@
-use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
+use zune_core::{
+    bit_depth::BitDepth,
+    bytestream::{ZByteWriterTrait, ZWriter},
+    colorspace::ColorSpace,
+};
 use zune_image::{
     codecs::ImageFormat,
     errors::{ImageErrors, ImgEncodeErrors},
+    image::Image,
     traits::EncoderTrait,
 };
 
@@ -30,10 +35,11 @@ impl EncoderTrait for OxiPngEncoder {
         "oxipng"
     }
 
-    fn encode_inner(
+    fn encode_inner<T: ZByteWriterTrait>(
         &mut self,
-        image: &zune_image::image::Image,
-    ) -> Result<Vec<u8>, zune_image::errors::ImageErrors> {
+        image: &Image,
+        sink: T,
+    ) -> Result<usize, ImageErrors> {
         let (width, height) = image.dimensions();
 
         // inlined `to_u8` method because its private
@@ -108,9 +114,17 @@ impl EncoderTrait for OxiPngEncoder {
             }
         }
 
-        Ok(img
+        let mut writer = ZWriter::new(sink);
+
+        let result = img
             .create_optimized_png(&self.options)
-            .map_err(|e| ImgEncodeErrors::ImageEncodeErrors(e.to_string()))?)
+            .map_err(|e| ImgEncodeErrors::ImageEncodeErrors(e.to_string()))?;
+
+        writer.write(&result).map_err(|e| {
+            ImageErrors::EncodeErrors(ImgEncodeErrors::ImageEncodeErrors(format!("{e:?}")))
+        })?;
+
+        Ok(writer.bytes_written())
     }
 
     fn supported_colorspaces(&self) -> &'static [ColorSpace] {
