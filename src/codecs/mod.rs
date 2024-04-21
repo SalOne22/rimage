@@ -2,9 +2,9 @@
 #[cfg(feature = "avif")]
 pub mod avif;
 
-/// MozJpeg encoding support
-#[cfg(feature = "mozjpeg")]
-pub mod mozjpeg;
+/// Jpegli encoding support
+#[cfg(feature = "jpegli")]
+pub mod jpegli;
 
 /// OxiPNG encoding support
 #[cfg(feature = "oxipng")]

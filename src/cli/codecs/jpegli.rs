@@ -2,10 +2,10 @@ use clap::{arg, value_parser, Command};
 
 use crate::cli::common::CommonArgs;
 
-pub fn mozjpeg() -> Command {
-    Command::new("mozjpeg")
+pub fn jpegli() -> Command {
+    Command::new("jpegli")
         .alias("moz")
-        .about("Encode images into JPEG format using MozJpeg codec. (RECOMMENDED and Small)")
+        .about("Encode images into JPEG format using jpegli codec. (RECOMMENDED and Small)")
         .args([
             arg!(-q --quality <NUM> "Quality, values 60-80 are recommended.")
                 .value_parser(value_parser!(u8).range(1..=100))
@@ -14,7 +14,7 @@ pub fn mozjpeg() -> Command {
                 .value_parser(value_parser!(u8).range(1..=100)),
             arg!(--baseline "Set to use baseline encoding (by default is progressive)."),
             arg!(--no_optimize_coding "Set to make files larger for no reason."),
-            arg!(--smoothing <NUM> "Use MozJPEG's smoothing.")
+            arg!(--smoothing <NUM> "Use jpegli's smoothing.")
                 .value_parser(value_parser!(u8).range(1..=100)),
             arg!(--colorspace <COLOR> "Set color space of JPEG being written.")
                 .value_parser(["ycbcr", "grayscale", "rgb"])
