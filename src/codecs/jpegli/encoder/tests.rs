@@ -8,7 +8,7 @@ use super::*;
 fn encode_colorspaces_u8() {
     let mut results = vec![];
 
-    let encoder = MozJpegEncoder::new();
+    let encoder = JpegliEncoder::new();
 
     for colorspace in encoder.supported_colorspaces() {
         let builder = std::thread::Builder::new().name(format!("{:?}", colorspace));
@@ -17,7 +17,7 @@ fn encode_colorspaces_u8() {
             .spawn(move || {
                 let image = create_test_image_u8(200, 200, *colorspace);
 
-                let mut encoder = MozJpegEncoder::new();
+                let mut encoder = JpegliEncoder::new();
 
                 let result = encoder.encode(&image);
 
@@ -39,7 +39,7 @@ fn encode_colorspaces_u8() {
 fn encode_colorspaces_u16() {
     let mut results = vec![];
 
-    let encoder = MozJpegEncoder::new();
+    let encoder = JpegliEncoder::new();
 
     for colorspace in encoder.supported_colorspaces() {
         let builder = std::thread::Builder::new().name(format!("{:?}", colorspace));
@@ -48,7 +48,7 @@ fn encode_colorspaces_u16() {
             .spawn(move || {
                 let image = create_test_image_u16(200, 200, *colorspace);
 
-                let mut encoder = MozJpegEncoder::new();
+                let mut encoder = JpegliEncoder::new();
 
                 let result = encoder.encode(&image);
 
@@ -70,7 +70,7 @@ fn encode_colorspaces_u16() {
 fn encode_colorspaces_f32() {
     let mut results = vec![];
 
-    let encoder = MozJpegEncoder::new();
+    let encoder = JpegliEncoder::new();
 
     for colorspace in encoder.supported_colorspaces() {
         let builder = std::thread::Builder::new().name(format!("{:?}", colorspace));
@@ -79,7 +79,7 @@ fn encode_colorspaces_f32() {
             .spawn(move || {
                 let image = create_test_image_f32(200, 200, *colorspace);
 
-                let mut encoder = MozJpegEncoder::new();
+                let mut encoder = JpegliEncoder::new();
 
                 let result = encoder.encode(&image);
 
@@ -100,7 +100,7 @@ fn encode_colorspaces_f32() {
 #[test]
 fn encode_u8() {
     let image = create_test_image_u8(200, 200, ColorSpace::RGB);
-    let mut encoder = MozJpegEncoder::new();
+    let mut encoder = JpegliEncoder::new();
 
     let result = encoder.encode(&image);
     dbg!(&result);
@@ -111,7 +111,7 @@ fn encode_u8() {
 #[test]
 fn encode_u16() {
     let image = create_test_image_u16(200, 200, ColorSpace::RGB);
-    let mut encoder = MozJpegEncoder::new();
+    let mut encoder = JpegliEncoder::new();
 
     let result = encoder.encode(&image);
     dbg!(&result);
@@ -122,7 +122,7 @@ fn encode_u16() {
 #[test]
 fn encode_f32() {
     let image = create_test_image_f32(200, 200, ColorSpace::RGB);
-    let mut encoder = MozJpegEncoder::new();
+    let mut encoder = JpegliEncoder::new();
 
     let result = encoder.encode(&image);
     dbg!(&result);
@@ -133,7 +133,7 @@ fn encode_f32() {
 #[test]
 fn encode_animated() {
     let image = create_test_image_animated(200, 200, ColorSpace::RGB);
-    let mut encoder = MozJpegEncoder::new();
+    let mut encoder = JpegliEncoder::new();
 
     let result = encoder.encode(&image);
     dbg!(&result);

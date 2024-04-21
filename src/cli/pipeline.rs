@@ -171,10 +171,10 @@ pub fn encoder(
             Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
         }
         "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
-        #[cfg(feature = "mozjpeg")]
-        "mozjpeg" => {
-            use mozjpeg::qtable;
-            use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
+        #[cfg(feature = "jpegli")]
+        "jpegli" => {
+            use jpegli::qtable;
+            use rimage::codecs::jpegli::{JpegliEncoder, JpegliOptions};
 
             let quality = *matches.get_one::<u8>("quality").unwrap() as f32;
             let chroma_quality = matches
@@ -182,7 +182,7 @@ pub fn encoder(
                 .map(|q| *q as f32)
                 .unwrap_or(quality);
 
-            let options = MozJpegOptions {
+            let options = JpegliOptions {
                 quality,
                 progressive: !matches.get_flag("baseline"),
                 optimize_coding: !matches.get_flag("no_optimize_coding"),
@@ -196,7 +196,6 @@ pub fn encoder(
                     "grayscale" => mozjpeg::ColorSpace::JCS_GRAYSCALE,
                     _ => unreachable!(),
                 },
-                trellis_multipass: matches.get_flag("multipass"),
                 chroma_subsample: matches.get_one::<u8>("subsample").copied(),
 
                 luma_qtable: matches
@@ -246,7 +245,7 @@ pub fn encoder(
                     }),
             };
 
-            Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
+            Ok((Box::new(JpegliEncoder::new_with_options(options)), "jpg"))
         }
         #[cfg(feature = "oxipng")]
         "oxipng" => {

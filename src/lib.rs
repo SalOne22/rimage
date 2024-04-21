@@ -17,7 +17,7 @@ Rimage is a powerful Rust image optimization library extending `zune_image` crat
 
 | Image Format | Decoder | Encoder |
 |--------------|---------|---------|
-| jpeg         | -       | mozjpeg |
+| jpeg         | -       | jpegli |
 | png          | -       | oxipng  |
 | avif         | libavif | ravif   |
 | webp         | webp    | webp    |
@@ -52,12 +52,12 @@ let img =
 With default options
 
 ```
-use rimage::codecs::mozjpeg::MozJpegEncoder;
+use rimage::codecs::jpegli::JpegliDecoder;
 use zune_image::traits::EncoderTrait;
 # use zune_image::image::Image;
 # let img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
 
-let mut encoder = MozJpegEncoder::new();
+let mut encoder = JpegliDecoder::new();
 
 encoder.encode(&img).unwrap();
 ```
@@ -65,17 +65,17 @@ encoder.encode(&img).unwrap();
 With custom options
 
 ```
-use rimage::codecs::mozjpeg::{MozJpegOptions, MozJpegEncoder};
+use rimage::codecs::jpegli::{JpegliOptions, JpegliEncoder};
 use zune_image::traits::EncoderTrait;
 # use zune_image::image::Image;
 # let img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
 
-let options = MozJpegOptions {
+let options = JpegliOptions {
     quality: 80.,
     ..Default::default()
 };
 
-let mut encoder = MozJpegEncoder::new_with_options(options);
+let mut encoder = JpegliEncoder::new_with_options(options);
 
 encoder.encode(&img).unwrap();
 ```

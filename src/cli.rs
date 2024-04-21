@@ -23,7 +23,7 @@ pub fn cli() -> Command {
 | hdr           | O     | O      |                 |
 | jpeg          | O     | O      |                 |
 | jpeg_xl(jxl)  | O     | O      |                 |
-| mozjpeg(moz)  | O     | O      |                 |
+| jpegli(moz)  | O     | O      |                 |
 | oxipng(oxi)   | O     | O      | Static only     |
 | png           | O     | O      | Static only     |
 | ppm           | O     | O      |                 |

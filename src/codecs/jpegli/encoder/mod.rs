@@ -1,23 +1,21 @@
 use std::mem;
 
-use mozjpeg::qtable::QTable;
+use jpegli::qtable::QTable;
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
 use zune_image::{codecs::ImageFormat, errors::ImageErrors, image::Image, traits::EncoderTrait};
 
-/// Advanced options for MozJpeg encoding
-pub struct MozJpegOptions {
+/// Advanced options for Jpegli encoding
+pub struct JpegliOptions {
     /// Quality, values 60-80 are recommended. `1..=100`
     pub quality: f32,
     /// Sets progressive mode for image
     pub progressive: bool,
     /// Set to false to make files larger for no reason
     pub optimize_coding: bool,
-    /// If `1..=100` (non-zero), it will use MozJPEG's smoothing.
+    /// If `1..=100` (non-zero), it will use Jpegli's smoothing.
     pub smoothing: u8,
     /// Set color space of JPEG being written, different from input color space
-    pub color_space: mozjpeg::ColorSpace,
-    /// Specifies whether multiple scans should be considered during trellis quantization.
-    pub trellis_multipass: bool,
+    pub color_space: jpegli::ColorSpace,
     /// Sets chroma subsampling, leave as `None` to use auto subsampling
     pub chroma_subsample: Option<u8>,
     /// Instead of quality setting, use a specific quantization table.
@@ -26,21 +24,20 @@ pub struct MozJpegOptions {
     pub chroma_qtable: Option<QTable>,
 }
 
-/// A MozJpeg encoder
+/// A Jpegli encoder
 #[derive(Default)]
-pub struct MozJpegEncoder {
-    options: MozJpegOptions,
+pub struct JpegliEncoder {
+    options: JpegliOptions,
 }
 
-impl Default for MozJpegOptions {
+impl Default for JpegliOptions {
     fn default() -> Self {
         Self {
             quality: 75.,
             progressive: true,
             optimize_coding: true,
             smoothing: 0,
-            color_space: mozjpeg::ColorSpace::JCS_YCbCr,
-            trellis_multipass: false,
+            color_space: jpegli::ColorSpace::JCS_YCbCr,
             chroma_subsample: None,
             luma_qtable: None,
             chroma_qtable: None,
@@ -48,21 +45,21 @@ impl Default for MozJpegOptions {
     }
 }
 
-impl MozJpegEncoder {
+impl JpegliEncoder {
     /// Create a new encoder
-    pub fn new() -> MozJpegEncoder {
-        MozJpegEncoder::default()
+    pub fn new() -> Self {
+        Self::default()
     }
 
     /// Create a new encoder with specified options
-    pub fn new_with_options(options: MozJpegOptions) -> MozJpegEncoder {
-        MozJpegEncoder { options }
+    pub fn new_with_options(options: JpegliOptions) -> Self {
+        Self { options }
     }
 }
 
-impl EncoderTrait for MozJpegEncoder {
+impl EncoderTrait for JpegliEncoder {
     fn name(&self) -> &'static str {
-        "mozjpeg-encoder"
+        "jpegli-encoder"
     }
 
     fn encode_inner(&mut self, image: &Image) -> Result<Vec<u8>, ImageErrors> {
@@ -74,20 +71,20 @@ impl EncoderTrait for MozJpegEncoder {
 
         std::panic::catch_unwind(|| -> Result<Vec<u8>, ImageErrors> {
             let format = match image.colorspace() {
-                ColorSpace::RGB => mozjpeg::ColorSpace::JCS_RGB,
-                ColorSpace::RGBA => mozjpeg::ColorSpace::JCS_EXT_RGBA,
-                ColorSpace::YCbCr => mozjpeg::ColorSpace::JCS_YCbCr,
-                ColorSpace::Luma => mozjpeg::ColorSpace::JCS_GRAYSCALE,
-                ColorSpace::YCCK => mozjpeg::ColorSpace::JCS_YCCK,
-                ColorSpace::CMYK => mozjpeg::ColorSpace::JCS_CMYK,
-                ColorSpace::BGR => mozjpeg::ColorSpace::JCS_EXT_BGR,
-                ColorSpace::BGRA => mozjpeg::ColorSpace::JCS_EXT_BGRA,
-                ColorSpace::ARGB => mozjpeg::ColorSpace::JCS_EXT_ARGB,
-                ColorSpace::Unknown => mozjpeg::ColorSpace::JCS_UNKNOWN,
-                _ => mozjpeg::ColorSpace::JCS_UNKNOWN,
+                ColorSpace::RGB => jpegli::ColorSpace::JCS_RGB,
+                ColorSpace::RGBA => jpegli::ColorSpace::JCS_EXT_RGBA,
+                ColorSpace::YCbCr => jpegli::ColorSpace::JCS_YCbCr,
+                ColorSpace::Luma => jpegli::ColorSpace::JCS_GRAYSCALE,
+                ColorSpace::YCCK => jpegli::ColorSpace::JCS_YCCK,
+                ColorSpace::CMYK => jpegli::ColorSpace::JCS_CMYK,
+                ColorSpace::BGR => jpegli::ColorSpace::JCS_EXT_BGR,
+                ColorSpace::BGRA => jpegli::ColorSpace::JCS_EXT_BGRA,
+                ColorSpace::ARGB => jpegli::ColorSpace::JCS_EXT_ARGB,
+                ColorSpace::Unknown => jpegli::ColorSpace::JCS_UNKNOWN,
+                _ => jpegli::ColorSpace::JCS_UNKNOWN,
             };
 
-            let mut comp = mozjpeg::Compress::new(format);
+            let mut comp = jpegli::Compress::new(format);
 
             comp.set_size(width, height);
             comp.set_quality(self.options.quality);
@@ -99,25 +96,24 @@ impl EncoderTrait for MozJpegEncoder {
             comp.set_optimize_coding(self.options.optimize_coding);
             comp.set_smoothing_factor(self.options.smoothing);
             comp.set_color_space(match format {
-                mozjpeg::ColorSpace::JCS_GRAYSCALE => {
+                jpegli::ColorSpace::JCS_GRAYSCALE => {
                     log::warn!("Input colorspace is GRAYSCALE, using GRAYSCALE as output");
 
-                    mozjpeg::ColorSpace::JCS_GRAYSCALE
+                    jpegli::ColorSpace::JCS_GRAYSCALE
                 }
-                mozjpeg::ColorSpace::JCS_CMYK => {
+                jpegli::ColorSpace::JCS_CMYK => {
                     log::warn!("Input colorspace is CMYK, using CMYK as output");
 
-                    mozjpeg::ColorSpace::JCS_CMYK
+                    jpegli::ColorSpace::JCS_CMYK
                 }
-                mozjpeg::ColorSpace::JCS_YCCK => {
+                jpegli::ColorSpace::JCS_YCCK => {
                     log::warn!("Input colorspace is YCCK, using YCCK as output");
 
-                    mozjpeg::ColorSpace::JCS_YCCK
+                    jpegli::ColorSpace::JCS_YCCK
                 }
 
                 _ => self.options.color_space,
             });
-            comp.set_use_scans_in_trellis(self.options.trellis_multipass);
 
             if let Some(sb) = self.options.chroma_subsample {
                 comp.set_chroma_sampling_pixel_sizes((sb, sb), (sb, sb))
@@ -150,7 +146,7 @@ impl EncoderTrait for MozJpegEncoder {
                     let result = writer.write(&mut buf, false);
                     if result.is_ok() {
                         // add the exif tag to APP1 segment
-                        comp.write_marker(mozjpeg::Marker::APP(1), buf.get_ref());
+                        comp.write_marker(jpegli::Marker::APP(1), buf.get_ref());
                     } else {
                         log::warn!("Writing exif failed {:?}", result);
                     }

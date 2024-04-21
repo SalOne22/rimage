@@ -277,12 +277,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "248e3bacc7dc6baa3b21e405ee045c3047101a49145e7e9eca583ab4c2ca5345"
 
 [[package]]
-name = "dunce"
-version = "1.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ce8c6da7551ec6c462cbaf3bfbc75131ebbfa1c944aeaa9dab51ca1c5f0c3b"
-
-[[package]]
 name = "either"
 version = "1.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -458,6 +452,29 @@ name = "jpeg-encoder"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2cf3affe27ffd9f1992690ec7575568b222abe9cb39738f6531968aca8e64906"
+
+[[package]]
+name = "jpegli"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ebb4c6197fc2ce2750101b0dda667c055d35bf88a624088b30056cf04ad0fbb"
+dependencies = [
+ "arrayvec",
+ "jpegli-sys",
+ "libc",
+ "rgb",
+]
+
+[[package]]
+name = "jpegli-sys"
+version = "0.1.0+0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1f029b854497dee11f3fd279a23870520f245417adaa882f4310a666a53891a8"
+dependencies = [
+ "cmake",
+ "libc",
+ "pkg-config",
+]
 
 [[package]]
 name = "jxl-bitstream"
@@ -699,30 +716,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "68354c5c6bd36d73ff3feceb05efa59b6acb7626617f4962be322a825e61f79a"
 
 [[package]]
-name = "mozjpeg"
-version = "0.10.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a3bcd16df874918cb91d9ca985d7fde466bdc3b0983bf83c33395033568e510"
-dependencies = [
- "arrayvec",
- "libc",
- "mozjpeg-sys",
- "rgb",
-]
-
-[[package]]
-name = "mozjpeg-sys"
-version = "2.0.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7cbdfefd09cf9e13ea54f07686db13e165709ea36ce8619794ed5b1ad59030f"
-dependencies = [
- "cc",
- "dunce",
- "libc",
- "nasm-rs 0.3.0",
-]
-
-[[package]]
 name = "mutate_once"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -735,15 +728,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fe4d98d0065f4b1daf164b3eafb11974c94662e5e2396cf03f32d0bb5c17da51"
 dependencies = [
  "rayon",
-]
-
-[[package]]
-name = "nasm-rs"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12fcfa1bd49e0342ec1d07ed2be83b59963e7acbeb9310e1bb2c07b69dadd959"
-dependencies = [
- "jobserver",
 ]
 
 [[package]]
@@ -978,7 +962,7 @@ dependencies = [
  "libfuzzer-sys",
  "log",
  "maybe-rayon",
- "nasm-rs 0.2.5",
+ "nasm-rs",
  "new_debug_unreachable",
  "noop_proc_macro",
  "num-derive",
@@ -1087,10 +1071,10 @@ dependencies = [
  "glob",
  "imagequant",
  "indoc",
+ "jpegli",
  "kamadak-exif",
  "libavif",
  "log",
- "mozjpeg",
  "oxipng",
  "pretty_env_logger",
  "ravif",
