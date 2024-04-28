@@ -1119,8 +1119,8 @@ dependencies = [
  "rayon",
  "rgb",
  "webp",
- "zune-core 0.5.0-rc0",
- "zune-image 0.5.0-rc0",
+ "zune-core",
+ "zune-image",
  "zune-imageprocs",
 ]
 
@@ -1566,14 +1566,8 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b1048f9f9cb6ba2e1be9d4f30f4450ad50110651879760174479ea3b9ed50dca"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]
-
-[[package]]
-name = "zune-core"
-version = "0.4.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f423a2c17029964870cfaabb1f13dfab7d092a62a29a89264f4d36990ca414a"
 
 [[package]]
 name = "zune-core"
@@ -1591,7 +1585,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3fef14b3263749b04cb96812a5c9d8aee75766ddb956b05d3adc96b1c7bbb1d8"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]
 
 [[package]]
@@ -1600,18 +1594,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a081557738c083bd74b56ebc7b7ccd25f5df602c05bc755b497fe2df00535867"
 dependencies = [
- "zune-core 0.5.0-rc0",
-]
-
-[[package]]
-name = "zune-image"
-version = "0.4.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d6b98ac0fc8c650406e88f7b33f264798b85b7eff88cc09a8f86688c24d0261"
-dependencies = [
- "bytemuck",
- "kamadak-exif",
- "zune-core 0.4.12",
+ "zune-core",
 ]
 
 [[package]]
@@ -1626,7 +1609,7 @@ dependencies = [
  "kamadak-exif",
  "serde",
  "zune-bmp",
- "zune-core 0.5.0-rc0",
+ "zune-core",
  "zune-farbfeld",
  "zune-hdr",
  "zune-jpeg",
@@ -1639,13 +1622,13 @@ dependencies = [
 
 [[package]]
 name = "zune-imageprocs"
-version = "0.4.15"
+version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "040e6261294629b9718608e0df791309137f4d8619816e1dc4245ddc2f0e882c"
+checksum = "ff0eaf7c6a04af776634ae0928dd70d1f4a37f0d9de28a0deae35da2009f3aa2"
 dependencies = [
  "kamadak-exif",
- "zune-core 0.4.12",
- "zune-image 0.4.15",
+ "zune-core",
+ "zune-image",
 ]
 
 [[package]]
@@ -1663,7 +1646,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4a2ddf555063c40bfbf8420f1c94760868789e01148fc2f731d0fa5a51da689"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]
 
 [[package]]
@@ -1672,7 +1655,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81b3cc985d2b4408af5be05fc5343825b3d155c2acd3bae2ca00f7f1bb671df2"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]
 
 [[package]]
@@ -1681,7 +1664,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1a7eb85957b2d4acbde9c5511c575ad1aae8e3cde012ca230c77cda13768b60"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
  "zune-inflate",
 ]
 
@@ -1691,7 +1674,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d96c83382086052d04a7c477971a4e49ce0753c77be06e8323c67364ebfc80eb"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]
 
 [[package]]
@@ -1700,7 +1683,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cff07a2b85fe8ebbe2fd4d4251abfc09d8ff9ca5f6eb2c49450cb3661ab3b1e6"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]
 
 [[package]]
@@ -1709,5 +1692,5 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b848a8889f256a62fe4352078ee74fd2eee06e44825695fe4bbdcd805f05ee00"
 dependencies = [
- "zune-core 0.5.0-rc0",
+ "zune-core",
 ]

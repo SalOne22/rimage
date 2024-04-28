@@ -32,7 +32,7 @@ build-binary = ["dep:anyhow", "dep:clap", "dep:indoc", "dep:rayon", "dep:pretty_
 # Enables utilization of threads
 threads = ["imagequant?/threads", "mozjpeg?/parallel", "oxipng?/parallel"]
 # Enables metadata support
-metadata = ["dep:kamadak-exif"]
+metadata = ["dep:kamadak-exif", "zune-image/metadata"]
 
 # Enables resize operation
 resize = ["dep:fast_image_resize"]
@@ -67,7 +67,7 @@ clap = { version = "4.5.1", features = ["cargo", "string"], optional = true }
 indoc = { version = "2.0.5", optional = true }
 pretty_env_logger = { version = "0.5.0", optional = true }
 rayon = { version = "1.10.0", optional = true }
-zune-imageprocs = { version = "0.4.15", features = ["exif"], optional = true }
+zune-imageprocs = { version = "0.5.0-rc0", features = ["exif"], optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
 
 [target.'cfg(windows)'.dependencies]
