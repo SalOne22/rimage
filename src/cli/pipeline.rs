@@ -1,7 +1,15 @@
-use std::{collections::BTreeMap, path::Path};
+use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 
 use clap::ArgMatches;
-use zune_core::options::EncoderOptions;
+#[cfg(feature = "avif")]
+use rimage::codecs::avif::AvifEncoder;
+#[cfg(feature = "mozjpeg")]
+use rimage::codecs::mozjpeg::MozJpegEncoder;
+#[cfg(feature = "oxipng")]
+use rimage::codecs::oxipng::OxiPngEncoder;
+#[cfg(feature = "webp")]
+use rimage::codecs::webp::WebPEncoder;
+use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
 use zune_image::{
     codecs::{
         farbfeld::FarbFeldEncoder, jpeg::JpegEncoder, jpeg_xl::JxlEncoder, png::PngEncoder,
@@ -18,22 +26,22 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
             #[cfg(any(feature = "avif", feature = "webp"))]
-            let file_content = std::fs::read("tests/files/avif/f1t.avif")?;
+            let mut file = File::open("tests/files/avif/f1t.avif")?;
 
             #[cfg(feature = "avif")]
-            if libavif::is_avif(&file_content) {
-                use rimage::codecs::avif::AvifDecoder;
-                use zune_core::bytestream::ZByteReader;
-                use zune_image::traits::DecoderTrait;
+            {
+                let mut file_content = vec![];
 
-                let reader = ZByteReader::new(file_content);
+                file.read_to_end(&mut file_content)?;
 
-                let mut decoder = AvifDecoder::try_new(reader)?;
+                if libavif::is_avif(&file_content) {
+                    use rimage::codecs::avif::AvifDecoder;
 
-                return <AvifDecoder<ZByteReader<Vec<u8>>> as DecoderTrait<Vec<u8>>>::decode(
-                    &mut decoder,
-                );
-            };
+                    let decoder = AvifDecoder::try_new(file)?;
+
+                    return Image::from_decoder(decoder);
+                };
+            }
 
             #[cfg(feature = "webp")]
             if f.as_ref()
@@ -41,16 +49,10 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 .is_some_and(|f| f.eq_ignore_ascii_case("webp"))
             {
                 use rimage::codecs::webp::WebPDecoder;
-                use zune_core::bytestream::ZByteReader;
-                use zune_image::traits::DecoderTrait;
 
-                let reader = ZByteReader::new(file_content);
+                let decoder = WebPDecoder::try_new(file)?;
 
-                let mut decoder = WebPDecoder::try_new(reader)?;
-
-                return <WebPDecoder<ZByteReader<Vec<u8>>> as DecoderTrait<Vec<u8>>>::decode(
-                    &mut decoder,
-                );
+                return Image::from_decoder(decoder);
             };
 
             Err(ImageErrors::ImageDecoderNotImplemented(
@@ -153,12 +155,68 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
     map
 }
 
-pub fn encoder(
-    name: &str,
-    matches: &ArgMatches,
-) -> Result<(Box<dyn EncoderTrait>, &'static str), ImageErrors> {
+pub enum AvailableEncoders {
+    FarbFeld(Box<FarbFeldEncoder>),
+    Jpeg(Box<JpegEncoder>),
+    JpegXl(Box<JxlEncoder>),
+    #[cfg(feature = "mozjpeg")]
+    MozJpeg(Box<MozJpegEncoder>),
+    #[cfg(feature = "oxipng")]
+    OxiPng(Box<OxiPngEncoder>),
+    #[cfg(feature = "avif")]
+    Avif(Box<AvifEncoder>),
+    #[cfg(feature = "webp")]
+    Webp(Box<WebPEncoder>),
+    Png(Box<PngEncoder>),
+    Ppm(Box<PPMEncoder>),
+    Qoi(Box<QoiEncoder>),
+}
+
+impl AvailableEncoders {
+    pub fn to_extension(&self) -> &'static str {
+        match self {
+            AvailableEncoders::FarbFeld(_) => "ff",
+            AvailableEncoders::Jpeg(_) => "jpg",
+            AvailableEncoders::JpegXl(_) => "jxl",
+            #[cfg(feature = "mozjpeg")]
+            AvailableEncoders::MozJpeg(_) => "jpg",
+            #[cfg(feature = "oxipng")]
+            AvailableEncoders::OxiPng(_) => "png",
+            #[cfg(feature = "avif")]
+            AvailableEncoders::Avif(_) => "avif",
+            #[cfg(feature = "webp")]
+            AvailableEncoders::Webp(_) => "webp",
+            AvailableEncoders::Png(_) => "png",
+            AvailableEncoders::Ppm(_) => "ppm",
+            AvailableEncoders::Qoi(_) => "qoi",
+        }
+    }
+
+    pub fn encode<T: ZByteWriterTrait>(
+        &mut self,
+        img: &Image,
+        sink: T,
+    ) -> Result<usize, ImageErrors> {
+        match self {
+            AvailableEncoders::FarbFeld(enc) => enc.encode(img, sink),
+            AvailableEncoders::Jpeg(enc) => enc.encode(img, sink),
+            AvailableEncoders::JpegXl(enc) => enc.encode(img, sink),
+            AvailableEncoders::MozJpeg(enc) => enc.encode(img, sink),
+            AvailableEncoders::OxiPng(enc) => enc.encode(img, sink),
+            AvailableEncoders::Avif(enc) => enc.encode(img, sink),
+            AvailableEncoders::Webp(enc) => enc.encode(img, sink),
+            AvailableEncoders::Png(enc) => enc.encode(img, sink),
+            AvailableEncoders::Ppm(enc) => enc.encode(img, sink),
+            AvailableEncoders::Qoi(enc) => enc.encode(img, sink),
+        }
+    }
+}
+
+pub fn encoder(name: &str, matches: &ArgMatches) -> Result<AvailableEncoders, ImageErrors> {
     match name {
-        "farbfeld" => Ok((Box::new(FarbFeldEncoder::new()), "ff")),
+        "farbfeld" => Ok(AvailableEncoders::FarbFeld(
+            Box::new(FarbFeldEncoder::new()),
+        )),
         "jpeg" => {
             let options = EncoderOptions::default();
 
@@ -168,13 +226,15 @@ pub fn encoder(
 
             options.set_jpeg_encode_progressive(matches.get_flag("progressive"));
 
-            Ok((Box::new(JpegEncoder::new_with_options(options)), "jpg"))
+            Ok(AvailableEncoders::Jpeg(Box::new(
+                JpegEncoder::new_with_options(options),
+            )))
         }
-        "jpeg_xl" => Ok((Box::new(JxlEncoder::new()), "jxl")),
+        "jpeg_xl" => Ok(AvailableEncoders::JpegXl(Box::new(JxlEncoder::new()))),
         #[cfg(feature = "mozjpeg")]
         "mozjpeg" => {
             use mozjpeg::qtable;
-            use rimage::codecs::mozjpeg::{MozJpegEncoder, MozJpegOptions};
+            use rimage::codecs::mozjpeg::MozJpegOptions;
 
             let quality = *matches.get_one::<u8>("quality").unwrap() as f32;
             let chroma_quality = matches
@@ -246,11 +306,13 @@ pub fn encoder(
                     }),
             };
 
-            Ok((Box::new(MozJpegEncoder::new_with_options(options)), "jpg"))
+            Ok(AvailableEncoders::MozJpeg(Box::new(
+                MozJpegEncoder::new_with_options(options),
+            )))
         }
         #[cfg(feature = "oxipng")]
         "oxipng" => {
-            use rimage::codecs::oxipng::{OxiPngEncoder, OxiPngOptions};
+            use rimage::codecs::oxipng::OxiPngOptions;
 
             let mut options =
                 OxiPngOptions::from_preset(*matches.get_one::<u8>("effort").unwrap_or(&2));
@@ -261,11 +323,13 @@ pub fn encoder(
                 None
             };
 
-            Ok((Box::new(OxiPngEncoder::new_with_options(options)), "png"))
+            Ok(AvailableEncoders::OxiPng(Box::new(
+                OxiPngEncoder::new_with_options(options),
+            )))
         }
         #[cfg(feature = "avif")]
         "avif" => {
-            use rimage::codecs::avif::{AvifEncoder, AvifOptions};
+            use rimage::codecs::avif::AvifOptions;
 
             let options = AvifOptions {
                 quality: *matches.get_one::<u8>("quality").unwrap() as f32,
@@ -284,11 +348,13 @@ pub fn encoder(
                 },
             };
 
-            Ok((Box::new(AvifEncoder::new_with_options(options)), "avif"))
+            Ok(AvailableEncoders::Avif(Box::new(
+                AvifEncoder::new_with_options(options),
+            )))
         }
         #[cfg(feature = "webp")]
         "webp" => {
-            use rimage::codecs::webp::{WebPEncoder, WebPOptions};
+            use rimage::codecs::webp::WebPOptions;
 
             let mut options = WebPOptions::new().unwrap();
 
@@ -297,11 +363,13 @@ pub fn encoder(
             options.near_lossless = 100 - *matches.get_one::<u8>("slight_loss").unwrap() as i32;
             options.exact = matches.get_flag("exact") as i32;
 
-            Ok((Box::new(WebPEncoder::new_with_options(options)), "webp"))
+            Ok(AvailableEncoders::Webp(Box::new(
+                WebPEncoder::new_with_options(options),
+            )))
         }
-        "png" => Ok((Box::new(PngEncoder::new()), "png")),
-        "ppm" => Ok((Box::new(PPMEncoder::new()), "ppm")),
-        "qoi" => Ok((Box::new(QoiEncoder::new()), "qoi")),
+        "png" => Ok(AvailableEncoders::Png(Box::new(PngEncoder::new()))),
+        "ppm" => Ok(AvailableEncoders::Ppm(Box::new(PPMEncoder::new()))),
+        "qoi" => Ok(AvailableEncoders::Qoi(Box::new(QoiEncoder::new()))),
 
         name => Err(ImageErrors::GenericString(format!(
             "Encoder \"{name}\" not found",
