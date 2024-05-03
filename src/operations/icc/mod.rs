@@ -16,7 +16,7 @@ impl ApplyICC {
     /// Create a new icc apply operation
     ///
     /// # Arguments
-    /// - chunk: ICC profile chunk
+    /// - profile: ICC profile
     #[must_use]
     pub fn new(profile: Profile) -> Self {
         Self { profile }
@@ -29,16 +29,11 @@ impl OperationsTrait for ApplyICC {
     }
 
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
-        let icc_chunk = match image.metadata().icc_chunk() {
-            Some(icc) => icc,
-            None => {
-                log::warn!("No icc profile in the image, skipping");
-                return Ok(());
-            }
+        let src_profile = match image.metadata().icc_chunk() {
+            Some(icc) => Profile::new_icc(icc)
+                .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?,
+            None => Profile::new_srgb(),
         };
-
-        let src_profile = Profile::new_icc(icc_chunk)
-            .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
         let colorspace = image.colorspace();
 
@@ -119,6 +114,11 @@ impl OperationsTrait for ApplySRGB {
     }
 
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
+        if let None = image.metadata().icc_chunk() {
+            log::warn!("No icc profile in the image, skipping");
+            return Ok(());
+        }
+
         ApplyICC::new(Profile::new_srgb()).execute_impl(image)
     }
 
@@ -141,3 +141,6 @@ impl OperationsTrait for ApplySRGB {
         ]
     }
 }
+
+#[cfg(test)]
+mod tests;
