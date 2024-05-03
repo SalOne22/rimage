@@ -47,6 +47,7 @@ oxipng = ["dep:oxipng"]
 webp = ["dep:webp"]
 # Enables avif codec
 avif = ["dep:ravif", "dep:libavif", "dep:rgb"]
+icc = ["dep:lcms2"]
 
 [dependencies]
 zune-core = "0.5.0-rc0"
@@ -60,6 +61,7 @@ oxipng = { version = "9.0", default-features = false, features = ["zopfli", "fil
 webp = { version = "0.2.6", default-features = false, optional = true }
 ravif = { version = "0.11.4", optional = true }
 libavif = { version = "0.13.0", default-features = false, features = ["codec-aom"], optional = true }
+lcms2 = { version = "6.1.0", optional = true }
 
 # cli
 anyhow = { version = "1.0.80", optional = true }

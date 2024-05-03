@@ -6,3 +6,7 @@ pub mod quantize;
 /// Resize an image to a new dimensions
 #[cfg(feature = "resize")]
 pub mod resize;
+
+/// Operations to apply icc profiles
+#[cfg(feature = "icc")]
+pub mod icc;

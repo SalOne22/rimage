@@ -9,6 +9,7 @@ use cli::{
     utils::paths::{collect_files, get_paths},
 };
 use rayon::prelude::*;
+use rimage::operations::icc::ApplySRGB;
 use zune_core::colorspace::ColorSpace;
 use zune_image::{core_filters::colorspace::ColorspaceConv, image::Image, pipelines::Pipeline};
 use zune_imageprocs::auto_orient::AutoOrient;
@@ -82,6 +83,7 @@ fn main() {
                 output.set_extension(available_encoder.to_extension());
 
                 pipeline.chain_operations(Box::new(AutoOrient));
+                pipeline.chain_operations(Box::new(ApplySRGB));
 
                 operations(matches, &img)
                     .into_iter()
@@ -96,7 +98,7 @@ fn main() {
                         }
                     });
 
-                pipeline.chain_image(img);
+                pipeline.chain_decoder(img);
 
                 handle_error!(input, pipeline.advance_to_end());
 
