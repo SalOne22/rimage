@@ -114,7 +114,7 @@ impl OperationsTrait for ApplySRGB {
     }
 
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
-        if let None = image.metadata().icc_chunk() {
+        if image.metadata().icc_chunk().is_none() {
             log::warn!("No icc profile in the image, skipping");
             return Ok(());
         }

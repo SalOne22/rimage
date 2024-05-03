@@ -137,7 +137,7 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
                     );
 
                     assert!(
-                        map.get(&(idx + 3)).is_none(),
+                        !map.contains_key(&(idx + 3)),
                         "There is a operation at {} aborting",
                         idx + 3
                     );
