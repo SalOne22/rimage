@@ -54,17 +54,17 @@ zune-core = "0.5.0-rc0"
 log = "0.4.21"
 zune-image = { version = "0.5.0-rc0", default-features = false }
 fast_image_resize = { version = "3.0.4", optional = true }
-imagequant = { version = "4.3.0", default-features = false, optional = true }
+imagequant = { version = "4.3.1", default-features = false, optional = true }
 rgb = { version = "0.8.37", optional = true }
 mozjpeg = { version = "0.10.7", default-features = false, features = ["with_simd"], optional = true }
 oxipng = { version = "9.0", default-features = false, features = ["zopfli", "filetime"], optional = true }
-webp = { version = "0.2.6", default-features = false, optional = true }
+webp = { version = "0.3.0", default-features = false, optional = true }
 ravif = { version = "0.11.4", optional = true }
 libavif = { version = "0.13.0", default-features = false, features = ["codec-aom"], optional = true }
 lcms2 = { version = "6.1.0", optional = true }
 
 # cli
-anyhow = { version = "1.0.80", optional = true }
+anyhow = { version = "1.0.82", optional = true }
 clap = { version = "4.5.1", features = ["cargo", "string"], optional = true }
 indoc = { version = "2.0.5", optional = true }
 pretty_env_logger = { version = "0.5.0", optional = true }
