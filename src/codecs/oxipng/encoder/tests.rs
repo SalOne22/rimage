@@ -1,3 +1,5 @@
+use std::io::Cursor;
+
 use zune_core::colorspace::ColorSpace;
 
 use crate::test_utils::*;
@@ -19,7 +21,9 @@ fn encode_colorspaces_u8() {
 
                 let mut encoder = OxiPngEncoder::new();
 
-                let result = encoder.encode(&image);
+                let buf = Cursor::new(vec![]);
+
+                let result = encoder.encode(&image, buf);
 
                 if result.is_err() {
                     dbg!(&result);
@@ -50,7 +54,9 @@ fn encode_colorspaces_u16() {
 
                 let mut encoder = OxiPngEncoder::new();
 
-                let result = encoder.encode(&image);
+                let buf = Cursor::new(vec![]);
+
+                let result = encoder.encode(&image, buf);
 
                 if result.is_err() {
                     dbg!(&result);
@@ -81,7 +87,9 @@ fn encode_colorspaces_f32() {
 
                 let mut encoder = OxiPngEncoder::new();
 
-                let result = encoder.encode(&image);
+                let buf = Cursor::new(vec![]);
+
+                let result = encoder.encode(&image, buf);
 
                 if result.is_err() {
                     dbg!(&result);
@@ -102,7 +110,9 @@ fn encode_u8() {
     let image = create_test_image_u8(200, 200, ColorSpace::RGB);
     let mut encoder = OxiPngEncoder::new();
 
-    let result = encoder.encode(&image);
+    let buf = Cursor::new(vec![]);
+
+    let result = encoder.encode(&image, buf);
     dbg!(&result);
 
     assert!(result.is_ok());
@@ -113,7 +123,9 @@ fn encode_u16() {
     let image = create_test_image_u16(200, 200, ColorSpace::RGB);
     let mut encoder = OxiPngEncoder::new();
 
-    let result = encoder.encode(&image);
+    let buf = Cursor::new(vec![]);
+
+    let result = encoder.encode(&image, buf);
     dbg!(&result);
 
     assert!(result.is_ok());
@@ -124,7 +136,9 @@ fn encode_f32() {
     let image = create_test_image_f32(200, 200, ColorSpace::RGB);
     let mut encoder = OxiPngEncoder::new();
 
-    let result = encoder.encode(&image);
+    let buf = Cursor::new(vec![]);
+
+    let result = encoder.encode(&image, buf);
     dbg!(&result);
 
     assert!(result.is_ok());
@@ -135,7 +149,9 @@ fn encode_animated() {
     let image = create_test_image_animated(200, 200, ColorSpace::RGB);
     let mut encoder = OxiPngEncoder::new();
 
-    let result = encoder.encode(&image);
+    let buf = Cursor::new(vec![]);
+
+    let result = encoder.encode(&image, buf);
     dbg!(&result);
 
     assert!(result.is_ok());
