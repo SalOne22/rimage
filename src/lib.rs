@@ -29,21 +29,17 @@ This library is a extension for [`zune_image`] crate. For proper usage you will 
 ### Decoders
 
 ```
-use std::fs::read;
+use std::fs::File;
 
 use rimage::codecs::avif::AvifDecoder;
-use zune_image::traits::DecoderTrait;
-use zune_core::bytestream::ZByteReader;
+use zune_image::image::Image;
 # let path = "tests/files/avif/f1t.avif";
 
-let file_content = read(path).unwrap();
+let file_content = File::open(path).unwrap();
 
-let reader = ZByteReader::new(file_content);
+let mut decoder = AvifDecoder::try_new(file_content).unwrap();
 
-let mut decoder = AvifDecoder::try_new(reader).unwrap();
-
-let img =
-    <AvifDecoder<ZByteReader<Vec<u8>>> as DecoderTrait<Vec<u8>>>::decode(&mut decoder).unwrap();
+let img = Image::from_decoder(decoder).unwrap();
 ```
 > `zune_image` currently doesn't support custom decoders for `read` method. So for decoding you will need hacky approach to satisfy the compiler.
 
@@ -58,8 +54,9 @@ use zune_image::traits::EncoderTrait;
 # let img = Image::open("tests/files/jpg/f1t.jpg").unwrap();
 
 let mut encoder = MozJpegEncoder::new();
+let mut result: Vec<u8> = vec![];
 
-encoder.encode(&img).unwrap();
+encoder.encode(&img, &mut result).unwrap();
 ```
 
 With custom options
@@ -77,7 +74,9 @@ let options = MozJpegOptions {
 
 let mut encoder = MozJpegEncoder::new_with_options(options);
 
-encoder.encode(&img).unwrap();
+let mut result: Vec<u8> = vec![];
+
+encoder.encode(&img, &mut result).unwrap();
 ```
 > Note that some codecs have own implementation of options, check their documentation to learn more
 
