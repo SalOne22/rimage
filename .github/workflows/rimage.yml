@@ -5,16 +5,16 @@ on:
     branches:
       - main
     paths-ignore:
-        - '.github/**'
-        - '.gitignore'
-        - '**.md'
-        - 'LICENSE**'
+      - ".github/**"
+      - ".gitignore"
+      - "**.md"
+      - "LICENSE**"
   pull_request:
     paths-ignore:
-        - '.github/**'
-        - '.gitignore'
-        - '**.md'
-        - 'LICENSE**'
+      - ".github/**"
+      - ".gitignore"
+      - "**.md"
+      - "LICENSE**"
     types:
       - opened
       - synchronize
@@ -26,8 +26,6 @@ jobs:
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
-
-    if: github.ref_type != 'tag' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork)
 
     strategy:
       fail-fast: false
