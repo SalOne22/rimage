@@ -53,7 +53,7 @@ icc = ["dep:lcms2"]
 zune-core = "0.5.0-rc0"
 log = "0.4.21"
 zune-image = { version = "0.5.0-rc0", default-features = false }
-fast_image_resize = { version = "3.0.4", optional = true }
+fast_image_resize = { version = "4.0.0", optional = true }
 imagequant = { version = "4.3.1", default-features = false, optional = true }
 rgb = { version = "0.8.37", optional = true }
 mozjpeg = { version = "0.10.7", default-features = false, features = ["with_simd"], optional = true }
