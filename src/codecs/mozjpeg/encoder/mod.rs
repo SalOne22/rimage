@@ -1,7 +1,7 @@
-use std::mem;
+use std::{io, mem, panic::AssertUnwindSafe};
 
 use mozjpeg::qtable::QTable;
-use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
+use zune_core::{bit_depth::BitDepth, bytestream::ZByteWriterTrait, colorspace::ColorSpace};
 use zune_image::{codecs::ImageFormat, errors::ImageErrors, image::Image, traits::EncoderTrait};
 
 /// Advanced options for MozJpeg encoding
@@ -30,6 +30,37 @@ pub struct MozJpegOptions {
 #[derive(Default)]
 pub struct MozJpegEncoder {
     options: MozJpegOptions,
+}
+
+struct TempVt<T: ZByteWriterTrait> {
+    inner: T,
+    bytes_written: usize,
+}
+impl<T: ZByteWriterTrait> io::Write for TempVt<T> {
+    fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
+        let bytes_written = self.inner.write_bytes(buf).map_err(|e| match e {
+            zune_core::bytestream::ZByteIoError::StdIoError(e) => e,
+            e => io::Error::other(format!("{e:?}")),
+        })?;
+        self.bytes_written += bytes_written;
+        Ok(bytes_written)
+    }
+
+    fn write_all(&mut self, buf: &[u8]) -> io::Result<()> {
+        self.inner.write_all_bytes(buf).map_err(|e| match e {
+            zune_core::bytestream::ZByteIoError::StdIoError(e) => e,
+            e => io::Error::other(format!("{e:?}")),
+        })?;
+        self.bytes_written += buf.len();
+        Ok(())
+    }
+
+    fn flush(&mut self) -> io::Result<()> {
+        self.inner.flush_bytes().map_err(|e| match e {
+            zune_core::bytestream::ZByteIoError::StdIoError(e) => e,
+            e => io::Error::other(format!("{e:?}")),
+        })
+    }
 }
 
 impl Default for MozJpegOptions {
@@ -65,14 +96,18 @@ impl EncoderTrait for MozJpegEncoder {
         "mozjpeg-encoder"
     }
 
-    fn encode_inner(&mut self, image: &Image) -> Result<Vec<u8>, ImageErrors> {
+    fn encode_inner<T: ZByteWriterTrait>(
+        &mut self,
+        image: &Image,
+        sink: T,
+    ) -> Result<usize, ImageErrors> {
         let (width, height) = image.dimensions();
         let data = &image.flatten_to_u8()[0];
 
         let luma_qtable = self.options.luma_qtable.as_ref();
         let chroma_qtable = self.options.chroma_qtable.as_ref();
 
-        std::panic::catch_unwind(|| -> Result<Vec<u8>, ImageErrors> {
+        std::panic::catch_unwind(AssertUnwindSafe(|| -> Result<usize, ImageErrors> {
             let format = match image.colorspace() {
                 ColorSpace::RGB => mozjpeg::ColorSpace::JCS_RGB,
                 ColorSpace::RGBA => mozjpeg::ColorSpace::JCS_EXT_RGBA,
@@ -131,7 +166,12 @@ impl EncoderTrait for MozJpegEncoder {
                 comp.set_chroma_qtable(qtable)
             }
 
-            let mut comp = comp.start_compress(Vec::new())?;
+            let writer = TempVt {
+                inner: sink,
+                bytes_written: 0,
+            };
+
+            let mut comp = comp.start_compress(writer)?;
 
             #[cfg(feature = "metadata")]
             {
@@ -159,8 +199,8 @@ impl EncoderTrait for MozJpegEncoder {
 
             comp.write_scanlines(data)?;
 
-            Ok(comp.finish()?)
-        })
+            Ok(comp.finish()?.bytes_written)
+        }))
         .map_err(|err| {
             if let Ok(mut err) = err.downcast::<String>() {
                 ImageErrors::EncodeErrors(zune_image::errors::ImgEncodeErrors::Generic(mem::take(

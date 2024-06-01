@@ -1,9 +1,14 @@
 use ravif::Img;
 use rgb::FromSlice;
-use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
+use zune_core::{
+    bit_depth::BitDepth,
+    bytestream::{ZByteWriterTrait, ZWriter},
+    colorspace::ColorSpace,
+};
 use zune_image::{
     codecs::ImageFormat,
     errors::{ImageErrors, ImgEncodeErrors},
+    image::Image,
     traits::EncoderTrait,
 };
 
@@ -61,9 +66,15 @@ impl EncoderTrait for AvifEncoder {
         "avif"
     }
 
-    fn encode_inner(&mut self, image: &zune_image::image::Image) -> Result<Vec<u8>, ImageErrors> {
+    fn encode_inner<T: ZByteWriterTrait>(
+        &mut self,
+        image: &Image,
+        sink: T,
+    ) -> Result<usize, ImageErrors> {
         let (width, height) = image.dimensions();
         let data = &image.flatten_to_u8()[0];
+
+        let mut writer = ZWriter::new(sink);
 
         let encoder = ravif::Encoder::new()
             .with_quality(self.options.quality)
@@ -79,7 +90,11 @@ impl EncoderTrait for AvifEncoder {
                     .encode_rgb(img)
                     .map_err(|e| ImgEncodeErrors::ImageEncodeErrors(e.to_string()))?;
 
-                Ok(result.avif_file)
+                writer.write(&result.avif_file).map_err(|e| {
+                    ImageErrors::EncodeErrors(ImgEncodeErrors::ImageEncodeErrors(format!("{e:?}")))
+                })?;
+
+                Ok(writer.bytes_written())
             }
             ColorSpace::RGBA => {
                 let img = Img::new(data.as_slice().as_rgba(), width, height);
@@ -87,7 +102,11 @@ impl EncoderTrait for AvifEncoder {
                     .encode_rgba(img)
                     .map_err(|e| ImgEncodeErrors::ImageEncodeErrors(e.to_string()))?;
 
-                Ok(result.avif_file)
+                writer.write(&result.avif_file).map_err(|e| {
+                    ImageErrors::EncodeErrors(ImgEncodeErrors::ImageEncodeErrors(format!("{e:?}")))
+                })?;
+
+                Ok(writer.bytes_written())
             }
             cs => Err(ImageErrors::EncodeErrors(
                 ImgEncodeErrors::UnsupportedColorspace(cs, self.supported_colorspaces()),

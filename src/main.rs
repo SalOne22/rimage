@@ -1,14 +1,20 @@
-use std::{fs, path::PathBuf};
+use std::{
+    fs::{self, File},
+    path::PathBuf,
+};
 
 use cli::{
     cli,
-    pipeline::{decode, encoder, operations},
+    pipeline::{decode, operations},
     utils::paths::{collect_files, get_paths},
 };
 use rayon::prelude::*;
+use rimage::operations::icc::ApplySRGB;
 use zune_core::colorspace::ColorSpace;
 use zune_image::{core_filters::colorspace::ColorspaceConv, image::Image, pipelines::Pipeline};
 use zune_imageprocs::auto_orient::AutoOrient;
+
+use crate::cli::pipeline::encoder;
 
 mod cli;
 
@@ -73,29 +79,28 @@ fn main() {
 
                 let img = handle_error!(input, decode(&input));
 
-                let (encoder, ext) = handle_error!(input, encoder(subcommand, matches));
-                output.set_extension(ext);
+                let mut available_encoder = handle_error!(input, encoder(subcommand, matches));
+                output.set_extension(available_encoder.to_extension());
 
-                pipeline.add_operation(Box::new(AutoOrient));
+                pipeline.chain_operations(Box::new(AutoOrient));
+                pipeline.chain_operations(Box::new(ApplySRGB));
 
                 operations(matches, &img)
                     .into_iter()
                     .for_each(|(_, operations)| match operations.name() {
                         "quantize" => {
-                            pipeline.add_operation(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
-                            pipeline.add_operation(operations);
+                            pipeline
+                                .chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
+                            pipeline.chain_operations(operations);
                         }
                         _ => {
-                            pipeline.add_operation(operations);
+                            pipeline.chain_operations(operations);
                         }
                     });
 
-                pipeline.add_decoder(img);
-                pipeline.add_encoder(encoder);
+                pipeline.chain_decoder(img);
 
                 handle_error!(input, pipeline.advance_to_end());
-
-                let data = pipeline.get_results()[0].data();
 
                 if backup {
                     handle_error!(
@@ -112,7 +117,12 @@ fn main() {
                 }
 
                 handle_error!(output, fs::create_dir_all(output.parent().unwrap()));
-                handle_error!(output, fs::write(&output, data));
+                let output_file = handle_error!(output, File::create(&output));
+
+                handle_error!(
+                    output,
+                    available_encoder.encode(&pipeline.images()[0], output_file)
+                );
             });
         }
         None => unreachable!(),

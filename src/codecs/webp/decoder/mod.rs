@@ -1,7 +1,7 @@
 use std::{io::Read, marker::PhantomData};
 
 use webp::{AnimDecoder, DecodeAnimImage};
-use zune_core::{bit_depth::BitDepth, bytestream::ZReaderTrait, colorspace::ColorSpace};
+use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
 use zune_image::{errors::ImageErrors, frame::Frame, image::Image, traits::DecoderTrait};
 
 /// A WebP decoder
@@ -26,14 +26,13 @@ impl<R: Read> WebPDecoder<R> {
     }
 }
 
-impl<R, T> DecoderTrait<T> for WebPDecoder<R>
+impl<R> DecoderTrait for WebPDecoder<R>
 where
     R: Read,
-    T: ZReaderTrait,
 {
     fn decode(&mut self) -> Result<Image, ImageErrors> {
-        let (width, height) = <WebPDecoder<R> as DecoderTrait<T>>::dimensions(self).unwrap();
-        let color = <WebPDecoder<R> as DecoderTrait<T>>::out_colorspace(self);
+        let (width, height) = <WebPDecoder<R> as DecoderTrait>::dimensions(self).unwrap();
+        let color = <WebPDecoder<R> as DecoderTrait>::out_colorspace(self);
 
         let frames = self
             .inner
