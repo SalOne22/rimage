@@ -119,7 +119,9 @@ impl OperationsTrait for ApplySRGB {
             return Ok(());
         }
 
-        ApplyICC::new(Profile::new_srgb()).execute_impl(image)
+        ApplyICC::new(Profile::new_srgb()).execute_impl(image)?;
+
+        Ok(())
     }
 
     fn supported_types(&self) -> &'static [BitType] {

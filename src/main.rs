@@ -30,6 +30,9 @@ macro_rules! handle_error {
     };
 }
 
+const SUPPORTS_EXIF: &[&'static str] = &["mozjpeg", "oxipng", "jpeg", "png"];
+const SUPPORTS_ICC: &[&'static str] = &["mozjpeg", "oxipng"];
+
 fn main() {
     pretty_env_logger::init();
 
@@ -71,6 +74,7 @@ fn main() {
 
             let recursive = matches.get_flag("recursive");
             let backup = matches.get_flag("backup");
+            let strip_metadata = matches.get_flag("strip");
 
             let suffix = matches.get_one::<String>("suffix").cloned();
 
@@ -82,8 +86,13 @@ fn main() {
                 let mut available_encoder = handle_error!(input, encoder(subcommand, matches));
                 output.set_extension(available_encoder.to_extension());
 
-                pipeline.chain_operations(Box::new(AutoOrient));
-                pipeline.chain_operations(Box::new(ApplySRGB));
+                if strip_metadata || !SUPPORTS_EXIF.contains(&subcommand) {
+                    pipeline.chain_operations(Box::new(AutoOrient));
+                }
+
+                if strip_metadata || !SUPPORTS_ICC.contains(&subcommand) {
+                    pipeline.chain_operations(Box::new(ApplySRGB));
+                }
 
                 operations(matches, &img)
                     .into_iter()
