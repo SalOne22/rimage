@@ -219,6 +219,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98cc8fbded0c607b7ba9dd60cd98df59af97e84d24e49c8557331cfc26d301ce"
 
 [[package]]
+name = "clap_mangen"
+version = "0.2.20"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e1dd95b5ebb5c1c54581dd6346f3ed6a79a3eef95dd372fc2ac13d535535300e"
+dependencies = [
+ "clap",
+ "roff",
+]
+
+[[package]]
 name = "cmake"
 version = "0.1.50"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -900,11 +910,13 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "oxipng"
-version = "9.0.0"
+version = "9.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28e5c341ef78a228e47a551bfd15ff885d8c501af49f953358763a538c01f14d"
+checksum = "3f398c53eb34e0cf71d9e0bc676cfa7c611e3844dd14ab05e92fb7b423c98ecf"
 dependencies = [
  "bitvec",
+ "clap",
+ "clap_mangen",
  "crossbeam-channel",
  "filetime",
  "indexmap",
@@ -1174,6 +1186,12 @@ dependencies = [
  "zune-image",
  "zune-imageprocs",
 ]
+
+[[package]]
+name = "roff"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b833d8d034ea094b1ea68aa6d5c740e0d04bad9d16568d08ba6f76823a114316"
 
 [[package]]
 name = "rustc-hash"
