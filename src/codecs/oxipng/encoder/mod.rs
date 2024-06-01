@@ -99,6 +99,7 @@ impl EncoderTrait for OxiPngEncoder {
 
             let mut buf = std::io::Cursor::new(vec![]);
 
+            // write exif data
             if let Some(fields) = &image.metadata().exif() {
                 let mut writer = Writer::new();
 
@@ -111,6 +112,11 @@ impl EncoderTrait for OxiPngEncoder {
                 } else {
                     log::warn!("Writing exif failed {:?}", result);
                 }
+            }
+
+            // write icc data
+            if let Some(icc) = &image.metadata().icc_chunk() {
+                img.add_icc_profile(&icc);
             }
         }
 

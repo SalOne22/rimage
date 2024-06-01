@@ -177,6 +177,7 @@ impl EncoderTrait for MozJpegEncoder {
             {
                 use exif::experimental::Writer;
 
+                // write exif data
                 if let Some(metadata) = &image.metadata().exif() {
                     let mut writer = Writer::new();
                     // write first tags for exif
@@ -194,6 +195,11 @@ impl EncoderTrait for MozJpegEncoder {
                     } else {
                         log::warn!("Writing exif failed {:?}", result);
                     }
+                }
+
+                // write icc data
+                if let Some(metadata) = &image.metadata().icc_chunk() {
+                    comp.write_icc_profile(&metadata);
                 }
             }
 
