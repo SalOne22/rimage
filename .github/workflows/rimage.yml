@@ -59,9 +59,9 @@ jobs:
           - target: i686-pc-windows-msvc
             os: windows-latest
           - target: x86_64-apple-darwin
-            os: macos-latest
+            os: macos-13
           - target: aarch64-apple-darwin
-            os: macos-latest
+            os: macos-14
           - target: wasm32-unknown-emscripten
             os: macos-latest
 
@@ -117,18 +117,18 @@ jobs:
       - uses: taiki-e/install-action@nextest
 
       - name: install dependencies (linux)
-        if: matrix.os == 'ubuntu-latest'
+        if: startsWith(matrix.os, 'ubuntu')
         run: |
           sudo apt-get -yq update
           sudo apt-get -yq install ninja-build meson
 
       - name: install dependencies (macos)
-        if: matrix.os == 'macos-latest'
+        if: startsWith(matrix.os, 'macos')
         run: |
           brew install ninja meson
 
       - name: install dependencies (windows)
-        if: matrix.os == 'windows-latest'
+        if: startsWith(matrix.os, 'windows')
         run: |
           choco install -y ninja
           pip install meson
@@ -142,14 +142,10 @@ jobs:
         run: cargo build --all-features --release
 
       - name: run tests
-        if: matrix.target != 'aarch64-apple-darwin' && matrix.target != 'wasm32-unknown-emscripten'
+        if: matrix.target != 'wasm32-unknown-emscripten'
         run: |
           cargo nextest run --release --all-features
           cargo test --doc --release --all-features
-
-      - name: build tests (arm64 macos only)
-        if: matrix.target == 'aarch64-apple-darwin'
-        run: cargo test --release --all-features --no-run
 
       - name: check wasm
         if: matrix.target == 'wasm32-unknown-emscripten'
