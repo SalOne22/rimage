@@ -18,6 +18,7 @@ pub fn get_paths(
         .into_par_iter()
         .filter_map(move |path| -> Option<(PathBuf, PathBuf)> {
             if !path.is_file() {
+                log::warn!("{path:?} is not a file");
                 return None;
             }
 
