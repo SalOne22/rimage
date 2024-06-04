@@ -2,7 +2,28 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0
+## v0.11.0-next.1
+
+### Bug Fixes
+
+- **cli:** fixed encoder function ([1a6bf92](https://github.com/SalOne22/rimage/commit/1a6bf92f649787508732a1c769b677997286ac1e))
+- **codecs:** fixed clippy errors ([7f3c261](https://github.com/SalOne22/rimage/commit/7f3c261b55a519f26e615e0094edfa5970005d98))
+- **codecs:** updated avif decoder to new api ([1c8ea8e](https://github.com/SalOne22/rimage/commit/1c8ea8e998b890299c52ece172011f2692c3d0c1))
+- **codecs:** updated avif encoder to new api ([d07193d](https://github.com/SalOne22/rimage/commit/d07193d1881a8f2392e91b64656fd0b624c98c3b))
+- **codecs:** updated mozjpeg encoder to new api ([b408b31](https://github.com/SalOne22/rimage/commit/b408b3116a90db19d51581c511ed7168c981209c))
+- **codecs:** updated oxipng encoder to new api ([fdfcbd9](https://github.com/SalOne22/rimage/commit/fdfcbd9710a275a15d6d756a7c086b9da491e888))
+- **codecs:** updated webp decoder to new api ([98728e0](https://github.com/SalOne22/rimage/commit/98728e0123fcdc9000dd0bd4bee8d9cef0b45800))
+- **codecs:** updated webp encoder to new api ([ede4784](https://github.com/SalOne22/rimage/commit/ede47843c384d345d46f9172e9f0f6240768d329))
+- **workflow:** :construction_worker: removed check for unique branch ([0505c62](https://github.com/SalOne22/rimage/commit/0505c62e884a5ccec9f58c7f8f5185d91f62501a))
+- **workflow:** :green_heart: fixed macos version ([17eeba1](https://github.com/SalOne22/rimage/commit/17eeba1540e6aac0d4121ddbe1676fe6bf4759a2))
+- fixed clippy issues ([0045b5b](https://github.com/SalOne22/rimage/commit/0045b5bc06c99d4c0d4a4bda8042d1214b8690b7))
+
+### Features
+
+- **cli:** :children_crossing: added warn when input is not a file ([dd2fe3e](https://github.com/SalOne22/rimage/commit/dd2fe3ec7b46beae3c9d619cac303cc15d74167d))
+- **operations:** added "apply icc profile" operation ([e12b7c4](https://github.com/SalOne22/rimage/commit/e12b7c4373b025f00041a2ba92d86781a30feda7))
+
+## [v0.11.0-next.0](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.0)
 
 ### Breaking changes
 
