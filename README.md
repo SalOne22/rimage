@@ -18,6 +18,9 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
   - Rimage provides several image optimization operation
   - Resize - uses `fast_image_resize` crate that has incredible performance
   - Quantization - allowing to reduce image palette
+- CJK and Punctuation marks support:
+  - Rimage supports full CJK (Chinese, Japanese and Korean) characters input and output
+  - Rimage allows special punctuation characters such as `|`, ` `, `&`, `$`, etc. to be included in file names
 
 ## Installation
 
@@ -25,13 +28,13 @@ You can download latest release from the [releases](https://github.com/SalOne22/
 
 If you're a Rust programmer, rimage can be installed with `cargo`.
 
-```sh
+```powershell
 cargo install rimage
 ```
 
 Alternatively, one can use [cargo binstall](https://github.com/cargo-bins/cargo-binstall) to install a rimage binary directly from GitHub:
 
-```sh
+```powershell
 cargo binstall rimage
 ```
 
@@ -64,24 +67,24 @@ Options:
   -V, --version  Print version
 ```
 
-### Basic optimization suitable for web
+### Basic optimization suitable for file transfer on web
 
 To optimize images with great defaults, you can simply call `rimage <command>`. For example:
 
-```sh
+```powershell
 rimage mozjpeg ./image.jpg
 ```
 
-By default rimage will place output images right in place of precious images, resulting in overwrite if input and output has the same format. To change this behavior you can use this options:
+By default, rimage will place output images directly in the same folder of each input image, which may cause OVERWRITING if the input and output image has the same file extension name. To change this behavior, you can use the following options:
 
-```sh
-# will place output images in `./output` directory, images may be overwritten if has the same name
+```powershell
+# Will place output images in `./output` directory, images may be overwritten if has the same name
 rimage mozjpeg -d ./output ./image.jpg
 
-# will rename all input files before processing with `@backup` suffix
+# Will rename all input files before processing with `@backup` suffix
 rimage mozjpeg --backup ./image.jpg
 
-# will place output images in ./output directory preserving folder structure
+# Will place output images in ./output directory preserving folder structure
 rimage mozjpeg -d ./output -r ./inner/image.jpg ./image.jpg
 ```
 
@@ -89,18 +92,28 @@ rimage mozjpeg -d ./output -r ./inner/image.jpg ./image.jpg
 
 Rimage has pipeline preprocessing options. Simple usage:
 
-```sh
-# will resize image to specified dimensions
-rimage mozjpeg --resize 500x200 ./image.jpg
+```powershell
+# Will resize image to specified dimensions
+rimage mozjpeg --resize "500x200" ./image.jpg
+
+# Will zoom the image to the specified length (or width), and if another value is not specified, rimmage will automatically scale proportionally
+rimage mozjpeg --resize "_x600" ./image.jpg
+
+
+# Will resize the image by multiplier
+rimage mozjpeg --resize "@0.9" ./image.jpg
+
+# Will resize the image size by percentage
+rimage mozjpeg --resize "175%" ./image.jpg
 ```
 
 If you want to run preprocessing pipeline in specific order, you can do this:
 
-```sh
-# will quantize image with 80% quality, after run resize to 64x64 pixels using the Nearest filter.
+```powershell
+# Will quantize image with 80% quality, after run resize to 64x64 pixels using the Nearest filter.
 rimage mozjpeg --quantization 80 --resize 64x64 --filter nearest ./image.jpg
 
-# will resize image to 64x64 pixels using the Nearest filter, and after run quantization with 80% quality.
+# Will resize image to 64x64 pixels using the Nearest filter, and after run quantization with 80% quality.
 rimage mozjpeg --resize 64x64 --filter nearest --quantization 80 ./image.jpg
 ```
 
@@ -108,7 +121,9 @@ Note that some preprocessing option are order independent. For example filter op
 
 ### Advanced options
 
-If you want customize optimization you can provide additional options to encoders. For mozjpeg this options are valid:
+If you want customize optimization you can provide additional options to encoders.
+
+For mozjpeg this options are valid:
 
 ```
 Options:
@@ -123,7 +138,7 @@ Options:
       --qtable <TABLE>        Use a specific quantization table. [default: NRobidoux] [possible values: AhumadaWatsonPeterson, AnnexK, Flat, KleinSilversteinCarney, MSSSIM, NRobidoux, PSNRHVS, PetersonAhumadaWatson, WatsonTaylorBorthwick]
 ```
 
-For more info use `rimage help <command>`
+For more info use `rimage help <command>`, e.g. `rimage help moz`
 
 For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
@@ -149,24 +164,38 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 - Quantization
 - Alpha premultiply
 
+### Detailed Examples
+
+| Image Path         | Out Format | Quality | Out Dir      | Backup |    Suffix    | Recursive | Threads |  ｜   | Command                                                              |
+| :----------------- | :--------: | :-----: | :----------- | :----: | :----------: | :-------: | :-----: | :---: | :------------------------------------------------------------------- |
+| `C:\\example.png`  |    jpg     |   90    | `D:\\Output` |  True  |    False     |   True    | Default |  ｜   | `rimage moz "C:\\example.png" -q 90 -r -d "D:\\Output" -b`           |
+| `C:\\example.AVIF` |    png     | Default | `D:\\Output` | False  | `_add_suf` |   False   |  True   |  ｜   | `rimage oxi "C:\\example.AVIF" -s "_add_suf" -t 3 -d "D:\\Output"` |
+
+
 ## Known bugs
 
 - **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
+
+> **Tip**
+> We tremendously suggest to use double backslashes (`\\`) and place parameters with folder paths at the end of the command to avoid any accident.
 
 ### Example:
 
 This will crash:
 
-```sh
-rimage png "D:\example.jpg" -d "D:\desktop\" -s "suffix"
+```powershell
+rimage png "D:\example.jpg" -d "D:\desktop\" -s "_suf"
 ```
 
-This will work as expected:
+These will work as expected:
 
-```sh
-rimage png "D:\example.jpg" -d "D:\desktop" -s "suf test" # without trailing backslash
+```powershell
+rimage avif "D:\\example.jpg" -d "D:\\desktop" -s "_suf"   # Highly Recommended
+rimage webp "D:\\example.jpg" -d "D:\\desktop\\" -s "_suf" # Recommended
 
-rimage png "D:\example.jpg" -s "suffix"  -d "D:\desktop\" # backslash at the end
+rimage jxl "D:\example.jpg" -d "D:\desktop" -s "_suf"      # Acceptable (Without trailing backslash)
+rimage png "D:\example.jpg" -d "D:\desktop\" -s "_suf"     # Acceptable (Backslash at the end)
+rimage moz "D:\example.jpg" -d ./desktop -s "_suf"         # Acceptable (Relative path)
 ```
 
 ## Contributing
