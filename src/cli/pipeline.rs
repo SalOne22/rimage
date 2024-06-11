@@ -26,7 +26,7 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
             #[cfg(any(feature = "avif", feature = "webp"))]
-            let mut file = File::open("tests/files/avif/f1t.avif")?;
+            let mut file = File::open(f.as_ref())?;
 
             #[cfg(feature = "avif")]
             {
@@ -41,6 +41,8 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                     return Image::from_decoder(decoder);
                 };
+
+                file.seek(SeekFrom::Start(0))?;
             }
 
             #[cfg(feature = "webp")]
