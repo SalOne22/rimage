@@ -1,5 +1,5 @@
-use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 use std::io::{Seek, SeekFrom};
+use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 
 use clap::ArgMatches;
 #[cfg(feature = "avif")]
@@ -11,9 +11,9 @@ use rimage::codecs::oxipng::OxiPngEncoder;
 #[cfg(feature = "webp")]
 use rimage::codecs::webp::WebPEncoder;
 #[cfg(feature = "tiff")]
-use tiff::{ColorType, decoder::DecodingResult};
-use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
+use tiff::{decoder::DecodingResult, ColorType};
 use zune_core::colorspace::ColorSpace;
+use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
 use zune_image::{
     codecs::{
         farbfeld::FarbFeldEncoder, jpeg::JpegEncoder, jpeg_xl::JxlEncoder, png::PngEncoder,
@@ -66,27 +66,49 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 .extension()
                 .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
             {
-                let mut decoder = tiff::decoder::Decoder::new(file)
-                    .map_err(|e| {ImageErrors::ImageDecodeErrors("Unable to load TIFF file - ".to_owned() + &e.to_string())})?;
-                let (width, height) = decoder.dimensions()
-                    .map_err(|e| {ImageErrors::ImageDecodeErrors("Unable to read dimensions - ".to_owned() + &e.to_string())})?;
-                let colorspace = match decoder.colortype()
-                    .map_err( |e| {ImageErrors::ImageDecodeErrors("Unable to read colorspace - ".to_owned() + &e.to_string())})? {
+                let mut decoder = tiff::decoder::Decoder::new(file).map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to load TIFF file - ".to_owned() + &e.to_string(),
+                    )
+                })?;
+                let (width, height) = decoder.dimensions().map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to read dimensions - ".to_owned() + &e.to_string(),
+                    )
+                })?;
+                let colorspace = match decoder.colortype().map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to read colorspace - ".to_owned() + &e.to_string(),
+                    )
+                })? {
                     ColorType::RGB(8) | ColorType::RGB(16) => ColorSpace::RGB,
                     ColorType::RGBA(8) | ColorType::RGBA(16) => ColorSpace::RGBA,
                     _ => ColorSpace::Unknown,
                 };
 
-                let decoded_data = decoder.read_image()
-                    .map_err(|e| {ImageErrors::ImageDecodeErrors("Unable to decode TIFF file - ".to_owned() + &e.to_string())})?;
+                let decoded_data = decoder.read_image().map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to decode TIFF file - ".to_owned() + &e.to_string(),
+                    )
+                })?;
 
                 return match decoded_data {
-                    DecodingResult::U8(v) => Ok(Image::from_u8(v.as_slice(),
-                                                               width as usize, height as usize, colorspace)),
-                    DecodingResult::U16(v) => Ok(Image::from_u16(v.as_slice(),
-                                                                 width as usize, height as usize, colorspace)),
-                    _ => Err(ImageErrors::ImageDecodeErrors("Tiff Data format not supported".parse().unwrap())),
-                }
+                    DecodingResult::U8(v) => Ok(Image::from_u8(
+                        v.as_slice(),
+                        width as usize,
+                        height as usize,
+                        colorspace,
+                    )),
+                    DecodingResult::U16(v) => Ok(Image::from_u16(
+                        v.as_slice(),
+                        width as usize,
+                        height as usize,
+                        colorspace,
+                    )),
+                    _ => Err(ImageErrors::ImageDecodeErrors(
+                        "Tiff Data format not supported".parse().unwrap(),
+                    )),
+                };
             }
 
             Err(ImageErrors::ImageDecoderNotImplemented(
