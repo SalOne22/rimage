@@ -12,6 +12,7 @@ use rimage::codecs::oxipng::OxiPngEncoder;
 use rimage::codecs::webp::WebPEncoder;
 #[cfg(feature = "tiff")]
 use tiff::{decoder::DecodingResult, ColorType};
+#[cfg(feature = "tiff")]
 use zune_core::colorspace::ColorSpace;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
 use zune_image::{
@@ -430,5 +431,18 @@ pub fn encoder(name: &str, matches: &ArgMatches) -> Result<AvailableEncoders, Im
         name => Err(ImageErrors::GenericString(format!(
             "Encoder \"{name}\" not found",
         ))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+    use crate::cli::pipeline::decode;
+    use super::*;
+
+    #[cfg(feature = "tiff")]
+    #[test]
+    fn check_tiff_decoding() {
+        let image = decode(Path::new("tests/files/tiff/f1t.tif")).unwrap();
     }
 }
