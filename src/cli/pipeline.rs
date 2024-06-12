@@ -69,16 +69,16 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 let mut decoder = tiff::decoder::Decoder::new(file)
                     .map_err(|e| {ImageErrors::ImageDecodeErrors("Unable to load TIFF file - ".to_owned() + &e.to_string())})?;
                 let (width, height) = decoder.dimensions()
-                    .map_err(|_| {ImageErrors::ImageDecodeErrors("Unable to read dimensions - ".to_owned() + &e.to_string())})?;
+                    .map_err(|e| {ImageErrors::ImageDecodeErrors("Unable to read dimensions - ".to_owned() + &e.to_string())})?;
                 let colorspace = match decoder.colortype()
-                    .map_err( |_| {ImageErrors::ImageDecodeErrors("Unable to read colorspace - ".to_owned() + &e.to_string())})? {
+                    .map_err( |e| {ImageErrors::ImageDecodeErrors("Unable to read colorspace - ".to_owned() + &e.to_string())})? {
                     ColorType::RGB(8) | ColorType::RGB(16) => ColorSpace::RGB,
                     ColorType::RGBA(8) | ColorType::RGBA(16) => ColorSpace::RGBA,
                     _ => ColorSpace::Unknown,
                 };
 
                 let decoded_data = decoder.read_image()
-                    .map_err(|_| {ImageErrors::ImageDecodeErrors("Unable to decode TIFF file - ".to_owned() + &e.to_string())})?;
+                    .map_err(|e| {ImageErrors::ImageDecodeErrors("Unable to decode TIFF file - ".to_owned() + &e.to_string())})?;
 
                 return match decoded_data {
                     DecodingResult::U8(v) => Ok(Image::from_u8(v.as_slice(),
