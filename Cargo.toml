@@ -62,6 +62,7 @@ webp = { version = "0.3.0", default-features = false, optional = true }
 ravif = { version = "0.11.4", optional = true }
 libavif = { version = "0.13.0", default-features = false, features = ["codec-aom"], optional = true }
 lcms2 = { version = "6.1.0", optional = true }
+tiff = { version = "0.9.1", default-features = false, optional = true }
 
 # cli
 anyhow = { version = "1.0.86", optional = true }

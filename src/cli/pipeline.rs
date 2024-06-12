@@ -1,3 +1,4 @@
+use std::io::{Seek, SeekFrom};
 use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 
 use clap::ArgMatches;
@@ -9,6 +10,10 @@ use rimage::codecs::mozjpeg::MozJpegEncoder;
 use rimage::codecs::oxipng::OxiPngEncoder;
 #[cfg(feature = "webp")]
 use rimage::codecs::webp::WebPEncoder;
+#[cfg(feature = "tiff")]
+use tiff::{decoder::DecodingResult, ColorType};
+#[cfg(feature = "tiff")]
+use zune_core::colorspace::ColorSpace;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
 use zune_image::{
     codecs::{
@@ -26,7 +31,7 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
             #[cfg(any(feature = "avif", feature = "webp"))]
-            let mut file = File::open("tests/files/avif/f1t.avif")?;
+            let mut file = File::open(f.as_ref())?;
 
             #[cfg(feature = "avif")]
             {
@@ -41,6 +46,8 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                     return Image::from_decoder(decoder);
                 };
+
+                file.seek(SeekFrom::Start(0))?;
             }
 
             #[cfg(feature = "webp")]
@@ -54,6 +61,56 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                 return Image::from_decoder(decoder);
             };
+
+            #[cfg(feature = "tiff")]
+            if f.as_ref()
+                .extension()
+                .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
+            {
+                let mut decoder = tiff::decoder::Decoder::new(file).map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to load TIFF file - ".to_owned() + &e.to_string(),
+                    )
+                })?;
+                let (width, height) = decoder.dimensions().map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to read dimensions - ".to_owned() + &e.to_string(),
+                    )
+                })?;
+                let colorspace = match decoder.colortype().map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to read colorspace - ".to_owned() + &e.to_string(),
+                    )
+                })? {
+                    ColorType::RGB(8) | ColorType::RGB(16) => ColorSpace::RGB,
+                    ColorType::RGBA(8) | ColorType::RGBA(16) => ColorSpace::RGBA,
+                    _ => ColorSpace::Unknown,
+                };
+
+                let decoded_data = decoder.read_image().map_err(|e| {
+                    ImageErrors::ImageDecodeErrors(
+                        "Unable to decode TIFF file - ".to_owned() + &e.to_string(),
+                    )
+                })?;
+
+                return match decoded_data {
+                    DecodingResult::U8(v) => Ok(Image::from_u8(
+                        v.as_slice(),
+                        width as usize,
+                        height as usize,
+                        colorspace,
+                    )),
+                    DecodingResult::U16(v) => Ok(Image::from_u16(
+                        v.as_slice(),
+                        width as usize,
+                        height as usize,
+                        colorspace,
+                    )),
+                    _ => Err(ImageErrors::ImageDecodeErrors(
+                        "Tiff Data format not supported".parse().unwrap(),
+                    )),
+                };
+            }
 
             Err(ImageErrors::ImageDecoderNotImplemented(
                 ImageFormat::Unknown,
@@ -374,5 +431,18 @@ pub fn encoder(name: &str, matches: &ArgMatches) -> Result<AvailableEncoders, Im
         name => Err(ImageErrors::GenericString(format!(
             "Encoder \"{name}\" not found",
         ))),
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::path::Path;
+    use crate::cli::pipeline::decode;
+    use super::*;
+
+    #[cfg(feature = "tiff")]
+    #[test]
+    fn check_tiff_decoding() {
+        let image = decode(Path::new("tests/files/tiff/f1t.tif")).unwrap();
     }
 }
