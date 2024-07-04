@@ -12,7 +12,8 @@ use cli::{
 };
 use console::{style, Term};
 use indicatif::{
-    DecimalBytes, MultiProgress, ParallelProgressIterator, ProgressBar, ProgressStyle,
+    DecimalBytes, MultiProgress, ParallelProgressIterator, ProgressBar, ProgressDrawTarget,
+    ProgressStyle,
 };
 use indicatif_log_bridge::LogWrapper;
 use rayon::prelude::*;
@@ -96,8 +97,14 @@ fn main() {
 
             let recursive = matches.get_flag("recursive");
             let backup = matches.get_flag("backup");
+            let quiet = matches.get_flag("quiet");
+            let no_progress = matches.get_flag("no-progress");
 
             let suffix = matches.get_one::<String>("suffix").cloned();
+
+            if quiet || no_progress {
+                multi.set_draw_target(ProgressDrawTarget::hidden());
+            }
 
             let pb_main = multi.add(ProgressBar::new(
                 files.iter().filter(|f| f.is_file()).count() as u64,
@@ -191,30 +198,32 @@ fn main() {
                 .max()
                 .unwrap();
 
-            let term = Term::stdout();
-
-            term.write_line(&format!(
-                "{:<path_width$} {}",
-                style("File").bold(),
-                style("Size").bold(),
-            ))
-            .unwrap();
-
-            for result in results.iter() {
-                let difference = (result.output_size as f64 / result.input_size as f64) * 100.0;
+            if !quiet {
+                let term = Term::stdout();
 
                 term.write_line(&format!(
-                    "{:<path_width$} {} > {} {}",
-                    result.output.display(),
-                    style(DecimalBytes(result.input_size)).blue(),
-                    style(DecimalBytes(result.output_size)).blue(),
-                    if difference > 100.0 {
-                        style(format!("{:.2}%", difference - 100.0)).red()
-                    } else {
-                        style(format!("{:.2}%", difference - 100.0)).green()
-                    },
+                    "{:<path_width$} {}",
+                    style("File").bold(),
+                    style("Size").bold(),
                 ))
                 .unwrap();
+
+                for result in results.iter() {
+                    let difference = (result.output_size as f64 / result.input_size as f64) * 100.0;
+
+                    term.write_line(&format!(
+                        "{:<path_width$} {} > {} {}",
+                        result.output.display(),
+                        style(DecimalBytes(result.input_size)).blue(),
+                        style(DecimalBytes(result.output_size)).blue(),
+                        if difference > 100.0 {
+                            style(format!("{:.2}%", difference - 100.0)).red()
+                        } else {
+                            style(format!("{:.2}%", difference - 100.0)).green()
+                        },
+                    ))
+                    .unwrap();
+                }
             }
         }
         None => unreachable!(),
