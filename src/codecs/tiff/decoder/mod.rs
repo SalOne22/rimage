@@ -69,9 +69,9 @@ where
             tiff::decoder::DecodingResult::F32(data) => {
                 Ok(Image::from_f32(&data, width, height, colorspace))
             }
-            _ => Err(ImageErrors::ImageDecodeErrors(format!(
-                "Tiff Data format not supported"
-            ))),
+            _ => Err(ImageErrors::ImageDecodeErrors(
+                "Tiff Data format not supported".to_string(),
+            )),
         }
     }
 
