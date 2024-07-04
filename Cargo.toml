@@ -27,7 +27,7 @@ required-features = ["build-binary"]
 default = ["resize", "quantization", "mozjpeg", "oxipng", "webp", "avif", "threads", "metadata"]
 
 # Used for binary
-build-binary = ["dep:anyhow", "dep:clap", "dep:indoc", "dep:rayon", "dep:pretty_env_logger", "dep:zune-imageprocs", "dep:glob", "zune-image/default"]
+build-binary = ["dep:anyhow", "dep:clap", "dep:indoc", "dep:rayon", "dep:pretty_env_logger", "dep:zune-imageprocs", "dep:glob", "zune-image/default", "dep:indicatif", "dep:indicatif-log-bridge", "dep:console"]
 
 # Enables utilization of threads
 threads = ["imagequant?/threads", "mozjpeg?/parallel", "oxipng?/parallel"]
@@ -48,6 +48,7 @@ webp = ["dep:webp"]
 # Enables avif codec
 avif = ["dep:ravif", "dep:libavif", "dep:rgb"]
 icc = ["dep:lcms2"]
+console = ["dep:console"]
 
 [dependencies]
 zune-core = "0.5.0-rc1"
@@ -71,6 +72,9 @@ pretty_env_logger = { version = "0.5.0", optional = true }
 rayon = { version = "1.10.0", optional = true }
 zune-imageprocs = { version = "0.5.0-rc0", features = ["exif"], optional = true }
 kamadak-exif = { version = "0.5.5", optional = true }
+indicatif = { version = "0.17.8", features = ["rayon"], optional = true }
+indicatif-log-bridge = { version = "0.2.2", optional = true}
+console = { version = "0.15.8", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 glob = { version = "0.3.1", optional = true }
