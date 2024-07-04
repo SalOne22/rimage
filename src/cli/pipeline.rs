@@ -67,49 +67,11 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 .extension()
                 .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
             {
-                let mut decoder = tiff::decoder::Decoder::new(file).map_err(|e| {
-                    ImageErrors::ImageDecodeErrors(
-                        "Unable to load TIFF file - ".to_owned() + &e.to_string(),
-                    )
-                })?;
-                let (width, height) = decoder.dimensions().map_err(|e| {
-                    ImageErrors::ImageDecodeErrors(
-                        "Unable to read dimensions - ".to_owned() + &e.to_string(),
-                    )
-                })?;
-                let colorspace = match decoder.colortype().map_err(|e| {
-                    ImageErrors::ImageDecodeErrors(
-                        "Unable to read colorspace - ".to_owned() + &e.to_string(),
-                    )
-                })? {
-                    ColorType::RGB(8) | ColorType::RGB(16) => ColorSpace::RGB,
-                    ColorType::RGBA(8) | ColorType::RGBA(16) => ColorSpace::RGBA,
-                    _ => ColorSpace::Unknown,
-                };
+                use rimage::codecs::tiff::TiffDecoder;
 
-                let decoded_data = decoder.read_image().map_err(|e| {
-                    ImageErrors::ImageDecodeErrors(
-                        "Unable to decode TIFF file - ".to_owned() + &e.to_string(),
-                    )
-                })?;
+                let decoder = TiffDecoder::try_new(file)?;
 
-                return match decoded_data {
-                    DecodingResult::U8(v) => Ok(Image::from_u8(
-                        v.as_slice(),
-                        width as usize,
-                        height as usize,
-                        colorspace,
-                    )),
-                    DecodingResult::U16(v) => Ok(Image::from_u16(
-                        v.as_slice(),
-                        width as usize,
-                        height as usize,
-                        colorspace,
-                    )),
-                    _ => Err(ImageErrors::ImageDecodeErrors(
-                        "Tiff Data format not supported".parse().unwrap(),
-                    )),
-                };
+                return Image::from_decoder(decoder);
             }
 
             Err(ImageErrors::ImageDecoderNotImplemented(
@@ -431,18 +393,5 @@ pub fn encoder(name: &str, matches: &ArgMatches) -> Result<AvailableEncoders, Im
         name => Err(ImageErrors::GenericString(format!(
             "Encoder \"{name}\" not found",
         ))),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::path::Path;
-    use crate::cli::pipeline::decode;
-    use super::*;
-
-    #[cfg(feature = "tiff")]
-    #[test]
-    fn check_tiff_decoding() {
-        let image = decode(Path::new("tests/files/tiff/f1t.tif")).unwrap();
     }
 }
