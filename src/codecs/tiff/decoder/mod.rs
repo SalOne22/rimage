@@ -1,9 +1,6 @@
 use std::io::{Read, Seek};
 
-use zune_core::{
-    bit_depth::{BitDepth, BitType},
-    colorspace::ColorSpace,
-};
+use zune_core::colorspace::ColorSpace;
 use zune_image::{errors::ImageErrors, image::Image, traits::DecoderTrait};
 
 /// A Tiff decoder

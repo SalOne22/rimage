@@ -11,5 +11,5 @@ fn decode() {
     let img = Image::from_decoder(decoder).unwrap();
 
     assert_eq!(img.dimensions(), (48, 80));
-    assert_eq!(img.colorspace(), ColorSpace::RGBA);
+    assert_eq!(img.colorspace(), ColorSpace::RGB);
 }

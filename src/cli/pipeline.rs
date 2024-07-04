@@ -10,10 +10,6 @@ use rimage::codecs::mozjpeg::MozJpegEncoder;
 use rimage::codecs::oxipng::OxiPngEncoder;
 #[cfg(feature = "webp")]
 use rimage::codecs::webp::WebPEncoder;
-#[cfg(feature = "tiff")]
-use tiff::{decoder::DecodingResult, ColorType};
-#[cfg(feature = "tiff")]
-use zune_core::colorspace::ColorSpace;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
 use zune_image::{
     codecs::{
