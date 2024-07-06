@@ -50,7 +50,9 @@ fn main() {
         .build();
 
     let multi = MultiProgress::new();
-    let sty_main = ProgressStyle::with_template("{bar:40.green/yellow} {pos:>4}/{len:4}").unwrap();
+    let sty_main = ProgressStyle::with_template("{bar:40.green/yellow} {pos:>4}/{len:4}")
+        .unwrap()
+        .progress_chars("▬▬▬");
     let sty_aux_decode = ProgressStyle::with_template("{spinner:.blue} {msg}").unwrap();
     let sty_aux_operations = ProgressStyle::with_template("{spinner:.yellow} {msg}").unwrap();
     let sty_aux_encode = ProgressStyle::with_template("{spinner:.green} {msg}").unwrap();
@@ -93,6 +95,8 @@ fn main() {
                     .as_ref(),
             );
 
+            let file_count = files.iter().filter(|f| f.is_file()).count() as u64;
+
             let out_dir = matches.get_one::<PathBuf>("directory").cloned();
 
             let recursive = matches.get_flag("recursive");
@@ -106,10 +110,11 @@ fn main() {
                 multi.set_draw_target(ProgressDrawTarget::hidden());
             }
 
-            let pb_main = multi.add(ProgressBar::new(
-                files.iter().filter(|f| f.is_file()).count() as u64,
-            ));
+            let pb_main = multi.add(ProgressBar::new(file_count));
             pb_main.set_style(sty_main);
+            if file_count <= 1 {
+                pb_main.set_draw_target(ProgressDrawTarget::hidden());
+            }
 
             get_paths(files, out_dir, suffix, recursive)
                 .progress_with(pb_main)
@@ -201,29 +206,49 @@ fn main() {
             if !quiet {
                 let term = Term::stdout();
 
-                term.write_line(&format!(
-                    "{:<path_width$} {}",
-                    style("File").bold(),
-                    style("Size").bold(),
-                ))
-                .unwrap();
-
-                for result in results.iter() {
-                    let difference = (result.output_size as f64 / result.input_size as f64) * 100.0;
-
+                if results.len() > 1 {
                     term.write_line(&format!(
-                        "{:<path_width$} {} > {} {}",
-                        result.output.display(),
-                        style(DecimalBytes(result.input_size)).blue(),
-                        style(DecimalBytes(result.output_size)).blue(),
-                        if difference > 100.0 {
-                            style(format!("{:.2}%", difference - 100.0)).red()
-                        } else {
-                            style(format!("{:.2}%", difference - 100.0)).green()
-                        },
+                        "{:<path_width$} {}",
+                        style("File").bold(),
+                        style("Size").bold(),
                     ))
                     .unwrap();
+
+                    for result in results.iter() {
+                        let difference =
+                            (result.output_size as f64 / result.input_size as f64) * 100.0;
+
+                        term.write_line(&format!(
+                            "{:<path_width$} {} > {} {}",
+                            result.output.display(),
+                            style(DecimalBytes(result.input_size)).blue(),
+                            style(DecimalBytes(result.output_size)).blue(),
+                            if difference > 100.0 {
+                                style(format!("{:.2}%", difference - 100.0)).red()
+                            } else {
+                                style(format!("{:.2}%", difference - 100.0)).green()
+                            },
+                        ))
+                        .unwrap();
+                    }
                 }
+
+                let total_input_size = results.iter().map(|r| r.input_size).sum::<u64>();
+                let total_output_size = results.iter().map(|r| r.output_size).sum::<u64>();
+
+                let difference = (total_output_size as f64 / total_input_size as f64) * 100.0;
+
+                term.write_line(&format!(
+                    "Total: {} > {} {}",
+                    style(DecimalBytes(total_input_size)).blue(),
+                    style(DecimalBytes(total_output_size)).blue(),
+                    if difference > 100.0 {
+                        style(format!("{:.2}%", difference - 100.0)).red()
+                    } else {
+                        style(format!("{:.2}%", difference - 100.0)).green()
+                    },
+                ))
+                .unwrap();
             }
         }
         None => unreachable!(),
