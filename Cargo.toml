@@ -60,7 +60,7 @@ rgb = { version = "0.8.37", optional = true }
 mozjpeg = { version = "0.10.7", default-features = false, features = ["with_simd"], optional = true }
 oxipng = { version = "9.1", default-features = false, features = ["zopfli", "filetime"], optional = true }
 webp = { version = "0.3.0", default-features = false, optional = true }
-ravif = { version = "0.11.4", optional = true }
+ravif = { version = "0.11.8", optional = true }
 libavif = { version = "0.13.0", default-features = false, features = ["codec-aom"], optional = true }
 lcms2 = { version = "6.1.0", optional = true }
 
