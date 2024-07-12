@@ -51,6 +51,18 @@ impl CommonArgs for Command {
                 By default, the number of available threads is utilized."#})
                 .value_parser(value_parser!(u8).range(1..=threads::num_threads() as i64)),
         )
+        .arg(
+            arg!(--"no-progress" "Disables progress bar.")
+                .long_help(indoc! {r#"Disables progress bar.
+
+                By default, progress bar is enabled."#})
+        )
+        .arg(
+            arg!(--quiet "Disables all output.")
+                .long_help(indoc! {r#"Disables all output.
+
+                By default, all output is enabled."#})
+        )
         .preprocessors()
     }
 }
