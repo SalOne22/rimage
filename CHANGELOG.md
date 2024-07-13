@@ -2,7 +2,19 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0-next.1
+## v0.11.0-next.2
+
+### Bug Fixes
+
+- **cli:** :lipstick: updated display styles ([19adcea](https://github.com/SalOne22/rimage/commit/19adcea6c19c9a33eb6248a29363f6077b4771f2))
+
+### Features
+
+- **cli:** :lipstick: added progress bar ([398e504](https://github.com/SalOne22/rimage/commit/398e504259f3e83791e99a039f163d8a0765f989))
+- **cli:** :sparkles: added quiet and no progress flags ([0517908](https://github.com/SalOne22/rimage/commit/051790846d4aa6965f5c391f130661dc96c015b5))
+- **codecs:** :sparkles: added tiff support ([abc78f5](https://github.com/SalOne22/rimage/commit/abc78f533717ed5d56623655b471340e22592fca))
+
+## [v0.11.0-next.1](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.1)
 
 ### Bug Fixes
 
