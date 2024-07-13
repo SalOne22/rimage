@@ -751,27 +751,27 @@ dependencies = [
 
 [[package]]
 name = "libaom-sys"
-version = "0.16.0+libaom.3.8.1"
+version = "0.17.0+libaom.3.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1b523abfa428fefad65baec6aecb8ba1dea86925c3977595386ea13ec174cac"
+checksum = "cba7f0c21a491ce72470f31026d2cd8ddda1032fb09b69ef61b8a9076b6a184f"
 dependencies = [
  "cmake",
 ]
 
 [[package]]
 name = "libavif"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e307eb041038a7a1b4fefe41d098a691ea1c3c111d58e0e21cc4fc304409a66f"
+checksum = "0b710faf0de92da0e32a9a9c89bbf849e37277fd447b4f17b0f0f798796ae1f2"
 dependencies = [
  "libavif-sys",
 ]
 
 [[package]]
 name = "libavif-sys"
-version = "0.16.0+libavif.1.0.4"
+version = "0.17.0+libavif.1.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7eb05b7f9437ad312ad3dec250781fc95df54d4a1ec69d8b6cf5d503c5f5a51d"
+checksum = "490ca74b61e773140bebb086c81facb23273a99364a9ab0c92ab1532b90ade35"
 dependencies = [
  "cmake",
  "libaom-sys",
