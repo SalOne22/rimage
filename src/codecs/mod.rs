@@ -10,6 +10,10 @@ pub mod mozjpeg;
 #[cfg(feature = "oxipng")]
 pub mod oxipng;
 
+/// Tiff encoding support
+#[cfg(feature = "tiff")]
+pub mod tiff;
+
 /// WebP encoding support
 #[cfg(feature = "webp")]
 pub mod webp;
