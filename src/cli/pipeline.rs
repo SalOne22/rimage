@@ -1,3 +1,4 @@
+use std::io::{Seek, SeekFrom};
 use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 
 use clap::ArgMatches;
@@ -26,7 +27,7 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
             #[cfg(any(feature = "avif", feature = "webp"))]
-            let mut file = File::open("tests/files/avif/f1t.avif")?;
+            let mut file = File::open(f.as_ref())?;
 
             #[cfg(feature = "avif")]
             {
@@ -41,6 +42,8 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                     return Image::from_decoder(decoder);
                 };
+
+                file.seek(SeekFrom::Start(0))?;
             }
 
             #[cfg(feature = "webp")]
@@ -54,6 +57,18 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                 return Image::from_decoder(decoder);
             };
+
+            #[cfg(feature = "tiff")]
+            if f.as_ref()
+                .extension()
+                .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
+            {
+                use rimage::codecs::tiff::TiffDecoder;
+
+                let decoder = TiffDecoder::try_new(file)?;
+
+                return Image::from_decoder(decoder);
+            }
 
             Err(ImageErrors::ImageDecoderNotImplemented(
                 ImageFormat::Unknown,

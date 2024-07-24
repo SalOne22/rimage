@@ -7,7 +7,7 @@
 
 A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoosh.app/).
 
-:warning: WARNING: This documentation works only for latest version of rimage! You can get latest version from [releases](https://github.com/SalOne22/rimage/releases) tab or explicitly with cargo: `cargo install rimage@0.11.0-next.0`
+:warning: WARNING: This documentation works only for latest version of rimage! You can get latest version from [releases](https://github.com/SalOne22/rimage/releases) tab or explicitly with cargo: `cargo install rimage@0.11.0-next.2`
 
 ## Features
 
@@ -18,9 +18,9 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
   - Rimage provides several image optimization operation
   - Resize - uses `fast_image_resize` crate that has incredible performance
   - Quantization - allowing to reduce image palette
-- CJK and Punctuation marks support:
-  - Rimage supports full CJK (Chinese, Japanese and Korean) characters input and output
-  - Rimage allows special punctuation characters such as `|`, ` `, `&`, `$`, etc. to be included in file names
+- Friendly output:
+  - Rimage support progressbar
+  - Rimage would show detailed error info to assist users 
 
 ## Installation
 
@@ -28,13 +28,13 @@ You can download latest release from the [releases](https://github.com/SalOne22/
 
 If you're a Rust programmer, rimage can be installed with `cargo`.
 
-```powershell
+```sh
 cargo install rimage
 ```
 
 Alternatively, one can use [cargo binstall](https://github.com/cargo-bins/cargo-binstall) to install a rimage binary directly from GitHub:
 
-```powershell
+```sh
 cargo binstall rimage
 ```
 
@@ -59,6 +59,7 @@ Commands:
   png       Encode images into PNG format.
   ppm       Encode images into PPM format. (Bitmapped)
   qoi       Encode images into QOI format. (Trendy and Small)
+  tiff      Encode images into TIFF format.
   webp      Encode images into WebP format. (Lossless-able)
   help      Print this message or the help of the given subcommand(s)
 
@@ -67,24 +68,24 @@ Options:
   -V, --version  Print version
 ```
 
-### Basic optimization suitable for file transfer on web
+### Basic optimization suitable for web
 
 To optimize images with great defaults, you can simply call `rimage <command>`. For example:
 
-```powershell
+```sh
 rimage mozjpeg ./image.jpg
 ```
 
-By default, rimage will place output images directly in the same folder of each input image, which may cause OVERWRITING if the input and output image has the same file extension name. To change this behavior, you can use the following options:
+By default rimage will place output images right in place of precious images, resulting in overwrite if input and output has the same format. To change this behavior you can use this options:
 
-```powershell
-# Will place output images in `./output` directory, images may be overwritten if has the same name
+```sh
+# will place output images in `./output` directory, images may be overwritten if has the same name
 rimage mozjpeg -d ./output ./image.jpg
 
-# Will rename all input files before processing with `@backup` suffix
+# will rename all input files before processing with `@backup` suffix
 rimage mozjpeg --backup ./image.jpg
 
-# Will place output images in ./output directory preserving folder structure
+# will place output images in ./output directory preserving folder structure
 rimage mozjpeg -d ./output -r ./inner/image.jpg ./image.jpg
 ```
 
@@ -92,28 +93,18 @@ rimage mozjpeg -d ./output -r ./inner/image.jpg ./image.jpg
 
 Rimage has pipeline preprocessing options. Simple usage:
 
-```powershell
-# Will resize image to specified dimensions
-rimage mozjpeg --resize "500x200" ./image.jpg
-
-# Will zoom the image to the specified length (or width), and if another value is not specified, rimmage will automatically scale proportionally
-rimage mozjpeg --resize "_x600" ./image.jpg
-
-
-# Will resize the image by multiplier
-rimage mozjpeg --resize "@0.9" ./image.jpg
-
-# Will resize the image size by percentage
-rimage mozjpeg --resize "175%" ./image.jpg
+```sh
+# will resize image to specified dimensions
+rimage mozjpeg --resize 500x200 ./image.jpg
 ```
 
 If you want to run preprocessing pipeline in specific order, you can do this:
 
-```powershell
-# Will quantize image with 80% quality, after run resize to 64x64 pixels using the Nearest filter.
+```sh
+# will quantize image with 80% quality, after run resize to 64x64 pixels using the Nearest filter.
 rimage mozjpeg --quantization 80 --resize 64x64 --filter nearest ./image.jpg
 
-# Will resize image to 64x64 pixels using the Nearest filter, and after run quantization with 80% quality.
+# will resize image to 64x64 pixels using the Nearest filter, and after run quantization with 80% quality.
 rimage mozjpeg --resize 64x64 --filter nearest --quantization 80 ./image.jpg
 ```
 
@@ -121,9 +112,7 @@ Note that some preprocessing option are order independent. For example filter op
 
 ### Advanced options
 
-If you want customize optimization you can provide additional options to encoders.
-
-For mozjpeg this options are valid:
+If you want customize optimization you can provide additional options to encoders. For mozjpeg this options are valid:
 
 ```
 Options:
@@ -138,7 +127,7 @@ Options:
       --qtable <TABLE>        Use a specific quantization table. [default: NRobidoux] [possible values: AhumadaWatsonPeterson, AnnexK, Flat, KleinSilversteinCarney, MSSSIM, NRobidoux, PSNRHVS, PetersonAhumadaWatson, WatsonTaylorBorthwick]
 ```
 
-For more info use `rimage help <command>`, e.g. `rimage help moz`
+For more info use `rimage help <command>`
 
 For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
@@ -156,6 +145,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
 | psd          | zune-psd      | X                       | Input only                                           |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
+| tiff         | tiff          | tiff                    | ???                                                  |
 | webp         | webp          | webp                    | Static only                                          |
 
 ### List of supported preprocessing options
@@ -164,38 +154,29 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 - Quantization
 - Alpha premultiply
 
-### Detailed Examples
+## List of supported mode for output info presenting
 
-| Image Path         | Out Format | Quality | Out Dir      | Backup |    Suffix    | Recursive | Threads |  ｜   | Command                                                              |
-| :----------------- | :--------: | :-----: | :----------- | :----: | :----------: | :-------: | :-----: | :---: | :------------------------------------------------------------------- |
-| `C:\\example.png`  |    jpg     |   90    | `D:\\Output` |  True  |    False     |   True    | Default |  ｜   | `rimage moz "C:\\example.png" -q 90 -r -d "D:\\Output" -b`           |
-| `C:\\example.AVIF` |    png     | Default | `D:\\Output` | False  | `_add_suf` |   False   |  True   |  ｜   | `rimage oxi "C:\\example.AVIF" -s "_add_suf" -t 3 -d "D:\\Output"` |
-
+- No-progress (Shown on Default)
+- Quiet (Show all msgs on Default)
 
 ## Known bugs
 
 - **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
 
-> **Tip**
-> We tremendously suggest to use double backslashes (`\\`) and place parameters with folder paths at the end of the command to avoid any accident.
-
 ### Example:
 
 This will crash:
 
-```powershell
-rimage png "D:\example.jpg" -d "D:\desktop\" -s "_suf"
+```sh
+rimage png "D:\example.jpg" -d "D:\desktop\" -s "suffix"
 ```
 
-These will work as expected:
+This will work as expected:
 
-```powershell
-rimage avif "D:\\example.jpg" -d "D:\\desktop" -s "_suf"   # Highly Recommended
-rimage webp "D:\\example.jpg" -d "D:\\desktop\\" -s "_suf" # Recommended
+```sh
+rimage png "D:\example.jpg" -d "D:\desktop" -s "suf test" # without trailing backslash
 
-rimage jxl "D:\example.jpg" -d "D:\desktop" -s "_suf"      # Acceptable (Without trailing backslash)
-rimage png "D:\example.jpg" -d "D:\desktop\" -s "_suf"     # Acceptable (Backslash at the end)
-rimage moz "D:\example.jpg" -d ./desktop -s "_suf"         # Acceptable (Relative path)
+rimage png "D:\example.jpg" -s "suffix"  -d "D:\desktop\" # backslash at the end
 ```
 
 ## Contributing

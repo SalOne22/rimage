@@ -29,13 +29,17 @@ pub fn cli() -> Command {
 | ppm           | O     | O      |                 |
 | psd           | O     | X      |                 |
 | qoi           | O     | O      |                 |
+| tiff          | O     | O      |                 |
 | webp          | O     | O      | Static only     |
 
 List of supported preprocessing options
-
 - Resize
 - Quantization
-- Alpha premultiply"#})
+- Alpha premultiply
+
+List of supported mode for output info presenting
+- No-progress (Shown on Default)
+- Quiet (Show all msgs on Default)"#})
         .codecs()
 }
 

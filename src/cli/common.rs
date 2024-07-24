@@ -17,6 +17,13 @@ impl CommonArgs for Command {
                 .value_parser(value_parser!(PathBuf)),
         )
         .arg(
+            arg!(-d --directory <DIR> "The directory to write output file(s) to.")
+                .long_help(indoc! {r#"The directory to write output file(s) to.
+
+                Output files will be written without preserving the folder structure unless the --recursive flag is used."#})
+                .value_parser(value_parser!(PathBuf)),
+        )
+        .arg(
             arg!(-r --recursive "Preserves the folder structure when writing output file(s).")
                 .long_help(indoc! {r#"Preserves the folder structure when writing output file(s).
 
@@ -45,11 +52,16 @@ impl CommonArgs for Command {
                 .value_parser(value_parser!(u8).range(1..=threads::num_threads() as i64)),
         )
         .arg(
-            arg!(-d --directory <DIR> "The directory to write output file(s) to.")
-                .long_help(indoc! {r#"The directory to write output file(s) to.
+            arg!(--"no-progress" "Disables progress bar.")
+                .long_help(indoc! {r#"Disables progress bar.
 
-                Output files will be written without preserving the folder structure unless the --recursive flag is used."#})
-                .value_parser(value_parser!(PathBuf)),
+                By default, progress bar is enabled."#})
+        )
+        .arg(
+            arg!(--quiet "Disables all output.")
+                .long_help(indoc! {r#"Disables all output.
+
+                By default, all output is enabled."#})
         )
         .preprocessors()
     }
