@@ -12,9 +12,8 @@ pub mod utils;
 pub fn cli() -> Command {
     command!()
         .arg_required_else_help(true)
-        .after_help(indoc! {r#"List of supported codecs
-
-
+        .after_help(indoc! {r#"
+List of supported codecs
 | Image Format  | Input | Output | Note            |
 | ------------- | ----- | ------ | --------------- |
 | avif          | O     | O      | Static only     |
@@ -39,7 +38,8 @@ List of supported preprocessing options
 
 List of supported mode for output info presenting
 - No-progress (Shown on Default)
-- Quiet (Show all msgs on Default)"#})
+- Quiet (Show all msgs on Default)
+"#})
         .codecs()
 }
 
