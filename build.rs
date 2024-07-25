@@ -12,7 +12,7 @@ fn main() {
     }
 
     let mut res = winres::WindowsResource::new();
-    
+
     //version  X. X. X. X
     //         ⇑  ⇑  ⇑
     //         48 32 16
