@@ -21,6 +21,9 @@ fn main() {
     //     res.set_windres_path("/usr/bin/x86_64-w64-mingw32-windres");
     // }
 
+    //version  X. X. X. X
+    //         ⇑  ⇑  ⇑
+    //         48 32 16
     let mut version: u64 = 0;
     version |= 0 << 48;
     version |= 11 << 32;
