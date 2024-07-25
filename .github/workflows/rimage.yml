@@ -105,12 +105,12 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: install rust toolchain
-        uses: actions-rs/toolchain@v1
+      - name: install rust toolchain (rust-toolchain-reborn)
+        uses: crusty-pie/toolchain@v1.0.8
         with:
           profile: minimal
           toolchain: stable
-          target: ${{ matrix.target }}
+          targets: ${{ matrix.target }}
 
       - uses: ilammy/setup-nasm@v1
 
@@ -139,7 +139,7 @@ jobs:
 
       - name: build
         if: matrix.target != 'wasm32-unknown-emscripten'
-        run: cargo build --all-features --release
+        run: cargo build -r --all-features
 
       - name: run tests
         if: matrix.target != 'wasm32-unknown-emscripten'
@@ -178,8 +178,8 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: setup rust toolchain
-        uses: actions-rs/toolchain@v1
+      - name: install rust toolchain (rust-toolchain-reborn)
+        uses: crusty-pie/toolchain@v1.0.8
         with:
           profile: minimal
           toolchain: stable
