@@ -28,7 +28,7 @@ List of supported codecs
 | ppm           | O     | O      |                 |
 | psd           | O     | X      |                 |
 | qoi           | O     | O      |                 |
-| tiff          | O     | O      |                 |
+| tiff          | O     | X      |                 |
 | webp          | O     | O      | Static only     |
 
 List of supported preprocessing options

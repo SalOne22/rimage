@@ -62,7 +62,6 @@ Commands:
   png       Encode images into PNG format.
   ppm       Encode images into PPM format. (Bitmapped)
   qoi       Encode images into QOI format. (Trendy and Small)
-  tiff      Encode images into TIFF format.
   webp      Encode images into WebP format. (Lossless-able)
   help      Print this message or the help of the given subcommand(s)
 
@@ -139,16 +138,16 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | Image Codecs | Decoder       | Encoder                 | NOTE                                                 |
 | ------------ | ------------- | ----------------------- | ---------------------------------------------------- |
 | avif         | libavif       | ravif                   | Common features only, Static only                    |
-| bmp          | zune-bmp      | X                       | Input only                                           |
+| bmp          | zune-bmp      | ❌                       | Input only                                           |
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                                      |
 | hdr          | zune-hdr      | zune-hdr                |                                                      |
 | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder | Multifunctional when use mozjpeg encoder             |
 | jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless only                                        |
 | png          | zune-png      | oxipng or zune-png      | Static only, Multifunctional when use oxipng encoder |
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
-| psd          | zune-psd      | X                       | Input only                                           |
+| psd          | zune-psd      | ❌                       | Input only                                           |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
-| tiff         | tiff          | tiff                    | ???                                                  |
+| tiff         | tiff          | ❌                       | Input only                                           |
 | webp         | webp          | webp                    | Static only                                          |
 
 ### List of supported preprocessing options
