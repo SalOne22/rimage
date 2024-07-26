@@ -7,3 +7,7 @@
 
 # code coverage
 lcov.info
+
+# self build scrpits
+*.ps1
+*.log
