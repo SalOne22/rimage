@@ -45,17 +45,16 @@ fn main() {
             << 16
     };
 
-    let file_version = version | 0 as u64;
     let product_version = version | {
         let temp = env::var("CARGO_PKG_VERSION_PRE").unwrap();
-        if temp == String::from("") {
-            0 as u64
+        if temp == *"" {
+            0_u64
         } else {
-            temp.parse::<u64>().unwrap_or(0 as u64)
+            temp.parse::<u64>().unwrap_or(0_u64)
         }
     };
 
-    res.set_version_info(VersionInfo::FILEVERSION, file_version)
+    res.set_version_info(VersionInfo::FILEVERSION, version)
         .set_version_info(VersionInfo::PRODUCTVERSION, product_version);
 
     if let Err(e) = res.compile() {
