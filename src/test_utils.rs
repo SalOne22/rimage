@@ -51,5 +51,5 @@ pub(crate) fn create_test_image_animated(
         frames.push(Frame::new(channels))
     });
 
-     Image::new_frames(frames, BitDepth::Eight, width, height, colorspace)
+    Image::new_frames(frames, BitDepth::Eight, width, height, colorspace)
 }
