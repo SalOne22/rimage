@@ -157,7 +157,7 @@ jobs:
           CXX: "emcc"
 
       - name: upload cli binary as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rimage binary (${{ matrix.target }})
           path: |
