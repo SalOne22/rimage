@@ -156,6 +156,14 @@ jobs:
           CC: "emcc"
           CXX: "emcc"
 
+      - name: upload cli binary as artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: rimage binary (${{ matrix.target }})
+          path: |
+            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
+            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
+
       - name: add summary
         if: success()
         shell: pwsh
@@ -178,15 +186,7 @@ jobs:
           "
 
           echo $summary >> $Env:GITHUB_STEP_SUMMARY
-
-      - name: upload cli binary as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: rimage binary (${{ matrix.target }})
-          path: |
-            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
-            target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
-
+          
   lint:
     name: lint
     runs-on: ubuntu-latest
