@@ -180,7 +180,7 @@ jobs:
           echo $summary >> $Env:GITHUB_STEP_SUMMARY
 
       - name: upload cli binary as artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: rimage binary (${{ matrix.target }})
           path: |
