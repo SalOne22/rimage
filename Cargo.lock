@@ -1768,9 +1768,9 @@ dependencies = [
 
 [[package]]
 name = "zune-core"
-version = "0.5.0-rc1"
+version = "0.5.0-rc2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0d1b427373b52a2497c49b0860a5290daab6a0437902ffd8f607367bd5eb7d0"
+checksum = "0fa5491574238487afaf76a17d1907b47eaace69e97720b8486d584dfca013dc"
 dependencies = [
  "log",
  "serde",

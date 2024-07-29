@@ -53,7 +53,7 @@ icc = ["dep:lcms2"]
 console = ["dep:console"]
 
 [dependencies]
-zune-core = "0.5.0-rc1"
+zune-core = "0.5.0-rc2"
 log = "0.4.22"
 zune-image = { version = "0.5.0-rc0", default-features = false }
 fast_image_resize = { version = "3.0.4", optional = true }
@@ -83,5 +83,5 @@ console = { version = "0.15.8", optional = true }
 glob = { version = "0.3.1", optional = true }
 
 [dev-dependencies]
-zune-core = { version = "0.5.0-rc1", features = ["std"] }
+zune-core = { version = "0.5.0-rc2", features = ["std"] }
 zune-image = "0.5.0-rc0"
