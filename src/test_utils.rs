@@ -51,7 +51,5 @@ pub(crate) fn create_test_image_animated(
         frames.push(Frame::new(channels))
     });
 
-    let image = Image::new_frames(frames, BitDepth::Eight, width, height, colorspace);
-
-    image
+    Image::new_frames(frames, BitDepth::Eight, width, height, colorspace)
 }
