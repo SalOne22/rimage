@@ -157,13 +157,36 @@ jobs:
           CXX: "emcc"
 
       - name: upload cli binary as artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: rimage binary (${{ matrix.target }})
           path: |
             target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
             target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
 
+      - name: add summary
+        if: success()
+        shell: pwsh
+        run: |
+          $NeedZone1 = [Int16]2
+          $NeedZone2 = [Int16]8
+          $OutputFormat = "%Y-%m-%d_%H:%M:%S"
+          $NowTime = [UInt32](Get-Date -UFormat "%s")
+          $Zone = [Int16](Get-Date -UFormat "%Z").ToString()
+          $NeedTime1 = ($NeedZone1 - $Zone) * 60 * 60
+          $NeedTime2 = ($NeedZone2 - $Zone) * 60 * 60
+          $Result1 = $NowTime + $NeedTime1
+          $Result2 = $NowTime + $NeedTime2
+          $Formated1 = (Get-Date -UnixTimeSeconds $Result1 -UFormat $OutputFormat).ToString()
+          $Formated2 = (Get-Date -UnixTimeSeconds $Result2 -UFormat $OutputFormat).ToString()
+
+          $summary = "
+          Completion time : $Formated1 (GMT+02:00)
+          文件编译完成时间：$Formated2 (GMT+08:00)
+          "
+
+          echo $summary >> $Env:GITHUB_STEP_SUMMARY
+          
   lint:
     name: lint
     runs-on: ubuntu-latest
