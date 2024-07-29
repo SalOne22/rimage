@@ -780,9 +780,9 @@ dependencies = [
 
 [[package]]
 name = "libc"
-version = "0.2.153"
+version = "0.2.155"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c198f91728a82281a64e1f4f9eeb25d82cb32a5de251c6bd1b5154d63a8e7bd"
+checksum = "97b3888a4aecf77e811145cadf6eef5901f4782c53886191b2f693f24761847c"
 
 [[package]]
 name = "libdeflate-sys"
@@ -871,11 +871,12 @@ dependencies = [
 
 [[package]]
 name = "mozjpeg"
-version = "0.10.7"
+version = "0.10.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a3bcd16df874918cb91d9ca985d7fde466bdc3b0983bf83c33395033568e510"
+checksum = "8c1e1f1b1de2ee6ef673e8c76666b93794120fa6ec1cb4f535c129ea6f32731d"
 dependencies = [
  "arrayvec",
+ "bytemuck",
  "libc",
  "mozjpeg-sys",
  "rgb",
@@ -883,9 +884,9 @@ dependencies = [
 
 [[package]]
 name = "mozjpeg-sys"
-version = "2.1.0"
+version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69c32ce5e3419dca9b24e1d18218d12c36b8dbcfe020cd7de54830ac64148cbf"
+checksum = "9cf2a48f2f79f47fcce75d125d112e113a93f4a6f3cd8cc5b4cd6e16589d050f"
 dependencies = [
  "cc",
  "dunce",
