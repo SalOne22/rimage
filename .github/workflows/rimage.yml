@@ -157,12 +157,15 @@ jobs:
           CXX: "emcc"
 
       - name: upload cli binary as artifact
+        if: matrix.target != 'wasm32-unknown-emscripten'
         uses: actions/upload-artifact@v4
         with:
           name: rimage binary (${{ matrix.target }})
           path: |
             target/${{ env.CARGO_BUILD_TARGET }}/release/rimage
             target/${{ env.CARGO_BUILD_TARGET }}/release/rimage.exe
+          if-no-files-found: error
+          compression-level: 0
 
       - name: add summary
         if: success()
@@ -181,8 +184,8 @@ jobs:
           $Formated2 = (Get-Date -UnixTimeSeconds $Result2 -UFormat $OutputFormat).ToString()
 
           $summary = "
-          Completion time : $Formated1 (GMT+02:00)
-          文件编译完成时间：$Formated2 (GMT+08:00)
+          Completion time :   $Formated1 (GMT+02:00)
+          文件编译完成时间：  $Formated2 (GMT+08:00)
           "
 
           echo $summary >> $Env:GITHUB_STEP_SUMMARY
