@@ -1005,9 +1005,9 @@ checksum = "3fdb12b2476b595f9358c5161aa467c2438859caa136dec86c26fdd2efe17b92"
 
 [[package]]
 name = "oxipng"
-version = "9.1.1"
+version = "9.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f398c53eb34e0cf71d9e0bc676cfa7c611e3844dd14ab05e92fb7b423c98ecf"
+checksum = "ec25597808aff9f632f018f0fe8985c6f670598ac5241d220a9f2d32ff46812e"
 dependencies = [
  "bitvec",
  "clap",
@@ -1255,9 +1255,9 @@ checksum = "adad44e29e4c806119491a7f06f03de4d1af22c3a680dd47f1e6e179439d1f56"
 
 [[package]]
 name = "rgb"
-version = "0.8.44"
+version = "0.8.45"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1aee83dc281d5a3200d37b299acd13b81066ea126a7f16f0eae70fc9aed241d9"
+checksum = "ade4539f42266ded9e755c605bdddf546242b2c961b03b06a7375260788a0523"
 dependencies = [
  "bytemuck",
 ]
@@ -1787,9 +1787,9 @@ dependencies = [
 
 [[package]]
 name = "zune-core"
-version = "0.5.0-rc1"
+version = "0.5.0-rc2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e0d1b427373b52a2497c49b0860a5290daab6a0437902ffd8f607367bd5eb7d0"
+checksum = "0fa5491574238487afaf76a17d1907b47eaace69e97720b8486d584dfca013dc"
 dependencies = [
  "log",
  "serde",
