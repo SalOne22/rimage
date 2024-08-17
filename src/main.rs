@@ -139,9 +139,8 @@ fn main() {
                     let mut available_encoder = handle_error!(input, encoder(subcommand, matches));
                     output.set_extension(available_encoder.to_extension());
 
-                    if img.depth() == BitDepth::Float32 {
-                        pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
-                    }
+                    pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
+                    pipeline.chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
 
                     pipeline.chain_operations(Box::new(AutoOrient));
                     pipeline.chain_operations(Box::new(ApplySRGB));
