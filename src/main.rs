@@ -201,7 +201,7 @@ fn main() {
                 .iter()
                 .map(|r| r.output.display().to_string().len())
                 .max()
-                .unwrap();
+                .unwrap_or(0);
 
             if !quiet {
                 let term = Term::stdout();
