@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use regex::Regex;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResizeValue {
@@ -62,8 +63,22 @@ impl std::str::FromStr for ResizeValue {
         match s {
             s if s.starts_with('@') => Ok(Self::Multiplier(s[1..].parse()?)),
             s if s.ends_with('%') => Ok(Self::Percentage(s[..s.len() - 1].parse()?)),
-            s if s.ends_with('w') => Ok(Self::Dimensions(Some(s[..s.len() - 1].parse()?), None)),
-            s if s.ends_with('h') => Ok(Self::Dimensions(None, Some(s[..s.len() - 1].parse()?))),
+            s if s.contains('w') => {
+                let re = Regex::new(r"(?P<width>\d+)").unwrap();
+                let Some(cap) = re.captures(s) else {
+                    return Err(anyhow!("Invalid resize value"));
+                };
+
+                Ok(Self::Dimensions(Some(cap["width"].parse()?), None))
+            }
+            s if s.contains('h') => {
+                let re = Regex::new(r"(?P<height>\d+)").unwrap();
+                let Some(cap) = re.captures(s) else {
+                    return Err(anyhow!("Invalid resize value"));
+                };
+
+                Ok(Self::Dimensions(None, Some(cap["height"].parse()?)))
+            }
             s if s.contains('x') => {
                 let dimensions: Vec<&str> = s.split('x').collect();
                 if dimensions.len() > 2 {
@@ -160,6 +175,26 @@ mod tests {
 
         assert_eq!(
             "150h".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(None, Some(150))
+        );
+
+        assert_eq!(
+            "200 w".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(Some(200), None)
+        );
+
+        assert_eq!(
+            "150 w".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(Some(150), None)
+        );
+
+        assert_eq!(
+            "h200".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(None, Some(200))
+        );
+
+        assert_eq!(
+            "h150".parse::<ResizeValue>().unwrap(),
             ResizeValue::Dimensions(None, Some(150))
         );
 
