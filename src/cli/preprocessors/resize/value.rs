@@ -60,12 +60,15 @@ impl std::str::FromStr for ResizeValue {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim().to_lowercase();
+
         match s {
             s if s.starts_with('@') => Ok(Self::Multiplier(s[1..].parse()?)),
             s if s.ends_with('%') => Ok(Self::Percentage(s[..s.len() - 1].parse()?)),
+            s if s.contains('w') && s.contains('h') => Err(anyhow!("Invalid resize value")),
             s if s.contains('w') => {
                 let re = Regex::new(r"(?P<width>\d+)").unwrap();
-                let Some(cap) = re.captures(s) else {
+                let Some(cap) = re.captures(&s) else {
                     return Err(anyhow!("Invalid resize value"));
                 };
 
@@ -73,7 +76,7 @@ impl std::str::FromStr for ResizeValue {
             }
             s if s.contains('h') => {
                 let re = Regex::new(r"(?P<height>\d+)").unwrap();
-                let Some(cap) = re.captures(s) else {
+                let Some(cap) = re.captures(&s) else {
                     return Err(anyhow!("Invalid resize value"));
                 };
 
@@ -199,6 +202,7 @@ mod tests {
         );
 
         assert!("_x_".parse::<ResizeValue>().is_err());
+        assert!("150wh".parse::<ResizeValue>().is_err());
     }
 
     #[test]
