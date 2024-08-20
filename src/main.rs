@@ -18,8 +18,12 @@ use indicatif::{
 use indicatif_log_bridge::LogWrapper;
 use rayon::prelude::*;
 use rimage::operations::icc::ApplySRGB;
-use zune_core::colorspace::ColorSpace;
-use zune_image::{core_filters::colorspace::ColorspaceConv, image::Image, pipelines::Pipeline};
+use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
+use zune_image::{
+    core_filters::{colorspace::ColorspaceConv, depth::Depth},
+    image::Image,
+    pipelines::Pipeline,
+};
 use zune_imageprocs::auto_orient::AutoOrient;
 
 use crate::cli::pipeline::encoder;
@@ -134,6 +138,9 @@ fn main() {
 
                     let mut available_encoder = handle_error!(input, encoder(subcommand, matches));
                     output.set_extension(available_encoder.to_extension());
+
+                    pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
+                    pipeline.chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
 
                     pipeline.chain_operations(Box::new(AutoOrient));
                     pipeline.chain_operations(Box::new(ApplySRGB));

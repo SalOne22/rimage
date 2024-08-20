@@ -9,7 +9,8 @@ fn apply_icc_profile() {
     let src_profile = Profile::new_srgb().icc().unwrap();
     image.metadata_mut().set_icc_chunk(src_profile);
 
-    let target_profile = Profile::new_file("tests/files/icc/tinysrgb.icc").unwrap();
+    let target_profile =
+        Profile::new_file_context(ThreadContext::new(), "tests/files/icc/tinysrgb.icc").unwrap();
 
     let icc = target_profile.icc().unwrap();
 
