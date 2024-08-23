@@ -89,7 +89,7 @@ zune-core = "0.5.0-rc2"
 log = "0.4.22"
 zune-image = { version = "0.5.0-rc0", default-features = false }
 fast_image_resize = { version = "3.0.4", optional = true }
-imagequant = { version = "4.3.1", default-features = false, optional = true }
+imagequant = { version = "4.3.3", default-features = false, optional = true }
 rgb = { version = "0.8.45", optional = true }
 mozjpeg = { version = "0.10.9", default-features = false, features = [
     "with_simd",
@@ -99,7 +99,7 @@ oxipng = { version = "9.1", default-features = false, features = [
     "filetime",
 ], optional = true }
 webp = { version = "0.3.0", default-features = false, optional = true }
-ravif = { version = "0.11.8", optional = true }
+ravif = { version = "0.11.10", optional = true }
 libavif = { version = "0.14.0", default-features = false, features = [
     "codec-aom",
 ], optional = true }
@@ -108,7 +108,7 @@ tiff = { version = "0.9.1", default-features = false, optional = true }
 
 # cli
 anyhow = { version = "1.0.86", optional = true }
-clap = { version = "4.5.9", features = ["cargo", "string"], optional = true }
+clap = { version = "4.5.16", features = ["cargo", "string"], optional = true }
 indoc = { version = "2.0.5", optional = true }
 pretty_env_logger = { version = "0.5.0", optional = true }
 rayon = { version = "1.10.0", optional = true }
