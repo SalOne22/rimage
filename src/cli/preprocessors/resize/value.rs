@@ -1,4 +1,5 @@
 use anyhow::anyhow;
+use regex::Regex;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ResizeValue {
@@ -48,8 +49,8 @@ impl std::fmt::Display for ResizeValue {
             ResizeValue::Dimensions(Some(width), Some(height)) => {
                 f.write_fmt(format_args!("{width}x{height}"))
             }
-            ResizeValue::Dimensions(Some(width), None) => f.write_fmt(format_args!("{width}x_")),
-            ResizeValue::Dimensions(None, Some(height)) => f.write_fmt(format_args!("_x{height}")),
+            ResizeValue::Dimensions(Some(width), None) => f.write_fmt(format_args!("{width}w")),
+            ResizeValue::Dimensions(None, Some(height)) => f.write_fmt(format_args!("{height}h")),
             ResizeValue::Dimensions(None, None) => f.write_fmt(format_args!("base")),
         }
     }
@@ -59,26 +60,37 @@ impl std::str::FromStr for ResizeValue {
     type Err = anyhow::Error;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim().to_lowercase();
+
         match s {
             s if s.starts_with('@') => Ok(Self::Multiplier(s[1..].parse()?)),
             s if s.ends_with('%') => Ok(Self::Percentage(s[..s.len() - 1].parse()?)),
+            s if s.contains('w') && s.contains('h') => Err(anyhow!("Invalid resize value")),
+            s if s.contains('w') => {
+                let re = Regex::new(r"(?P<width>\d+)").unwrap();
+                let Some(cap) = re.captures(&s) else {
+                    return Err(anyhow!("Invalid resize value"));
+                };
+
+                Ok(Self::Dimensions(Some(cap["width"].parse()?), None))
+            }
+            s if s.contains('h') => {
+                let re = Regex::new(r"(?P<height>\d+)").unwrap();
+                let Some(cap) = re.captures(&s) else {
+                    return Err(anyhow!("Invalid resize value"));
+                };
+
+                Ok(Self::Dimensions(None, Some(cap["height"].parse()?)))
+            }
             s if s.contains('x') => {
                 let dimensions: Vec<&str> = s.split('x').collect();
                 if dimensions.len() > 2 {
                     return Err(anyhow!("There is more that 2 dimensions"));
                 }
 
-                let width = if dimensions[0] == "_" {
-                    None
-                } else {
-                    Some(dimensions[0].parse::<usize>()?)
-                };
+                let width = Some(dimensions[0].parse::<usize>()?);
 
-                let height = if dimensions[1] == "_" {
-                    None
-                } else {
-                    Some(dimensions[1].parse::<usize>()?)
-                };
+                let height = Some(dimensions[1].parse::<usize>()?);
 
                 Ok(Self::Dimensions(width, height))
             }
@@ -108,23 +120,11 @@ mod tests {
             "150x150"
         );
 
-        assert_eq!(
-            ResizeValue::Dimensions(None, Some(200)).to_string(),
-            "_x200"
-        );
-        assert_eq!(
-            ResizeValue::Dimensions(None, Some(150)).to_string(),
-            "_x150"
-        );
+        assert_eq!(ResizeValue::Dimensions(None, Some(200)).to_string(), "200h");
+        assert_eq!(ResizeValue::Dimensions(None, Some(150)).to_string(), "150h");
 
-        assert_eq!(
-            ResizeValue::Dimensions(Some(200), None).to_string(),
-            "200x_"
-        );
-        assert_eq!(
-            ResizeValue::Dimensions(Some(150), None).to_string(),
-            "150x_"
-        );
+        assert_eq!(ResizeValue::Dimensions(Some(200), None).to_string(), "200w");
+        assert_eq!(ResizeValue::Dimensions(Some(150), None).to_string(), "150w");
 
         assert_eq!(ResizeValue::Dimensions(None, None).to_string(), "base");
     }
@@ -162,29 +162,47 @@ mod tests {
         );
 
         assert_eq!(
-            "200x_".parse::<ResizeValue>().unwrap(),
+            "200w".parse::<ResizeValue>().unwrap(),
             ResizeValue::Dimensions(Some(200), None)
         );
 
         assert_eq!(
-            "150x_".parse::<ResizeValue>().unwrap(),
+            "150w".parse::<ResizeValue>().unwrap(),
             ResizeValue::Dimensions(Some(150), None)
         );
 
         assert_eq!(
-            "_x200".parse::<ResizeValue>().unwrap(),
+            "200h".parse::<ResizeValue>().unwrap(),
             ResizeValue::Dimensions(None, Some(200))
         );
 
         assert_eq!(
-            "_x150".parse::<ResizeValue>().unwrap(),
+            "150h".parse::<ResizeValue>().unwrap(),
             ResizeValue::Dimensions(None, Some(150))
         );
 
         assert_eq!(
-            "_x_".parse::<ResizeValue>().unwrap(),
-            ResizeValue::Dimensions(None, None)
+            "200 w".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(Some(200), None)
         );
+
+        assert_eq!(
+            "150 w".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(Some(150), None)
+        );
+
+        assert_eq!(
+            "h200".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(None, Some(200))
+        );
+
+        assert_eq!(
+            "h150".parse::<ResizeValue>().unwrap(),
+            ResizeValue::Dimensions(None, Some(150))
+        );
+
+        assert!("_x_".parse::<ResizeValue>().is_err());
+        assert!("150wh".parse::<ResizeValue>().is_err());
     }
 
     #[test]
