@@ -58,6 +58,7 @@ build-binary = [
     "dep:indicatif",
     "dep:indicatif-log-bridge",
     "dep:console",
+    "dep:regex",
 ]
 
 # Enables utilization of threads
@@ -118,6 +119,7 @@ kamadak-exif = { version = "0.5.5", optional = true }
 indicatif = { version = "0.17.8", features = ["rayon"], optional = true }
 indicatif-log-bridge = { version = "0.2.2", optional = true }
 console = { version = "0.15.8", optional = true }
+regex = { version = "1.10.6", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 glob = { version = "0.3.1", optional = true }

@@ -31,8 +31,9 @@ impl Preprocessors for Command {
                     Possible values:
                     - @1.5:    Enlarge image size by this multiplier
                     - 150%:    Adjust image size by this percentage
-                    - 100x100: Resize image to these dimensions
-                    - 200x_:   Adjust image dimensions while maintaining the aspect ratio based on the specified dimension"#})
+                    - 100x100: Resize image to Width×Height
+                    - 100w:    Adjust image dimensions while maintaining the aspect ratio based on the width
+                    - 100h:    Adjust image dimensions while maintaining the aspect ratio based on the height"#})
                     .value_parser(value_parser!(ResizeValue))
                     .action(ArgAction::Append),
 
