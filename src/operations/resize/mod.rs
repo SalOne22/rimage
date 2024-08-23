@@ -42,7 +42,9 @@ impl OperationsTrait for Resize {
         let (src_width, src_height) = image.dimensions();
         let (dst_width, dst_height) = self.new_dimensions;
         if (dst_height == 0) || (dst_width == 0) {
-            return Err(ImageErrors::GenericStr("Error for 0 as Height or Width."));
+            return Err(ImageErrors::OperationsError(
+                ImageOperationsErrors::Generic("Width or Height cannot be 0"),
+            ));
         }
 
         let depth = image.depth().bit_type();
