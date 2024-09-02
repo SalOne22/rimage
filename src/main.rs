@@ -137,7 +137,16 @@ fn main() {
                     pb.set_style(sty_aux_operations.clone());
 
                     let mut available_encoder = handle_error!(input, encoder(subcommand, matches));
-                    output.set_extension(available_encoder.to_extension());
+                    if let Some(ext) = output.extension() {
+                        output.set_extension({
+                            let mut os_str = ext.to_os_string();
+                            os_str.push(".");
+                            os_str.push(available_encoder.to_extension());
+                            os_str
+                        });
+                    } else {
+                        output.set_extension(available_encoder.to_extension());
+                    }
 
                     pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
                     pipeline.chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
