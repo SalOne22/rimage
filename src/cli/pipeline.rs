@@ -34,6 +34,7 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 let mut file_content = vec![];
 
                 file.read_to_end(&mut file_content)?;
+                file.seek(SeekFrom::Start(0))?;
 
                 if libavif::is_avif(&file_content) {
                     use rimage::codecs::avif::AvifDecoder;
@@ -42,32 +43,39 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                     return Image::from_decoder(decoder);
                 };
-
                 file.seek(SeekFrom::Start(0))?;
             }
 
             #[cfg(feature = "webp")]
-            if f.as_ref()
-                .extension()
-                .is_some_and(|f| f.eq_ignore_ascii_case("webp"))
             {
-                use rimage::codecs::webp::WebPDecoder;
+                if f.as_ref()
+                    .extension()
+                    .is_some_and(|f| f.eq_ignore_ascii_case("webp"))
+                {
+                    use rimage::codecs::webp::WebPDecoder;
 
-                let decoder = WebPDecoder::try_new(file)?;
+                    let decoder = WebPDecoder::try_new(file)?;
 
-                return Image::from_decoder(decoder);
-            };
+                    return Image::from_decoder(decoder);
+                }
+
+                file.seek(SeekFrom::Start(0))?;
+            }
 
             #[cfg(feature = "tiff")]
-            if f.as_ref()
-                .extension()
-                .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
             {
-                use rimage::codecs::tiff::TiffDecoder;
+                if f.as_ref()
+                    .extension()
+                    .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
+                {
+                    use rimage::codecs::tiff::TiffDecoder;
 
-                let decoder = TiffDecoder::try_new(file)?;
+                    let decoder = TiffDecoder::try_new(file)?;
 
-                return Image::from_decoder(decoder);
+                    return Image::from_decoder(decoder);
+                }
+
+                file.seek(SeekFrom::Start(0))?;
             }
 
             Err(ImageErrors::ImageDecoderNotImplemented(
