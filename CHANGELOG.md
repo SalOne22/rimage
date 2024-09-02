@@ -2,7 +2,25 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0-next.2
+## v0.11.0-next.3
+
+### Bug Fixes
+
+- **cli:** :ambulance: convert all input images to rgba8 ([c980e9a](https://github.com/SalOne22/rimage/commit/c980e9a32ab48755c10e57fb5caed8e33673afd9))
+- **cli:** :bug: fixed incorect handling of file names with dots ([1f3275c](https://github.com/SalOne22/rimage/commit/1f3275c9fb70d9affeb1ca5dfa05c2f5b799792d))
+- **cli:** :bug: fixed null error on avif decoding ([59b6759](https://github.com/SalOne22/rimage/commit/59b6759c541f0b8cf9053292f99a771e352d8614))
+- error if input width or height is 0 ([b626fdc](https://github.com/SalOne22/rimage/commit/b626fdca77c6877254dde4148b27644a09c0d7ed))
+- **cli:** :bug: ensure max length calculation returns 0 instead of panicking when no outputs are present ([3d0a3a3](https://github.com/SalOne22/rimage/commit/3d0a3a388544d2f290544a60846f5842bc81b222))
+- **cli:** :bug: fixed handling of float32 images ([66c3648](https://github.com/SalOne22/rimage/commit/66c3648145a78254b325457fbdfd53f5401feb17))
+- **cli:** :bug: improved resize value parsing by trimming input and refining error handling for invalid formats ([2a43c26](https://github.com/SalOne22/rimage/commit/2a43c2694bc019eea709e4aa41f1c01e025c39db))
+- **cli:** :bug: updated parsing logic for width and height to reduce number of edge cases ([9bd3ea2](https://github.com/SalOne22/rimage/commit/9bd3ea23eb2eadf0e280095be5bde1a6d6a2182f))
+- **operations:** :bug: updated apply icc profile operation to work in threads ([b5dee09](https://github.com/SalOne22/rimage/commit/b5dee099a02e1b75fdd2724d10c6b4375b460694))
+
+### Features
+
+- **cli:** :sparkles: update resize value format for width and height to use 'w' and 'h' suffixes instead of 'x\_' and '\_x' ([693ea46](https://github.com/SalOne22/rimage/commit/693ea46c93f94e4fc051e5f0a227899bafbcae84))
+
+## [v0.11.0-next.2](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.2)
 
 ### Bug Fixes
 
