@@ -74,6 +74,7 @@ jobs:
         with:
           name: v${{ steps.rimage-meta.outputs.version }}
           body_path: RELEASE_NOTES.txt
+          prerelease: ${{ contains(steps.rimage-meta.outputs.version, 'next') }}
           files: |
             target/*.zip
             target/*.tar.gz
