@@ -7,7 +7,7 @@
 
 A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoosh.app/).
 
-:warning: WARNING: This documentation works only for latest version of rimage! You can get latest version from [releases](https://github.com/SalOne22/rimage/releases) tab or explicitly with cargo: `cargo install rimage@0.11.0-next.2`
+:warning: WARNING: This documentation works only for latest version of rimage! You can get latest version from [releases](https://github.com/SalOne22/rimage/releases) tab or explicitly with cargo: `cargo install rimage@0.11.0-next.3`
 
 ## Features
 
