@@ -88,7 +88,7 @@ console = ["dep:console"]
 zune-core = "0.5.0-rc2"
 log = "0.4.22"
 zune-image = { version = "0.5.0-rc0", default-features = false }
-fast_image_resize = { version = "3.0.4", optional = true }
+fast_image_resize = { version = "5.0.0", optional = true }
 imagequant = { version = "4.3.3", default-features = false, optional = true }
 rgb = { version = "0.8.45", optional = true }
 mozjpeg = { version = "0.10.10", default-features = false, features = [
