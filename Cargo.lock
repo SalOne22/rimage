@@ -735,6 +735,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "kamadak-exif"
+version = "0.6.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "99e7b00ff45df279c3e40f7fee99fad4f7eddbf9ed2d24e99133e8683330f0c7"
+dependencies = [
+ "mutate_once",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1308,7 +1317,7 @@ dependencies = [
  "indicatif",
  "indicatif-log-bridge",
  "indoc",
- "kamadak-exif",
+ "kamadak-exif 0.6.0",
  "lcms2",
  "libavif",
  "log",
@@ -1875,7 +1884,7 @@ dependencies = [
  "bytemuck",
  "jpeg-encoder",
  "jxl-oxide",
- "kamadak-exif",
+ "kamadak-exif 0.5.5",
  "serde",
  "zune-bmp",
  "zune-core",
@@ -1895,7 +1904,7 @@ version = "0.5.0-rc0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ff0eaf7c6a04af776634ae0928dd70d1f4a37f0d9de28a0deae35da2009f3aa2"
 dependencies = [
- "kamadak-exif",
+ "kamadak-exif 0.5.5",
  "zune-core",
  "zune-image",
 ]
