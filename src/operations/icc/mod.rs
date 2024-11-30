@@ -9,7 +9,7 @@ use zune_image::{
 
 /// Apply icc profile
 pub struct ApplyICC {
-    profile: Profile,
+    profile: Profile<ThreadContext>,
 }
 
 impl ApplyICC {
@@ -18,7 +18,7 @@ impl ApplyICC {
     /// # Arguments
     /// - profile: ICC profile
     #[must_use]
-    pub fn new(profile: Profile) -> Self {
+    pub fn new(profile: Profile<ThreadContext>) -> Self {
         Self { profile }
     }
 }
@@ -30,9 +30,9 @@ impl OperationsTrait for ApplyICC {
 
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
         let src_profile = match image.metadata().icc_chunk() {
-            Some(icc) => Profile::new_icc(icc)
+            Some(icc) => Profile::new_icc_context(ThreadContext::new(), icc)
                 .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?,
-            None => Profile::new_srgb(),
+            None => Profile::new_srgb_context(ThreadContext::new()),
         };
 
         let colorspace = image.colorspace();
@@ -61,12 +61,14 @@ impl OperationsTrait for ApplyICC {
             _ => unreachable!("This should be handled in supported_colorspaces"),
         };
 
-        let t = Transform::new(
+        let t = Transform::new_flags_context(
+            ThreadContext::new(),
             &src_profile,
             format,
             &self.profile,
             format,
             Intent::Perceptual,
+            Flags::NO_CACHE,
         )
         .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
@@ -119,7 +121,7 @@ impl OperationsTrait for ApplySRGB {
             return Ok(());
         }
 
-        ApplyICC::new(Profile::new_srgb()).execute_impl(image)?;
+        ApplyICC::new(Profile::new_srgb_context(ThreadContext::new())).execute_impl(image)?;
 
         Ok(())
     }

@@ -2,7 +2,58 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0
+## v0.11.0-next.3
+
+### Bug Fixes
+
+- **cli:** :ambulance: convert all input images to rgba8 ([c980e9a](https://github.com/SalOne22/rimage/commit/c980e9a32ab48755c10e57fb5caed8e33673afd9))
+- **cli:** :bug: fixed incorect handling of file names with dots ([1f3275c](https://github.com/SalOne22/rimage/commit/1f3275c9fb70d9affeb1ca5dfa05c2f5b799792d))
+- **cli:** :bug: fixed null error on avif decoding ([59b6759](https://github.com/SalOne22/rimage/commit/59b6759c541f0b8cf9053292f99a771e352d8614))
+- error if input width or height is 0 ([b626fdc](https://github.com/SalOne22/rimage/commit/b626fdca77c6877254dde4148b27644a09c0d7ed))
+- **cli:** :bug: ensure max length calculation returns 0 instead of panicking when no outputs are present ([3d0a3a3](https://github.com/SalOne22/rimage/commit/3d0a3a388544d2f290544a60846f5842bc81b222))
+- **cli:** :bug: fixed handling of float32 images ([66c3648](https://github.com/SalOne22/rimage/commit/66c3648145a78254b325457fbdfd53f5401feb17))
+- **cli:** :bug: improved resize value parsing by trimming input and refining error handling for invalid formats ([2a43c26](https://github.com/SalOne22/rimage/commit/2a43c2694bc019eea709e4aa41f1c01e025c39db))
+- **cli:** :bug: updated parsing logic for width and height to reduce number of edge cases ([9bd3ea2](https://github.com/SalOne22/rimage/commit/9bd3ea23eb2eadf0e280095be5bde1a6d6a2182f))
+- **operations:** :bug: updated apply icc profile operation to work in threads ([b5dee09](https://github.com/SalOne22/rimage/commit/b5dee099a02e1b75fdd2724d10c6b4375b460694))
+
+### Features
+
+- **cli:** :sparkles: update resize value format for width and height to use 'w' and 'h' suffixes instead of 'x\_' and '\_x' ([693ea46](https://github.com/SalOne22/rimage/commit/693ea46c93f94e4fc051e5f0a227899bafbcae84))
+
+## [v0.11.0-next.2](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.2)
+
+### Bug Fixes
+
+- **cli:** :lipstick: updated display styles ([19adcea](https://github.com/SalOne22/rimage/commit/19adcea6c19c9a33eb6248a29363f6077b4771f2))
+
+### Features
+
+- **cli:** :lipstick: added progress bar ([398e504](https://github.com/SalOne22/rimage/commit/398e504259f3e83791e99a039f163d8a0765f989))
+- **cli:** :sparkles: added quiet and no progress flags ([0517908](https://github.com/SalOne22/rimage/commit/051790846d4aa6965f5c391f130661dc96c015b5))
+- **codecs:** :sparkles: added tiff support ([abc78f5](https://github.com/SalOne22/rimage/commit/abc78f533717ed5d56623655b471340e22592fca))
+
+## [v0.11.0-next.1](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.1)
+
+### Bug Fixes
+
+- **cli:** fixed encoder function ([1a6bf92](https://github.com/SalOne22/rimage/commit/1a6bf92f649787508732a1c769b677997286ac1e))
+- **codecs:** fixed clippy errors ([7f3c261](https://github.com/SalOne22/rimage/commit/7f3c261b55a519f26e615e0094edfa5970005d98))
+- **codecs:** updated avif decoder to new api ([1c8ea8e](https://github.com/SalOne22/rimage/commit/1c8ea8e998b890299c52ece172011f2692c3d0c1))
+- **codecs:** updated avif encoder to new api ([d07193d](https://github.com/SalOne22/rimage/commit/d07193d1881a8f2392e91b64656fd0b624c98c3b))
+- **codecs:** updated mozjpeg encoder to new api ([b408b31](https://github.com/SalOne22/rimage/commit/b408b3116a90db19d51581c511ed7168c981209c))
+- **codecs:** updated oxipng encoder to new api ([fdfcbd9](https://github.com/SalOne22/rimage/commit/fdfcbd9710a275a15d6d756a7c086b9da491e888))
+- **codecs:** updated webp decoder to new api ([98728e0](https://github.com/SalOne22/rimage/commit/98728e0123fcdc9000dd0bd4bee8d9cef0b45800))
+- **codecs:** updated webp encoder to new api ([ede4784](https://github.com/SalOne22/rimage/commit/ede47843c384d345d46f9172e9f0f6240768d329))
+- **workflow:** :construction_worker: removed check for unique branch ([0505c62](https://github.com/SalOne22/rimage/commit/0505c62e884a5ccec9f58c7f8f5185d91f62501a))
+- **workflow:** :green_heart: fixed macos version ([17eeba1](https://github.com/SalOne22/rimage/commit/17eeba1540e6aac0d4121ddbe1676fe6bf4759a2))
+- fixed clippy issues ([0045b5b](https://github.com/SalOne22/rimage/commit/0045b5bc06c99d4c0d4a4bda8042d1214b8690b7))
+
+### Features
+
+- **cli:** :children_crossing: added warn when input is not a file ([dd2fe3e](https://github.com/SalOne22/rimage/commit/dd2fe3ec7b46beae3c9d619cac303cc15d74167d))
+- **operations:** added "apply icc profile" operation ([e12b7c4](https://github.com/SalOne22/rimage/commit/e12b7c4373b025f00041a2ba92d86781a30feda7))
+
+## [v0.11.0-next.0](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.0)
 
 ### Breaking changes
 

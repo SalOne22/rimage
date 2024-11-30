@@ -41,6 +41,11 @@ impl OperationsTrait for Resize {
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
         let (src_width, src_height) = image.dimensions();
         let (dst_width, dst_height) = self.new_dimensions;
+        if (dst_height == 0) || (dst_width == 0) {
+            return Err(ImageErrors::OperationsError(
+                ImageOperationsErrors::Generic("Width or Height cannot be 0"),
+            ));
+        }
 
         let depth = image.depth().bit_type();
 

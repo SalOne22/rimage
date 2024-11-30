@@ -39,7 +39,7 @@ jobs:
           >> "$GITHUB_OUTPUT"
 
       - name: retrieve ${{ matrix.target }} binary
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: rimage.yml
           commit: ${{ github.sha }}
@@ -74,6 +74,7 @@ jobs:
         with:
           name: v${{ steps.rimage-meta.outputs.version }}
           body_path: RELEASE_NOTES.txt
+          prerelease: ${{ contains(steps.rimage-meta.outputs.version, 'next') }}
           files: |
             target/*.zip
             target/*.tar.gz

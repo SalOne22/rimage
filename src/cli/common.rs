@@ -55,6 +55,18 @@ impl CommonArgs for Command {
             arg!(-x --strip "Strip metadata when encoding images (where supported)")
                 .action(ArgAction::SetTrue)
         )
+        .arg(
+            arg!(--"no-progress" "Disables progress bar.")
+                .long_help(indoc! {r#"Disables progress bar.
+
+                By default, progress bar is enabled."#})
+        )
+        .arg(
+            arg!(--quiet "Disables all output.")
+                .long_help(indoc! {r#"Disables all output.
+
+                By default, all output is enabled."#})
+        )
         .preprocessors()
     }
 }
