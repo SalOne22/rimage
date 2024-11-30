@@ -177,8 +177,6 @@ fn main() {
                             }
                         });
 
-                    dbg!(img.metadata());
-
                     pipeline.chain_decoder(img);
 
                     handle_error!(input, pipeline.advance_to_end());

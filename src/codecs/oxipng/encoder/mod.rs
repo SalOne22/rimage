@@ -116,7 +116,7 @@ impl EncoderTrait for OxiPngEncoder {
 
             // write icc data
             if let Some(icc) = &image.metadata().icc_chunk() {
-                img.add_icc_profile(&icc);
+                img.add_icc_profile(icc);
             }
         }
 

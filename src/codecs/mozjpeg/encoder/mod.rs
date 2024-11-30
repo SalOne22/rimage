@@ -199,7 +199,7 @@ impl EncoderTrait for MozJpegEncoder {
 
                 // write icc data
                 if let Some(metadata) = &image.metadata().icc_chunk() {
-                    comp.write_icc_profile(&metadata);
+                    comp.write_icc_profile(metadata);
                 }
             }
 
