@@ -42,7 +42,7 @@ macro_rules! handle_error {
     };
 }
 
-const SUPPORTS_EXIF: &[&'static str] = &["mozjpeg", "oxipng", "jpeg", "png"];
+const SUPPORTS_EXIF: &[&'static str] = &["mozjpeg", "oxipng"];
 const SUPPORTS_ICC: &[&'static str] = &["mozjpeg", "oxipng"];
 
 struct Result {
@@ -176,6 +176,8 @@ fn main() {
                                 pipeline.chain_operations(operations);
                             }
                         });
+
+                    dbg!(img.metadata());
 
                     pipeline.chain_decoder(img);
 
