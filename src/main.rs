@@ -42,8 +42,8 @@ macro_rules! handle_error {
     };
 }
 
-const SUPPORTS_EXIF: &[&'static str] = &["mozjpeg", "oxipng"];
-const SUPPORTS_ICC: &[&'static str] = &["mozjpeg", "oxipng"];
+const SUPPORTS_EXIF: &[&str] = &["mozjpeg", "oxipng"];
+const SUPPORTS_ICC: &[&str] = &["mozjpeg", "oxipng"];
 
 struct Result {
     output: PathBuf,
