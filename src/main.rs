@@ -71,11 +71,10 @@ fn main() {
         #[cfg(windows)]
         {
             std::env::args().map(|mut arg| {
-                if let Some(s) = arg.strip_suffix("\"") {
-                    arg = s.to_string();
-                }
-
-                arg
+                arg.replace("\\", "/")
+                    .replace("//", "/")
+                    .trim_matches(['\\', '/', '\n', '\r', '"', '\'', ' ', '\t'])
+                    .to_string()
             })
         },
     );
