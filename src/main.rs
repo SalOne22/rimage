@@ -42,6 +42,9 @@ macro_rules! handle_error {
     };
 }
 
+const SUPPORTS_EXIF: &[&str] = &["mozjpeg", "oxipng"];
+const SUPPORTS_ICC: &[&str] = &["mozjpeg", "oxipng"];
+
 struct Result {
     output: PathBuf,
     input_size: u64,
@@ -104,6 +107,7 @@ fn main() {
 
             let recursive = matches.get_flag("recursive");
             let backup = matches.get_flag("backup");
+            let strip_metadata = matches.get_flag("strip");
             let quiet = matches.get_flag("quiet");
             let no_progress = matches.get_flag("no-progress");
 
@@ -150,8 +154,13 @@ fn main() {
                     pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
                     pipeline.chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
 
-                    pipeline.chain_operations(Box::new(AutoOrient));
-                    pipeline.chain_operations(Box::new(ApplySRGB));
+                    if strip_metadata || !SUPPORTS_EXIF.contains(&subcommand) {
+                        pipeline.chain_operations(Box::new(AutoOrient));
+                    }
+
+                    if strip_metadata || !SUPPORTS_ICC.contains(&subcommand) {
+                        pipeline.chain_operations(Box::new(ApplySRGB));
+                    }
 
                     operations(matches, &img)
                         .into_iter()
