@@ -52,6 +52,7 @@ fn main() {
     let logger = pretty_env_logger::formatted_builder()
         .parse_default_env()
         .build();
+    let level = logger.filter();
 
     let multi = MultiProgress::new();
     let sty_main = ProgressStyle::with_template("{bar:40.green/yellow} {pos:>4}/{len:4}")
@@ -62,6 +63,7 @@ fn main() {
     let sty_aux_encode = ProgressStyle::with_template("{spinner:.green} {msg}").unwrap();
 
     LogWrapper::new(multi.clone(), logger).try_init().unwrap();
+    log::set_max_level(level);
 
     let matches = cli().get_matches_from(
         #[cfg(not(windows))]
