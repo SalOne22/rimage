@@ -18,6 +18,12 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
   - Rimage provides several image optimization operation
   - Resize - uses `fast_image_resize` crate that has incredible performance
   - Quantization - allowing to reduce image palette
+- Friendly output:
+  - Rimage support progressbar
+  - Rimage would show detailed error info to assist users 
+- CJK and Punctuation marks support:
+  - Rimage supports full CJK (Chinese, Japanese and Korean) characters input and output
+  - Rimage allows special punctuation characters such as `|`, ` `, `&`, `$`, etc. to be included in file names
 
 ## Installation
 
@@ -132,15 +138,16 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | Image Codecs | Decoder       | Encoder                 | NOTE                                                 |
 | ------------ | ------------- | ----------------------- | ---------------------------------------------------- |
 | avif         | libavif       | ravif                   | Common features only, Static only                    |
-| bmp          | zune-bmp      | X                       | Input only                                           |
+| bmp          | zune-bmp      | ❌                       | Input only                                           |
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                                      |
 | hdr          | zune-hdr      | zune-hdr                |                                                      |
 | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder | Multifunctional when use mozjpeg encoder             |
 | jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless only                                        |
 | png          | zune-png      | oxipng or zune-png      | Static only, Multifunctional when use oxipng encoder |
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
-| psd          | zune-psd      | X                       | Input only                                           |
+| psd          | zune-psd      | ❌                       | Input only                                           |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
+| tiff         | tiff          | ❌                       | Input only                                           |
 | webp         | webp          | webp                    | Static only                                          |
 
 ### List of supported preprocessing options
@@ -149,9 +156,15 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 - Quantization
 - Alpha premultiply
 
-## Known bugs
+## List of supported mode for output info presenting
+
+- No-progress (Shown on Default)
+- Quiet (Show all msgs on Default)
+
+## Known bugs & Warnings
 
 - **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
+- Even if the value is set to 100, the quality of the image will still decrease if you use `--quantization` and(or) `--dithering` option(s).
 
 ### Example:
 
