@@ -16,6 +16,7 @@ use indicatif::{
     ProgressStyle,
 };
 use indicatif_log_bridge::LogWrapper;
+use little_exif::metadata::Metadata;
 use rayon::prelude::*;
 use rimage::operations::icc::ApplySRGB;
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
@@ -41,6 +42,9 @@ macro_rules! handle_error {
         }
     };
 }
+
+const SUPPORTS_EXIF: &[&str] = &["mozjpeg", "oxipng", "png", "jpeg", "jpegxl", "tiff", "webp"];
+const SUPPORTS_ICC: &[&str] = &["mozjpeg", "oxipng"];
 
 struct Result {
     output: PathBuf,
@@ -106,6 +110,7 @@ fn main() {
 
             let recursive = matches.get_flag("recursive");
             let backup = matches.get_flag("backup");
+            let strip_metadata = matches.get_flag("strip");
             let quiet = matches.get_flag("quiet");
             let no_progress = matches.get_flag("no-progress");
 
@@ -134,6 +139,7 @@ fn main() {
                     let input_size = handle_error!(input, input.metadata()).len();
 
                     let img = handle_error!(input, decode(&input));
+                    let metadata = Metadata::new_from_path(&input).ok();
 
                     pb.set_style(sty_aux_operations.clone());
 
@@ -152,8 +158,13 @@ fn main() {
                     pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
                     pipeline.chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
 
-                    pipeline.chain_operations(Box::new(AutoOrient));
-                    pipeline.chain_operations(Box::new(ApplySRGB));
+                    if strip_metadata || !SUPPORTS_EXIF.contains(&subcommand) {
+                        pipeline.chain_operations(Box::new(AutoOrient));
+                    }
+
+                    if strip_metadata || !SUPPORTS_ICC.contains(&subcommand) {
+                        pipeline.chain_operations(Box::new(ApplySRGB));
+                    }
 
                     operations(matches, &img)
                         .into_iter()
@@ -196,6 +207,18 @@ fn main() {
                         output,
                         available_encoder.encode(&pipeline.images()[0], output_file)
                     );
+
+                    metadata
+                        .and_then(|mut metadata| {
+                            if strip_metadata {
+                                metadata.reduce_to_a_minimum();
+                            }
+                            metadata.write_to_file(&output).ok()
+                        })
+                        .or_else(|| {
+                            log::info!("No metadata found, skipping...");
+                            None
+                        });
 
                     let output_size = handle_error!(output, output.metadata()).len();
 
