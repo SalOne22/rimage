@@ -1,6 +1,6 @@
 [package]
 name          = "rimage"
-version       = "0.11.0-next.3"
+version       = "0.11.0"
 edition       = "2021"
 description   = "Optimize images natively with best-in-class codecs"
 license       = "MIT OR Apache-2.0"
@@ -91,7 +91,7 @@ zune-image = { version = "0.5.0-rc0", default-features = false }
 fast_image_resize = { version = "3.0.4", optional = true }
 imagequant = { version = "4.3.3", default-features = false, optional = true }
 rgb = { version = "0.8.45", optional = true }
-mozjpeg = { version = "0.10.10", default-features = false, features = [
+mozjpeg = { version = "0.10.13", default-features = false, features = [
     "with_simd",
 ], optional = true }
 oxipng = { version = "9.1", default-features = false, features = [
@@ -99,7 +99,7 @@ oxipng = { version = "9.1", default-features = false, features = [
     "filetime",
 ], optional = true }
 webp = { version = "0.3.0", default-features = false, optional = true }
-ravif = { version = "0.11.10", optional = true }
+ravif = { version = "0.11.11", optional = true }
 libavif = { version = "0.14.0", default-features = false, features = [
     "codec-aom",
 ], optional = true }
@@ -107,7 +107,7 @@ lcms2 = { version = "6.1.0", optional = true }
 tiff = { version = "0.9.1", default-features = false, optional = true }
 
 # cli
-anyhow = { version = "1.0.89", optional = true }
+anyhow = { version = "1.0.98", optional = true }
 clap = { version = "4.5.20", features = ["cargo", "string"], optional = true }
 indoc = { version = "2.0.5", optional = true }
 pretty_env_logger = { version = "0.5.0", optional = true }
@@ -118,8 +118,8 @@ zune-imageprocs = { version = "0.5.0-rc0", features = [
 kamadak-exif = { version = "0.5.5", optional = true }
 indicatif = { version = "0.17.8", features = ["rayon"], optional = true }
 indicatif-log-bridge = { version = "0.2.3", optional = true }
-console = { version = "0.15.8", optional = true }
-regex = { version = "1.11.0", optional = true }
+console = { version = "0.15.11", optional = true }
+regex = { version = "1.11.1", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 glob = { version = "0.3.1", optional = true }

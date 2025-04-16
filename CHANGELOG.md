@@ -2,7 +2,56 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0-next.3
+## v0.11.0
+
+### Breaking Changes
+
+- Complete rewrite of the library — now built to work alongside `zune-image`.
+- CLI interface fully redesigned for more flexibility and cleaner structure.
+
+### Performance Improvements
+
+Massive speedup: up to **149x** faster in parallel processing compared to v0.10.3.
+
+Performance benchmarks indicate:
+
+- ~14x faster than `rimage-0.10.3` on single image operations.
+- ~15x faster than `squoosh-cli`.
+- ~149x faster on bulk image processing.
+
+### Features
+
+- **cli:** New progress bar and updated display styles.
+- **cli:** Added `--quiet` and `--no-progress` flags.
+- **cli:** Reshape resize parameter format: now supports `w<value>` and `h<value>`.
+- **cli:** Added CLI warnings for invalid input files.
+- **cli:** Improved argument parsing and error messages.
+- **cli:** Alpha premultiply preprocessor added.
+- **cli:** Support for apply icc profile operation.
+- **cli:** Restructure of base CLI options, codecs, and preprocessors.
+
+- **codecs:** Added TIFF support.
+- **codecs:** Added EXIF write support for JPEG and PNG.
+
+- **operations:** Added new fast resize operation with threading support.
+- **operations:** Added ICC profile application with multithreaded support.
+
+### Bug Fixes
+
+- Ensure all input images are converted to RGBA8 format.
+- Fix file name parsing with dots.
+- Fix null error on AVIF decoding.
+- Return error when input width or height is 0.
+- Prevent panic when no output is present by safely calculating max length.
+- Fix float32 image handling in CLI.
+- Improve resize value parsing and reduce edge case errors for width/height.
+- Fix encoder function logic.
+- Update AVIF, MozJPEG, Oxipng, and WebP codecs to new APIs.
+- Fix Clippy issues and build warnings.
+- Fix trailing slash issues on Windows.
+- Correct feature compilation and binary packaging.
+
+## [v0.11.0-next.3](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.3)
 
 ### Bug Fixes
 
