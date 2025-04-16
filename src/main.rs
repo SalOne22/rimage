@@ -16,6 +16,7 @@ use indicatif::{
     ProgressStyle,
 };
 use indicatif_log_bridge::LogWrapper;
+use little_exif::metadata::Metadata;
 use rayon::prelude::*;
 use rimage::operations::icc::ApplySRGB;
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
@@ -42,7 +43,7 @@ macro_rules! handle_error {
     };
 }
 
-const SUPPORTS_EXIF: &[&str] = &["mozjpeg", "oxipng"];
+const SUPPORTS_EXIF: &[&str] = &["mozjpeg", "oxipng", "png", "jpeg", "jpegxl", "tiff", "webp"];
 const SUPPORTS_ICC: &[&str] = &["mozjpeg", "oxipng"];
 
 struct Result {
@@ -138,6 +139,7 @@ fn main() {
                     let input_size = handle_error!(input, input.metadata()).len();
 
                     let img = handle_error!(input, decode(&input));
+                    let metadata = Metadata::new_from_path(&input).ok();
 
                     pb.set_style(sty_aux_operations.clone());
 
@@ -205,6 +207,18 @@ fn main() {
                         output,
                         available_encoder.encode(&pipeline.images()[0], output_file)
                     );
+
+                    metadata
+                        .and_then(|mut metadata| {
+                            if strip_metadata {
+                                metadata.reduce_to_a_minimum();
+                            }
+                            metadata.write_to_file(&output).ok()
+                        })
+                        .or_else(|| {
+                            log::info!("No metadata found, skipping...");
+                            None
+                        });
 
                     let output_size = handle_error!(output, output.metadata()).len();
 
