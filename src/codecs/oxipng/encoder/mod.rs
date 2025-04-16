@@ -101,6 +101,7 @@ impl EncoderTrait for OxiPngEncoder {
 
             // write exif data
             if let Some(fields) = &image.metadata().exif() {
+                log::warn!("Writing exif data is experimental and may not work");
                 let mut writer = Writer::new();
 
                 for metadatum in *fields {

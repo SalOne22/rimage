@@ -179,6 +179,7 @@ impl EncoderTrait for MozJpegEncoder {
 
                 // write exif data
                 if let Some(metadata) = &image.metadata().exif() {
+                    log::warn!("Writing exif data is experimental and may not work");
                     let mut writer = Writer::new();
                     // write first tags for exif
                     let mut buf = std::io::Cursor::new(b"Exif\x00\x00".to_vec());
