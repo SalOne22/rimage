@@ -101,14 +101,36 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
         if let Some(values) = matches.get_many::<ResizeValue>("resize") {
             let filter = matches.get_one::<ResizeFilter>("filter");
 
-            let (w, h) = img.dimensions();
+            let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
+            let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
+
+            log::debug!("downscale: {downscale}, upscale: {upscale}");
+
+            let size = img.dimensions();
 
             values
                 .into_iter()
                 .zip(matches.indices_of("resize").unwrap())
                 .for_each(|(value, idx)| {
-                    let (w, h) = value.map_dimensions(w, h);
+                    let (w, h) = value.map_dimensions(size.0, size.1);
                     log::trace!("setup resize {value} on index {idx}");
+
+                    // Skip if the image is already the desired size
+                    // or if both downscale and upscale are disabled
+                    if (!downscale && !upscale) || (w == size.0 && h == size.1) {
+                        log::trace!("skip resize to {w}x{h} on index {idx}");
+                        return;
+                    }
+
+                    if !downscale && (w <= size.0 || h <= size.1) {
+                        log::trace!("downscaling disabled, skip resize to {w}x{h} on index {idx}");
+                        return;
+                    }
+
+                    if !upscale && (w >= size.0 || h >= size.1) {
+                        log::trace!("upscaling disabled, skip resize to {w}x{h} on index {idx}");
+                        return;
+                    }
 
                     map.insert(
                         idx,

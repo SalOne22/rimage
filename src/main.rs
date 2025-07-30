@@ -1,8 +1,8 @@
 use std::{
     fs::{self, File},
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
-    time::Duration,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 
 use cli::{
@@ -19,6 +19,7 @@ use indicatif_log_bridge::LogWrapper;
 use little_exif::metadata::Metadata;
 use rayon::prelude::*;
 use rimage::operations::icc::ApplySRGB;
+use serde::{Deserialize, Serialize};
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
 use zune_image::{
     core_filters::{colorspace::ColorspaceConv, depth::Depth},
@@ -50,6 +51,125 @@ struct Result {
     output: PathBuf,
     input_size: u64,
     output_size: u64,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct Metadata {
+    #[serde(rename = "inputSize")]
+    input_size: u64,
+    #[serde(rename = "outputSize")]
+    output_size: u64,
+    #[serde(rename = "totalImages")]
+    total_images: usize,
+    #[serde(rename = "compressionRatio")]
+    compression_ratio: f64,
+    #[serde(rename = "spaceSaved")]
+    space_saved: i64,
+    timestamp: u64,
+    images: Vec<ImageMetadata>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+struct ImageMetadata {
+    // File paths
+    input: PathBuf,
+    output: PathBuf,
+
+    // File information
+    #[serde(rename = "inputSize")]
+    input_size: u64,
+    #[serde(rename = "outputSize")]
+    output_size: u64,
+    #[serde(rename = "compressionRatio")]
+    compression_ratio: f64,
+    #[serde(rename = "spaceSaved")]
+    space_saved: i64,
+
+    // Image properties
+    width: u32,
+    height: u32,
+    #[serde(rename = "pixelCount")]
+    pixel_count: u64,
+    #[serde(rename = "aspectRatio")]
+    aspect_ratio: f64,
+
+    // zune-image specific properties
+    #[serde(rename = "bitDepth")]
+    bit_depth: String,
+    #[serde(rename = "colorSpace")]
+    color_space: String,
+    #[serde(rename = "hasAlpha")]
+    has_alpha: bool,
+    #[serde(rename = "isAnimated")]
+    is_animated: bool,
+    #[serde(rename = "frameCount")]
+    frame_count: usize,
+    channels: usize,
+
+    // Format information
+    #[serde(rename = "inputFormat")]
+    input_format: Option<String>,
+    #[serde(rename = "outputFormat")]
+    output_format: String,
+
+    // Processing information
+    #[serde(rename = "processedAt")]
+    processed_at: u64,
+    #[serde(rename = "processingTimeMs")]
+    processing_time_ms: u128,
+
+    // File timestamps
+    #[serde(rename = "inputModified")]
+    input_modified: Option<u64>,
+    #[serde(rename = "outputCreated")]
+    output_created: u64,
+}
+
+fn get_file_extension(path: &Path) -> Option<String> {
+    path.extension()
+        .and_then(|ext| ext.to_str())
+        .map(|s| s.to_lowercase())
+}
+
+fn get_file_modified_time(path: &Path) -> Option<u64> {
+    fs::metadata(path)
+        .ok()
+        .and_then(|metadata| metadata.modified().ok())
+        .and_then(|time| time.duration_since(UNIX_EPOCH).ok())
+        .map(|duration| duration.as_secs())
+}
+
+fn get_current_timestamp() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
+fn bit_depth_to_string(depth: &BitDepth) -> String {
+    match depth {
+        BitDepth::Eight => "8-bit".to_string(),
+        BitDepth::Sixteen => "16-bit".to_string(),
+        BitDepth::Float32 => "32-bit float".to_string(),
+        _ => "Unknown".to_string(),
+    }
+}
+
+fn colorspace_to_string(colorspace: &ColorSpace) -> String {
+    match colorspace {
+        ColorSpace::RGB => "RGB".to_string(),
+        ColorSpace::RGBA => "RGBA".to_string(),
+        ColorSpace::Luma => "Grayscale".to_string(),
+        ColorSpace::LumaA => "Grayscale with Alpha".to_string(),
+        ColorSpace::YCbCr => "YCbCr".to_string(),
+        ColorSpace::YCCK => "YCCK".to_string(),
+        ColorSpace::CMYK => "CMYK".to_string(),
+        ColorSpace::BGR => "BGR".to_string(),
+        ColorSpace::BGRA => "BGRA".to_string(),
+        ColorSpace::HSL => "HSL".to_string(),
+        ColorSpace::HSV => "HSV".to_string(),
+        _ => "Unknown".to_string(),
+    }
 }
 
 fn main() {
@@ -86,6 +206,7 @@ fn main() {
     );
 
     let results: Arc<Mutex<Vec<Result>>> = Arc::new(Mutex::new(vec![]));
+    let metadata: Arc<Mutex<Option<Metadata>>> = Arc::new(Mutex::new(None));
 
     match matches.subcommand() {
         Some((subcommand, matches)) => {
@@ -113,6 +234,11 @@ fn main() {
             let strip_metadata = matches.get_flag("strip");
             let quiet = matches.get_flag("quiet");
             let no_progress = matches.get_flag("no-progress");
+            let output_metadata = matches.contains_id("metadata");
+            let metadata_path = matches
+                .get_one::<PathBuf>("metadata")
+                .cloned()
+                .unwrap_or(PathBuf::from("metadata.json"));
 
             let suffix = matches.get_one::<String>("suffix").cloned();
 
@@ -129,6 +255,8 @@ fn main() {
             get_paths(files, out_dir, suffix, recursive)
                 .progress_with(pb_main)
                 .for_each(|(input, mut output)| {
+                    let image_start_time = std::time::Instant::now();
+
                     let pb = multi.add(ProgressBar::new_spinner());
                     pb.set_style(sty_aux_decode.clone());
                     pb.set_message(format!("{}", input.display()));
@@ -137,22 +265,38 @@ fn main() {
                     let mut pipeline = Pipeline::<Image>::new();
 
                     let input_size = handle_error!(input, input.metadata()).len();
+                    let input_format = get_file_extension(&input);
+                    let input_modified = get_file_modified_time(&input);
 
                     let img = handle_error!(input, decode(&input));
                     let metadata = Metadata::new_from_path(&input).ok();
 
                     pb.set_style(sty_aux_operations.clone());
 
+                    // Extract zune-image properties
+                    let (w, h) = img.dimensions();
+                    let pixel_count = (w as u64) * (h as u64);
+                    let aspect_ratio = w as f64 / h as f64;
+                    let colorspace = img.colorspace();
+                    let is_animated = img.is_animated();
+                    let frame_count = img.frames_len();
+                    let has_alpha = colorspace.has_alpha();
+                    let channels = colorspace.num_components();
+
+                    let original_bit_depth = img.depth();
+
                     let mut available_encoder = handle_error!(input, encoder(subcommand, matches));
+                    let output_format = available_encoder.to_extension().to_string();
+
                     if let Some(ext) = output.extension() {
                         output.set_extension({
                             let mut os_str = ext.to_os_string();
                             os_str.push(".");
-                            os_str.push(available_encoder.to_extension());
+                            os_str.push(&output_format);
                             os_str
                         });
                     } else {
-                        output.set_extension(available_encoder.to_extension());
+                        output.set_extension(&output_format);
                     }
 
                     pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
@@ -221,8 +365,17 @@ fn main() {
                         });
 
                     let output_size = handle_error!(output, output.metadata()).len();
+                    let processing_time = image_start_time.elapsed().as_millis();
+                    let compression_ratio = output_size as f64 / input_size as f64;
+                    let space_saved = input_size as i64 - output_size as i64;
+                    let processed_at = get_current_timestamp();
+                    let output_created = get_current_timestamp();
 
                     let mut results = results.lock().unwrap();
+                    let mut metadata = metadata.lock().unwrap();
+
+                    let absolute_input_path = fs::canonicalize(&input).unwrap();
+                    let absolute_output_path = fs::canonicalize(&output).unwrap();
 
                     results.push(Result {
                         output,
@@ -230,10 +383,60 @@ fn main() {
                         output_size,
                     });
 
+                    let metadata = metadata.get_or_insert(Metadata {
+                        input_size: 0,
+                        output_size: 0,
+                        total_images: 0,
+                        compression_ratio: 0.0,
+                        space_saved: 0,
+                        timestamp: get_current_timestamp(),
+                        images: vec![],
+                    });
+
+                    metadata.input_size += input_size;
+                    metadata.output_size += output_size;
+                    metadata.total_images += 1;
+                    metadata.space_saved += space_saved;
+
+                    metadata.images.push(ImageMetadata {
+                        input: absolute_input_path,
+                        output: absolute_output_path,
+                        input_size,
+                        output_size,
+                        compression_ratio,
+                        space_saved,
+                        width: w as u32,
+                        height: h as u32,
+                        pixel_count,
+                        aspect_ratio,
+                        bit_depth: bit_depth_to_string(&original_bit_depth),
+                        color_space: colorspace_to_string(&colorspace),
+                        has_alpha,
+                        is_animated,
+                        frame_count,
+                        channels,
+                        input_format,
+                        output_format,
+                        processed_at,
+                        processing_time_ms: processing_time,
+                        input_modified,
+                        output_created,
+                    });
+
                     pb.finish_and_clear();
                 });
 
             let mut results = results.lock().unwrap();
+            let mut metadata = metadata.lock().unwrap();
+
+            // Update final metadata calculations
+            if let Some(ref mut meta) = metadata.as_mut() {
+                meta.compression_ratio = if meta.input_size > 0 {
+                    meta.output_size as f64 / meta.input_size as f64
+                } else {
+                    0.0
+                };
+            }
 
             results.sort_by(|a, b| b.output_size.cmp(&a.output_size));
 
@@ -289,6 +492,13 @@ fn main() {
                     },
                 ))
                 .unwrap();
+            }
+
+            if output_metadata {
+                if let Some(metadata) = metadata.as_ref() {
+                    let json = serde_json::to_string_pretty(metadata).unwrap();
+                    fs::write(metadata_path, json).unwrap();
+                }
             }
         }
         None => unreachable!(),

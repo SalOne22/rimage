@@ -65,7 +65,7 @@ build-binary = [
 # Enables utilization of threads
 threads = ["imagequant?/threads", "mozjpeg?/parallel", "oxipng?/parallel"]
 # Enables metadata support
-metadata = ["zune-image/metadata"]
+metadata = ["zune-image/metadata", "dep:serde", "dep:serde_json"]
 
 # Enables resize operation
 resize = ["dep:fast_image_resize"]
@@ -121,6 +121,8 @@ indicatif = { version = "0.17.8", features = ["rayon"], optional = true }
 indicatif-log-bridge = { version = "0.2.3", optional = true }
 console = { version = "0.15.11", optional = true }
 regex = { version = "1.11.1", optional = true }
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+serde_json = { version = "1.0.141", optional = true }
 
 [target.'cfg(windows)'.dependencies]
 glob = { version = "0.3.1", optional = true }
