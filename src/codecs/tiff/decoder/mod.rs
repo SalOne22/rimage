@@ -14,7 +14,7 @@ impl<R: Read + Seek> TiffDecoder<R> {
     /// Create a new tiff decoder that reads data from `source`
     pub fn try_new(source: R) -> Result<Self, ImageErrors> {
         let inner = tiff::decoder::Decoder::new(source).map_err(|e| {
-            ImageErrors::ImageDecodeErrors(format!("Unable to create TIFF decoder: {}", e))
+            ImageErrors::ImageDecodeErrors(format!("Unable to create TIFF decoder: {e}"))
         })?;
 
         Ok(Self {
@@ -31,7 +31,7 @@ where
 {
     fn decode(&mut self) -> Result<Image, ImageErrors> {
         let (width, height) = self.inner.dimensions().map_err(|e| {
-            ImageErrors::ImageDecodeErrors(format!("Unable to read dimensions - {}", e))
+            ImageErrors::ImageDecodeErrors(format!("Unable to read dimensions - {e}"))
         })?;
 
         let (width, height) = (width as usize, height as usize);
@@ -50,13 +50,13 @@ where
                 _ => ColorSpace::Unknown,
             })
             .map_err(|e| {
-                ImageErrors::ImageDecodeErrors(format!("Unable to read colorspace - {}", e))
+                ImageErrors::ImageDecodeErrors(format!("Unable to read colorspace - {e}"))
             })?;
 
         self.colorspace = colorspace;
 
         let result = self.inner.read_image().map_err(|e| {
-            ImageErrors::ImageDecodeErrors(format!("Unable to decode TIFF file - {}", e))
+            ImageErrors::ImageDecodeErrors(format!("Unable to decode TIFF file - {e}"))
         })?;
 
         match result {

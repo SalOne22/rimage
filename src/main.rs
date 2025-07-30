@@ -1,6 +1,6 @@
 use std::{
     fs::{self, File},
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{Arc, Mutex},
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
@@ -121,13 +121,13 @@ struct ImageMetadata {
     output_created: u64,
 }
 
-fn get_file_extension(path: &PathBuf) -> Option<String> {
+fn get_file_extension(path: &Path) -> Option<String> {
     path.extension()
         .and_then(|ext| ext.to_str())
         .map(|s| s.to_lowercase())
 }
 
-fn get_file_modified_time(path: &PathBuf) -> Option<u64> {
+fn get_file_modified_time(path: &Path) -> Option<u64> {
     fs::metadata(path)
         .ok()
         .and_then(|metadata| metadata.modified().ok())
