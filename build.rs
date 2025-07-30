@@ -15,8 +15,8 @@ fn main() {
     let mut res = winres::WindowsResource::new();
 
     match env::var("CARGO_PKG_VERSION_PRE") {
-        Ok(success_info) => println!("{}", success_info),
-        Err(err_info) => println!("{}", err_info),
+        Ok(success_info) => println!("{success_info}"),
+        Err(err_info) => println!("{err_info}"),
     };
 
     //version    X.   X.    X.    X
@@ -58,7 +58,7 @@ fn main() {
         .set_version_info(VersionInfo::PRODUCTVERSION, product_version);
 
     if let Err(e) = res.compile() {
-        eprintln!("{}", e);
+        eprintln!("{e}");
         std::process::exit(1);
     }
 }
