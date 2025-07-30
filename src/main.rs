@@ -16,7 +16,7 @@ use indicatif::{
     ProgressStyle,
 };
 use indicatif_log_bridge::LogWrapper;
-use little_exif::metadata::Metadata;
+use little_exif::metadata::Metadata as ExifMetadata;
 use rayon::prelude::*;
 use rimage::operations::icc::ApplySRGB;
 use serde::{Deserialize, Serialize};
@@ -269,7 +269,7 @@ fn main() {
                     let input_modified = get_file_modified_time(&input);
 
                     let img = handle_error!(input, decode(&input));
-                    let metadata = Metadata::new_from_path(&input).ok();
+                    let exif_metadata = ExifMetadata::new_from_path(&input).ok();
 
                     pb.set_style(sty_aux_operations.clone());
 
@@ -352,7 +352,7 @@ fn main() {
                         available_encoder.encode(&pipeline.images()[0], output_file)
                     );
 
-                    metadata
+                    exif_metadata
                         .and_then(|mut metadata| {
                             if strip_metadata {
                                 metadata.reduce_to_a_minimum();
