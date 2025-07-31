@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{arg, value_parser, Command};
+use clap::{arg, value_parser, ArgAction, Command};
 use indoc::indoc;
 
 use super::{preprocessors::Preprocessors, utils::threads};
@@ -39,6 +39,8 @@ impl CommonArgs for Command {
                 Usage of multiple threads can speed up the execution of tasks, especially on multi-core processors.
                 By default, the number of available threads is utilized."#})
                 .value_parser(value_parser!(u8).range(1..=threads::num_threads() as i64)),
+            arg!(-x --strip "Strip metadata when encoding images (where supported)")
+                .action(ArgAction::SetTrue),
             arg!(--"no-progress" "Disables progress bar.")
                 .long_help(indoc! {r#"Disables progress bar.
 

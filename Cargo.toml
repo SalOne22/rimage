@@ -59,12 +59,13 @@ build-binary = [
     "dep:indicatif-log-bridge",
     "dep:console",
     "dep:regex",
+    "dep:little_exif",
 ]
 
 # Enables utilization of threads
 threads = ["imagequant?/threads", "mozjpeg?/parallel", "oxipng?/parallel"]
 # Enables metadata support
-metadata = ["dep:kamadak-exif", "zune-image/metadata", "dep:serde", "dep:serde_json"]
+metadata = ["zune-image/metadata", "dep:serde", "dep:serde_json"]
 
 # Enables resize operation
 resize = ["dep:fast_image_resize"]
@@ -115,7 +116,7 @@ rayon = { version = "1.10.0", optional = true }
 zune-imageprocs = { version = "0.5.0-rc0", features = [
     "exif",
 ], optional = true }
-kamadak-exif = { version = "0.5.5", optional = true }
+little_exif = { version = "0.6.3", optional = true }
 indicatif = { version = "0.17.8", features = ["rayon"], optional = true }
 indicatif-log-bridge = { version = "0.2.3", optional = true }
 console = { version = "0.15.11", optional = true }
