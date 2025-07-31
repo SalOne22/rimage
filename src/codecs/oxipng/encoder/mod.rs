@@ -95,22 +95,14 @@ impl EncoderTrait for OxiPngEncoder {
 
         #[cfg(feature = "metadata")]
         {
-            use exif::experimental::Writer;
+            // write exif data
+            if let Some(_metadata) = &image.metadata().exif() {
+                log::warn!("Writing exif data is not supported");
+            }
 
-            let mut buf = std::io::Cursor::new(vec![]);
-
-            if let Some(fields) = &image.metadata().exif() {
-                let mut writer = Writer::new();
-
-                for metadatum in *fields {
-                    writer.push_field(metadatum);
-                }
-                let result = writer.write(&mut buf, false);
-                if result.is_ok() {
-                    img.add_png_chunk(*b"eXIf", buf.into_inner());
-                } else {
-                    log::warn!("Writing exif failed {:?}", result);
-                }
+            // write icc data
+            if let Some(icc) = &image.metadata().icc_chunk() {
+                img.add_icc_profile(icc);
             }
         }
 
