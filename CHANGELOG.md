@@ -2,7 +2,23 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0
+## v0.12.0
+
+### Bug Fixes
+
+- **cli:** :bug: updated exif codecs support ([73566cc](https://github.com/SalOne22/rimage/commit/73566cc327e4b48a479d4524074dc1b6e789a7f3))
+- **cli:** :sparkles: added support for exif metadata in supported files ([373b074](https://github.com/SalOne22/rimage/commit/373b074c9153c074b966d6a534d8b3823678d13a))
+- **codecs:** :boom: removed support for exif in some of the codecs due to kamadak exif issues ([939a79e](https://github.com/SalOne22/rimage/commit/939a79e6f373efb306a841ad35e4e011553359b7))
+- **codecs:** :loud_sound: added warning about metadata ([b1156e1](https://github.com/SalOne22/rimage/commit/b1156e177cef301adc7bb47d38524f29967e725e))
+
+### Features
+
+- **cli:** :sparkles: added --strip option ([b6da8d6](https://github.com/SalOne22/rimage/commit/b6da8d6d6349878500b0b36e3ffb84e92ac115f4))
+- **cli:** :sparkles: added downscale and upscale flags to resize pipeline ([75cbd03](https://github.com/SalOne22/rimage/commit/75cbd03199eb66452d91c9c776397d6479f2fec5))
+- **cli:** :sparkles: added metadata output to cli ([d7ccfe8](https://github.com/SalOne22/rimage/commit/d7ccfe8e32e12accbeb08e2cd85cfe43a6f65145))
+- **codecs:** :bug: added write icc profile into encoders ([e7770e7](https://github.com/SalOne22/rimage/commit/e7770e756a9878bad360805a36e83329b4990c1d))
+
+## [v0.11.0](https://github.com/SalOne22/rimage/releases/tag/v0.11.0)
 
 ### Breaking Changes
 
