@@ -11,6 +11,32 @@ permissions:
   contents: write
 
 jobs:
+  predeploy:
+    name: predeploy release
+    runs-on: ubuntu-latest
+    
+    if: ${{ !github.event.repository.fork }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: get the rimage version
+        id: rimage-meta
+        run:
+          echo "version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "rimage").version')"
+          >> "$GITHUB_OUTPUT"
+
+      - name: create release notes
+        run: tail -n +5 CHANGELOG.md | sed -e '/## \[v/,$d' > RELEASE_NOTES.txt
+
+      - name: create release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: v${{ steps.rimage-meta.outputs.version }}
+          body_path: RELEASE_NOTES.txt
+          prerelease: ${{ contains(steps.rimage-meta.outputs.version, 'next') }}
+
   deploy:
     name: deploy release
     runs-on: ubuntu-latest
@@ -72,6 +98,7 @@ jobs:
       - name: create release
         uses: softprops/action-gh-release@v2
         with:
+          draft: false
           name: v${{ steps.rimage-meta.outputs.version }}
           body_path: RELEASE_NOTES.txt
           prerelease: ${{ contains(steps.rimage-meta.outputs.version, 'next') }}
