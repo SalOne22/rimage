@@ -2,7 +2,13 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.12.0
+# v0.12.1
+
+### Bug Fixes
+
+- **cli:** :bug: fixed a bug when little exif panics on png images ([159bbab](https://github.com/SalOne22/rimage/commit/159bbab379867b20b7a964c299fe2f8f16469335))
+
+## [v0.12.0](https://github.com/SalOne22/rimage/releases/tag/v0.12.0)
 
 ### Bug Fixes
 
