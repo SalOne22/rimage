@@ -46,9 +46,7 @@ cargo binstall rimage
 ## Usage
 
 ```text
-Optimize images natively with best-in-class codecs
-
-Usage: rimage [COMMAND]
+Usage: rimage.exe [COMMAND]
 
 Commands:
   avif      Encode images into AVIF format. (Small and Efficient)
@@ -117,18 +115,43 @@ If you want customize optimization you can provide additional options to encoder
 
 ```text
 Options:
-  -q, --quality <NUM>         Quality, values 60-80 are recommended. [default: 75]
-      --chroma_quality <NUM>  Separate chrome quality.
-      --baseline              Set to use baseline encoding (by default is progressive).
-      --no_optimize_coding    Set to make files larger for no reason.
-      --smoothing <NUM>       Use MozJPEG's smoothing.
-      --colorspace <COLOR>    Set color space of JPEG being written. [default: ycbcr] [possible values: ycbcr, grayscale, rgb]
-      --multipass             Specifies whether multiple scans should be considered during trellis quantization.
-      --subsample <PIX>       Sets chroma subsampling.
-      --qtable <TABLE>        Use a specific quantization table. [default: NRobidoux] [possible values: AhumadaWatsonPeterson, AnnexK, Flat, KleinSilversteinCarney, MSSSIM, NRobidoux, PSNRHVS, PetersonAhumadaWatson, WatsonTaylorBorthwick]
+  -q, --quality <NUM>
+          Quality, values 60-80 are recommended.
+
+          [default: 75]
+
+      --chroma_quality <NUM>
+          Separate chrome quality.
+
+      --baseline
+          Set to use baseline encoding (by default is progressive).
+
+      --no_optimize_coding
+          Set to make files larger for no reason.
+
+      --smoothing <NUM>
+          Use MozJPEG's smoothing.
+
+      --colorspace <COLOR>
+          Set color space of JPEG being written.
+
+          [default: ycbcr]
+          [possible values: ycbcr, grayscale, rgb]
+
+      --multipass
+          Specifies whether multiple scans should be considered during trellis quantization.
+
+      --subsample <PIX>
+          Sets chroma subsampling.
+
+      --qtable <TABLE>
+          Use a specific quantization table.
+
+          [default: NRobidoux]
+          [possible values: AhumadaWatsonPeterson, AnnexK, Flat, KleinSilversteinCarney, MSSSIM, NRobidoux, PSNRHVS, PetersonAhumadaWatson, WatsonTaylorBorthwick]
 ```
 
-For more info use `rimage help <command>`
+For more info use `rimage help <command>`, e.g. `rimage help mozjpeg`
 
 For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
