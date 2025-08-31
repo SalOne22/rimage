@@ -34,6 +34,7 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
                 let mut file_content = vec![];
 
                 file.read_to_end(&mut file_content)?;
+                file.seek(SeekFrom::Start(0))?;
 
                 if libavif::is_avif(&file_content) {
                     use rimage::codecs::avif::AvifDecoder;
@@ -42,32 +43,39 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
 
                     return Image::from_decoder(decoder);
                 };
-
                 file.seek(SeekFrom::Start(0))?;
             }
 
             #[cfg(feature = "webp")]
-            if f.as_ref()
-                .extension()
-                .is_some_and(|f| f.eq_ignore_ascii_case("webp"))
             {
-                use rimage::codecs::webp::WebPDecoder;
+                if f.as_ref()
+                    .extension()
+                    .is_some_and(|f| f.eq_ignore_ascii_case("webp"))
+                {
+                    use rimage::codecs::webp::WebPDecoder;
 
-                let decoder = WebPDecoder::try_new(file)?;
+                    let decoder = WebPDecoder::try_new(file)?;
 
-                return Image::from_decoder(decoder);
-            };
+                    return Image::from_decoder(decoder);
+                }
+
+                file.seek(SeekFrom::Start(0))?;
+            }
 
             #[cfg(feature = "tiff")]
-            if f.as_ref()
-                .extension()
-                .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
             {
-                use rimage::codecs::tiff::TiffDecoder;
+                if f.as_ref()
+                    .extension()
+                    .is_some_and(|f| f.eq_ignore_ascii_case("tiff") | f.eq_ignore_ascii_case("tif"))
+                {
+                    use rimage::codecs::tiff::TiffDecoder;
 
-                let decoder = TiffDecoder::try_new(file)?;
+                    let decoder = TiffDecoder::try_new(file)?;
 
-                return Image::from_decoder(decoder);
+                    return Image::from_decoder(decoder);
+                }
+
+                file.seek(SeekFrom::Start(0))?;
             }
 
             Err(ImageErrors::ImageDecoderNotImplemented(
@@ -93,14 +101,36 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
         if let Some(values) = matches.get_many::<ResizeValue>("resize") {
             let filter = matches.get_one::<ResizeFilter>("filter");
 
-            let (w, h) = img.dimensions();
+            let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
+            let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
+
+            log::debug!("downscale: {downscale}, upscale: {upscale}");
+
+            let size = img.dimensions();
 
             values
                 .into_iter()
                 .zip(matches.indices_of("resize").unwrap())
                 .for_each(|(value, idx)| {
-                    let (w, h) = value.map_dimensions(w, h);
+                    let (w, h) = value.map_dimensions(size.0, size.1);
                     log::trace!("setup resize {value} on index {idx}");
+
+                    // Skip if the image is already the desired size
+                    // or if both downscale and upscale are disabled
+                    if (!downscale && !upscale) || (w == size.0 && h == size.1) {
+                        log::trace!("skip resize to {w}x{h} on index {idx}");
+                        return;
+                    }
+
+                    if !downscale && (w <= size.0 || h <= size.1) {
+                        log::trace!("downscaling disabled, skip resize to {w}x{h} on index {idx}");
+                        return;
+                    }
+
+                    if !upscale && (w >= size.0 || h >= size.1) {
+                        log::trace!("upscaling disabled, skip resize to {w}x{h} on index {idx}");
+                        return;
+                    }
 
                     map.insert(
                         idx,

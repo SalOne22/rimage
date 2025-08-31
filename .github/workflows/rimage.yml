@@ -43,27 +43,27 @@ jobs:
 
         include:
           - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: amd64
           - target: x86_64-unknown-linux-musl
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: amd64
           - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: arm64
           - target: aarch64-unknown-linux-musl
-            os: ubuntu-latest
+            os: ubuntu-22.04
             target-apt-arch: arm64
           - target: x86_64-pc-windows-msvc
-            os: windows-2019
+            os: windows-2022
           - target: i686-pc-windows-msvc
-            os: windows-2019
+            os: windows-2022
           - target: x86_64-apple-darwin
             os: macos-13
           - target: aarch64-apple-darwin
             os: macos-14
           - target: wasm32-unknown-emscripten
-            os: macos-latest
+            os: macos-14
 
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}

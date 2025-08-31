@@ -11,9 +11,36 @@ permissions:
   contents: write
 
 jobs:
+  predeploy:
+    name: predeploy release
+    runs-on: ubuntu-latest
+    
+    if: ${{ !github.event.repository.fork }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: get the rimage version
+        id: rimage-meta
+        run:
+          echo "version=$(cargo metadata --format-version 1 --no-deps | jq -r '.packages[] | select(.name == "rimage").version')"
+          >> "$GITHUB_OUTPUT"
+
+      - name: create release notes
+        run: tail -n +5 CHANGELOG.md | sed -e '/## \[v/,$d' > RELEASE_NOTES.txt
+
+      - name: create release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          name: v${{ steps.rimage-meta.outputs.version }}
+          body_path: RELEASE_NOTES.txt
+          prerelease: ${{ contains(steps.rimage-meta.outputs.version, 'next') }}
+
   deploy:
     name: deploy release
     runs-on: ubuntu-latest
+    needs: predeploy
 
     if: ${{ !github.event.repository.fork }}
 
@@ -39,7 +66,7 @@ jobs:
           >> "$GITHUB_OUTPUT"
 
       - name: retrieve ${{ matrix.target }} binary
-        uses: dawidd6/action-download-artifact@v2
+        uses: dawidd6/action-download-artifact@v6
         with:
           workflow: rimage.yml
           commit: ${{ github.sha }}
@@ -70,10 +97,12 @@ jobs:
         run: tail -n +5 CHANGELOG.md | sed -e '/## \[v/,$d' > RELEASE_NOTES.txt
 
       - name: create release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
+          draft: false
           name: v${{ steps.rimage-meta.outputs.version }}
           body_path: RELEASE_NOTES.txt
+          prerelease: ${{ contains(steps.rimage-meta.outputs.version, 'next') }}
           files: |
             target/*.zip
             target/*.tar.gz

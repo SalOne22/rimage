@@ -31,10 +31,49 @@ impl Preprocessors for Command {
                     Possible values:
                     - @1.5:    Enlarge image size by this multiplier
                     - 150%:    Adjust image size by this percentage
-                    - 100x100: Resize image to these dimensions
-                    - 200x_:   Adjust image dimensions while maintaining the aspect ratio based on the specified dimension"#})
+                    - 100x100: Resize image to Width×Height
+                    - 100w:    Adjust image dimensions while maintaining the aspect ratio based on the width
+                    - 100h:    Adjust image dimensions while maintaining the aspect ratio based on the height"#})
                     .value_parser(value_parser!(ResizeValue))
                     .action(ArgAction::Append),
+
+                #[cfg(feature = "resize")]
+                arg!(--downscale "Downscale the image(s) when resizing.")
+                    .long_help(indoc! {r#"Downscale the image(s) when resizing.
+
+                    This is useful when you want to reduce the size of the image when it is larger than the specified size.
+                    It is recommended to use this option with --resize"#})
+                    .default_value("true")
+                    .action(ArgAction::SetTrue)
+                    .requires("resize")
+                    .overrides_with("no-downscale"),
+                #[cfg(feature = "resize")]
+                arg!(--"no-downscale" "Disable downscaling when resizing.")
+                    .long_help(indoc! {r#"Disable downscaling when resizing.
+
+                    This is useful when you don't want to reduce the size of the image when it is larger than the specified size.
+                    It is recommended to use this option with --resize"#})
+                    .action(ArgAction::SetTrue)
+                    .requires("resize"),
+
+                #[cfg(feature = "resize")]
+                arg!(--upscale "Upscale the image(s) when resizing.")
+                    .long_help(indoc! {r#"Upscale the image(s) when resizing.
+
+                    This is useful when you want to reduce the size of the image when it is larger than the specified size.
+                    It is recommended to use this option with --resize"#})
+                    .default_value("true")
+                    .action(ArgAction::SetTrue)
+                    .requires("resize")
+                    .overrides_with("no-upscale"),
+                #[cfg(feature = "resize")]
+                arg!(--"no-upscale" "Disable upscaling when resizing.")
+                    .long_help(indoc! {r#"Disable upscaling when resizing.
+
+                    This is useful when you don't want to reduce the size of the image when it is larger than the specified size.
+                    It is recommended to use this option with --resize"#})
+                    .action(ArgAction::SetTrue)
+                    .requires("resize"),
 
                 #[cfg(feature = "resize")]
                 arg!(--filter <FILTER> "Filter that used when resizing an image.")

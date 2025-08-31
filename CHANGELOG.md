@@ -2,7 +2,96 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-## v0.11.0-next.2
+# v0.12.1
+
+### Bug Fixes
+
+- **cli:** :bug: fixed a bug when little exif panics on png images ([159bbab](https://github.com/SalOne22/rimage/commit/159bbab379867b20b7a964c299fe2f8f16469335))
+
+## [v0.12.0](https://github.com/SalOne22/rimage/releases/tag/v0.12.0)
+
+### Bug Fixes
+
+- **cli:** :bug: updated exif codecs support ([73566cc](https://github.com/SalOne22/rimage/commit/73566cc327e4b48a479d4524074dc1b6e789a7f3))
+- **cli:** :sparkles: added support for exif metadata in supported files ([373b074](https://github.com/SalOne22/rimage/commit/373b074c9153c074b966d6a534d8b3823678d13a))
+- **codecs:** :boom: removed support for exif in some of the codecs due to kamadak exif issues ([939a79e](https://github.com/SalOne22/rimage/commit/939a79e6f373efb306a841ad35e4e011553359b7))
+- **codecs:** :loud_sound: added warning about metadata ([b1156e1](https://github.com/SalOne22/rimage/commit/b1156e177cef301adc7bb47d38524f29967e725e))
+
+### Features
+
+- **cli:** :sparkles: added --strip option ([b6da8d6](https://github.com/SalOne22/rimage/commit/b6da8d6d6349878500b0b36e3ffb84e92ac115f4))
+- **cli:** :sparkles: added downscale and upscale flags to resize pipeline ([75cbd03](https://github.com/SalOne22/rimage/commit/75cbd03199eb66452d91c9c776397d6479f2fec5))
+- **cli:** :sparkles: added metadata output to cli ([d7ccfe8](https://github.com/SalOne22/rimage/commit/d7ccfe8e32e12accbeb08e2cd85cfe43a6f65145))
+- **codecs:** :bug: added write icc profile into encoders ([e7770e7](https://github.com/SalOne22/rimage/commit/e7770e756a9878bad360805a36e83329b4990c1d))
+
+## [v0.11.0](https://github.com/SalOne22/rimage/releases/tag/v0.11.0)
+
+### Breaking Changes
+
+- Complete rewrite of the library — now built to work alongside `zune-image`.
+- CLI interface fully redesigned for more flexibility and cleaner structure.
+
+### Performance Improvements
+
+Massive speedup: up to **149x** faster in parallel processing compared to v0.10.3.
+
+Performance benchmarks indicate:
+
+- ~14x faster than `rimage-0.10.3` on single image operations.
+- ~15x faster than `squoosh-cli`.
+- ~149x faster on bulk image processing.
+
+### Features
+
+- **cli:** New progress bar and updated display styles.
+- **cli:** Added `--quiet` and `--no-progress` flags.
+- **cli:** Reshape resize parameter format: now supports `w<value>` and `h<value>`.
+- **cli:** Added CLI warnings for invalid input files.
+- **cli:** Improved argument parsing and error messages.
+- **cli:** Alpha premultiply preprocessor added.
+- **cli:** Support for apply icc profile operation.
+- **cli:** Restructure of base CLI options, codecs, and preprocessors.
+
+- **codecs:** Added TIFF support.
+- **codecs:** Added EXIF write support for JPEG and PNG.
+
+- **operations:** Added new fast resize operation with threading support.
+- **operations:** Added ICC profile application with multithreaded support.
+
+### Bug Fixes
+
+- Ensure all input images are converted to RGBA8 format.
+- Fix file name parsing with dots.
+- Fix null error on AVIF decoding.
+- Return error when input width or height is 0.
+- Prevent panic when no output is present by safely calculating max length.
+- Fix float32 image handling in CLI.
+- Improve resize value parsing and reduce edge case errors for width/height.
+- Fix encoder function logic.
+- Update AVIF, MozJPEG, Oxipng, and WebP codecs to new APIs.
+- Fix Clippy issues and build warnings.
+- Fix trailing slash issues on Windows.
+- Correct feature compilation and binary packaging.
+
+## [v0.11.0-next.3](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.3)
+
+### Bug Fixes
+
+- **cli:** :ambulance: convert all input images to rgba8 ([c980e9a](https://github.com/SalOne22/rimage/commit/c980e9a32ab48755c10e57fb5caed8e33673afd9))
+- **cli:** :bug: fixed incorect handling of file names with dots ([1f3275c](https://github.com/SalOne22/rimage/commit/1f3275c9fb70d9affeb1ca5dfa05c2f5b799792d))
+- **cli:** :bug: fixed null error on avif decoding ([59b6759](https://github.com/SalOne22/rimage/commit/59b6759c541f0b8cf9053292f99a771e352d8614))
+- error if input width or height is 0 ([b626fdc](https://github.com/SalOne22/rimage/commit/b626fdca77c6877254dde4148b27644a09c0d7ed))
+- **cli:** :bug: ensure max length calculation returns 0 instead of panicking when no outputs are present ([3d0a3a3](https://github.com/SalOne22/rimage/commit/3d0a3a388544d2f290544a60846f5842bc81b222))
+- **cli:** :bug: fixed handling of float32 images ([66c3648](https://github.com/SalOne22/rimage/commit/66c3648145a78254b325457fbdfd53f5401feb17))
+- **cli:** :bug: improved resize value parsing by trimming input and refining error handling for invalid formats ([2a43c26](https://github.com/SalOne22/rimage/commit/2a43c2694bc019eea709e4aa41f1c01e025c39db))
+- **cli:** :bug: updated parsing logic for width and height to reduce number of edge cases ([9bd3ea2](https://github.com/SalOne22/rimage/commit/9bd3ea23eb2eadf0e280095be5bde1a6d6a2182f))
+- **operations:** :bug: updated apply icc profile operation to work in threads ([b5dee09](https://github.com/SalOne22/rimage/commit/b5dee099a02e1b75fdd2724d10c6b4375b460694))
+
+### Features
+
+- **cli:** :sparkles: update resize value format for width and height to use 'w' and 'h' suffixes instead of 'x\_' and '\_x' ([693ea46](https://github.com/SalOne22/rimage/commit/693ea46c93f94e4fc051e5f0a227899bafbcae84))
+
+## [v0.11.0-next.2](https://github.com/SalOne22/rimage/releases/tag/v0.11.0-next.2)
 
 ### Bug Fixes
 
