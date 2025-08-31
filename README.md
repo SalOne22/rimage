@@ -94,7 +94,13 @@ Rimage has pipeline preprocessing options. Simple usage:
 ```sh
 # will resize image to specified dimensions
 rimage mozjpeg --resize 500x200 ./image.jpg
-rimage mozjpeg --resize w500h200 ./image.jpg
+```
+
+Adjust image dimensions while maintaining the aspect ratio based on the width
+
+```sh
+# Same usage when you'd want to change pic's hight (200h for example)
+rimage mozjpeg --resize 100w ./image.jpg
 ```
 
 If you want to run preprocessing pipeline in specific order, you can do this:
