@@ -18,7 +18,7 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
   - Quantization - allowing to reduce image palette
 - Friendly output:
   - Rimage support progressbar
-  - Rimage would show detailed error info to assist users 
+  - Rimage would show detailed error info to assist users
 - CJK and Punctuation marks support:
   - Rimage supports full CJK (Chinese, Japanese and Korean) characters input and output
   - Rimage allows special punctuation characters such as `|`, ` `, `&`, `$`, etc. to be included in file names
@@ -96,6 +96,7 @@ Rimage has pipeline preprocessing options. Simple usage:
 ```sh
 # will resize image to specified dimensions
 rimage mozjpeg --resize 500x200 ./image.jpg
+rimage mozjpeg --resize w500h200 ./image.jpg
 ```
 
 If you want to run preprocessing pipeline in specific order, you can do this:
@@ -164,7 +165,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 - **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
 - Even if the value is set to 100, the quality of the image will still decrease if you use `--quantization` and(or) `--dithering` option(s).
 
-### Example:
+### Example
 
 This will crash:
 
