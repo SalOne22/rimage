@@ -45,7 +45,7 @@ cargo binstall rimage
 
 ## Usage
 
-```
+```text
 Optimize images natively with best-in-class codecs
 
 Usage: rimage [COMMAND]
@@ -115,7 +115,7 @@ Note that some preprocessing option are order independent. For example filter op
 
 If you want customize optimization you can provide additional options to encoders. For mozjpeg this options are valid:
 
-```
+```text
 Options:
   -q, --quality <NUM>         Quality, values 60-80 are recommended. [default: 75]
       --chroma_quality <NUM>  Separate chrome quality.
