@@ -99,8 +99,8 @@ oxipng = { version = "9.1", default-features = false, features = [
     "zopfli",
     "filetime",
 ], optional = true }
-webp = { version = "0.3.0", default-features = false, optional = true }
-ravif = { version = "0.11.11", optional = true }
+webp = { version = "0.3.1", default-features = false, optional = true }
+ravif = { version = "0.12.0", optional = true }
 libavif = { version = "0.14.0", default-features = false, features = [
     "codec-aom",
 ], optional = true }
@@ -109,15 +109,15 @@ tiff = { version = "0.9.1", default-features = false, optional = true }
 
 # cli
 anyhow = { version = "1.0.98", optional = true }
-clap = { version = "4.5.20", features = ["cargo", "string"], optional = true }
-indoc = { version = "2.0.5", optional = true }
+clap = { version = "4.5.46", features = ["cargo", "string"], optional = true }
+indoc = { version = "2.0.6", optional = true }
 pretty_env_logger = { version = "0.5.0", optional = true }
 rayon = { version = "1.10.0", optional = true }
 zune-imageprocs = { version = "0.5.0-rc0", features = [
     "exif",
 ], optional = true }
 little_exif = { version = "0.6.14", optional = true }
-indicatif = { version = "0.17.8", features = ["rayon"], optional = true }
+indicatif = { version = "0.18.0", features = ["rayon"], optional = true }
 indicatif-log-bridge = { version = "0.2.3", optional = true }
 console = { version = "0.15.11", optional = true }
 regex = { version = "1.11.1", optional = true }
