@@ -196,7 +196,7 @@ fn main() {
         },
         #[cfg(windows)]
         {
-            std::env::args().map(|mut arg| {
+            std::env::args().map(|arg| {
                 arg.replace("\\", "/")
                     .replace("//", "/")
                     .trim_matches(['\\', '/', '\n', '\r', '"', '\'', ' ', '\t'])
