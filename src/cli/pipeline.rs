@@ -381,8 +381,8 @@ pub fn encoder(name: &str, matches: &ArgMatches) -> Result<AvailableEncoders, Im
                 alpha_quality: matches.get_one::<u8>("alpha_quality").map(|q| *q as f32),
                 speed: *matches.get_one::<u8>("speed").unwrap(),
                 color_space: match matches.get_one::<String>("colorspace").unwrap().as_str() {
-                    "ycbcr" => ravif::ColorSpace::YCbCr,
-                    "rgb" => ravif::ColorSpace::RGB,
+                    "ycbcr" => ravif::ColorModel::YCbCr,
+                    "rgb" => ravif::ColorModel::RGB,
                     _ => unreachable!(),
                 },
                 alpha_color_mode: match matches.get_one::<String>("alpha_mode").unwrap().as_str() {
