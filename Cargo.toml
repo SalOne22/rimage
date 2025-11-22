@@ -116,7 +116,7 @@ rayon = { version = "1.10.0", optional = true }
 zune-imageprocs = { version = "0.5.0-rc0", features = [
     "exif",
 ], optional = true }
-little_exif = { version = "0.6.14", optional = true }
+little_exif = { version = "0.6.20", optional = true }
 indicatif = { version = "0.18.0", features = ["rayon"], optional = true }
 indicatif-log-bridge = { version = "0.2.3", optional = true }
 console = { version = "0.15.11", optional = true }
