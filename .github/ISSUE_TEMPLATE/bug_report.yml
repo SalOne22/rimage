@@ -28,14 +28,11 @@ body:
       label: Library Version
       description: Specify the version of the library where you encountered the issue
       options:
-        - 0.11.0 (latest)
-        - 0.10.3
-        - 0.10.2
-        - 0.10.1
-        - 0.10.0
-        - 0.9.1
-        - 0.9.0
-        - < 0.9.0 (old)
+        - 0.12.1 (latest)
+        - 0.12.0
+        - 0.11.0
+        - < 0.11.0 (old)
+        - Others
     validations:
       required: false
   - type: textarea
