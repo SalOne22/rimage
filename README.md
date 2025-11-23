@@ -16,6 +16,12 @@ A powerful Rust image optimization CLI tool inspired by [squoosh!](https://squoo
   - Rimage provides several image optimization operation
   - Resize - uses `fast_image_resize` crate that has incredible performance
   - Quantization - allowing to reduce image palette
+- Friendly output:
+  - Rimage support progressbar
+  - Rimage would show detailed error info to assist users
+- CJK and Punctuation marks support:
+  - Rimage supports full CJK (Chinese, Japanese and Korean) characters input and output
+  - Rimage allows special punctuation characters such as `|`, ` `, `&`, `$`, etc. to be included in file names
 
 ## Installation
 
@@ -39,10 +45,8 @@ cargo binstall rimage
 
 ## Usage
 
-```
-Optimize images natively with best-in-class codecs
-
-Usage: rimage [COMMAND]
+```text
+Usage: rimage.exe [COMMAND]
 
 Commands:
   avif      Encode images into AVIF format. (Small and Efficient)
@@ -92,6 +96,13 @@ Rimage has pipeline preprocessing options. Simple usage:
 rimage mozjpeg --resize 500x200 ./image.jpg
 ```
 
+Adjust image dimensions while maintaining the aspect ratio based on the width
+
+```sh
+# Same usage when you'd want to change pic's hight (200h for example)
+rimage mozjpeg --resize 100w ./image.jpg
+```
+
 If you want to run preprocessing pipeline in specific order, you can do this:
 
 ```sh
@@ -108,20 +119,45 @@ Note that some preprocessing option are order independent. For example filter op
 
 If you want customize optimization you can provide additional options to encoders. For mozjpeg this options are valid:
 
-```
+```text
 Options:
-  -q, --quality <NUM>         Quality, values 60-80 are recommended. [default: 75]
-      --chroma_quality <NUM>  Separate chrome quality.
-      --baseline              Set to use baseline encoding (by default is progressive).
-      --no_optimize_coding    Set to make files larger for no reason.
-      --smoothing <NUM>       Use MozJPEG's smoothing.
-      --colorspace <COLOR>    Set color space of JPEG being written. [default: ycbcr] [possible values: ycbcr, grayscale, rgb]
-      --multipass             Specifies whether multiple scans should be considered during trellis quantization.
-      --subsample <PIX>       Sets chroma subsampling.
-      --qtable <TABLE>        Use a specific quantization table. [default: NRobidoux] [possible values: AhumadaWatsonPeterson, AnnexK, Flat, KleinSilversteinCarney, MSSSIM, NRobidoux, PSNRHVS, PetersonAhumadaWatson, WatsonTaylorBorthwick]
+  -q, --quality <NUM>
+          Quality, values 60-80 are recommended.
+
+          [default: 75]
+
+      --chroma_quality <NUM>
+          Separate chrome quality.
+
+      --baseline
+          Set to use baseline encoding (by default is progressive).
+
+      --no_optimize_coding
+          Set to make files larger for no reason.
+
+      --smoothing <NUM>
+          Use MozJPEG's smoothing.
+
+      --colorspace <COLOR>
+          Set color space of JPEG being written.
+
+          [default: ycbcr]
+          [possible values: ycbcr, grayscale, rgb]
+
+      --multipass
+          Specifies whether multiple scans should be considered during trellis quantization.
+
+      --subsample <PIX>
+          Sets chroma subsampling.
+
+      --qtable <TABLE>
+          Use a specific quantization table.
+
+          [default: NRobidoux]
+          [possible values: AhumadaWatsonPeterson, AnnexK, Flat, KleinSilversteinCarney, MSSSIM, NRobidoux, PSNRHVS, PetersonAhumadaWatson, WatsonTaylorBorthwick]
 ```
 
-For more info use `rimage help <command>`
+For more info use `rimage help <command>`, e.g. `rimage help mozjpeg`
 
 For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
@@ -130,15 +166,16 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | Image Codecs | Decoder       | Encoder                 | NOTE                                                 |
 | ------------ | ------------- | ----------------------- | ---------------------------------------------------- |
 | avif         | libavif       | ravif                   | Common features only, Static only                    |
-| bmp          | zune-bmp      | X                       | Input only                                           |
+| bmp          | zune-bmp      | ❌                       | Input only                                           |
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                                      |
 | hdr          | zune-hdr      | zune-hdr                |                                                      |
 | jpeg         | zune-jpeg     | mozjpeg or jpeg-encoder | Multifunctional when use mozjpeg encoder             |
 | jpeg-xl      | jxl-oxide     | zune-jpegxl             | Lossless only                                        |
 | png          | zune-png      | oxipng or zune-png      | Static only, Multifunctional when use oxipng encoder |
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
-| psd          | zune-psd      | X                       | Input only                                           |
+| psd          | zune-psd      | ❌                       | Input only                                           |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
+| tiff         | tiff          | ❌                       | Input only                                           |
 | webp         | webp          | webp                    | Static only                                          |
 
 ### List of supported preprocessing options
@@ -147,11 +184,17 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 - Quantization
 - Alpha premultiply
 
-## Known bugs
+## List of supported mode for output info presenting
+
+- No-progress (Shown on Default)
+- Quiet (Show all msgs on Default)
+
+## Known bugs & Warnings
 
 - **Dir path end with `\` may cause rimage crashes** due to a cmd bug [#72653](https://github.com/rust-lang/rust/issues/72653).
+- Even if the value is set to 100, the quality of the image will still decrease if you use `--quantization` and(or) `--dithering` option(s).
 
-### Example:
+### Example
 
 This will crash:
 
