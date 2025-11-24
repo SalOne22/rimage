@@ -965,9 +965,9 @@ dependencies = [
 
 [[package]]
 name = "little_exif"
-version = "0.6.15"
+version = "0.6.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b011d9c78e4d2b33481dba3ff9fdb615cb63b9fb2e6b4d6b1de507c7e4f7f9e9"
+checksum = "e932a2a26300dd745c269fb3a1e1af89cdaf6b2a5f66b8fcfd2917254633b1b1"
 dependencies = [
  "brotli",
  "crc",

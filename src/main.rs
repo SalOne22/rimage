@@ -269,7 +269,24 @@ fn main() {
                     let input_modified = get_file_modified_time(&input);
 
                     let img = handle_error!(input, decode(&input));
-                    let exif_metadata = ExifMetadata::new_from_path(&input).ok();
+                    let exif_metadata: Option<ExifMetadata> = {
+                        // Temporarily suppress little_exif error logs for images without EXIF
+                        let prev_level = log::max_level();
+                        log::set_max_level(log::LevelFilter::Off);
+                        let result = ExifMetadata::new_from_path(&input);
+                        log::set_max_level(prev_level);
+
+                        match result {
+                            Ok(exif) => {
+                                if strip_metadata {
+                                    None
+                                } else {
+                                    Some(exif)
+                                }
+                            }
+                            Err(_) => None,
+                        }
+                    };
 
                     pb.set_style(sty_aux_operations.clone());
 
@@ -352,17 +369,12 @@ fn main() {
                         available_encoder.encode(&pipeline.images()[0], output_file)
                     );
 
-                    exif_metadata
-                        .and_then(|mut metadata| {
-                            if strip_metadata {
-                                metadata.reduce_to_a_minimum();
-                            }
-                            metadata.write_to_file(&output).ok()
-                        })
-                        .or_else(|| {
-                            log::info!("No metadata found, skipping...");
-                            None
-                        });
+                    if let Some(actual_metadata) = exif_metadata {
+                        match actual_metadata.write_to_file(&output) {
+                            Ok(_) => {}
+                            Err(e) => log::error!("{}", e),
+                        }
+                    }
 
                     let output_size = handle_error!(output, output.metadata()).len();
                     let processing_time = image_start_time.elapsed().as_millis();
