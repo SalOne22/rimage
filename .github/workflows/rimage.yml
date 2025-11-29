@@ -39,7 +39,8 @@ jobs:
           - i686-pc-windows-msvc
           - x86_64-apple-darwin
           - aarch64-apple-darwin
-          - wasm32-unknown-emscripten
+          # Disable build on wasm32 because couldn't fix currently
+          #- wasm32-unknown-emscripten
 
         include:
           - target: x86_64-unknown-linux-gnu
@@ -62,8 +63,8 @@ jobs:
             os: macos-13
           - target: aarch64-apple-darwin
             os: macos-14
-          - target: wasm32-unknown-emscripten
-            os: macos-14
+          #- target: wasm32-unknown-emscripten
+          #  os: macos-14
 
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
@@ -105,11 +106,9 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
 
-      - name: install rust toolchain (rust-toolchain-reborn)
-        uses: crusty-pie/toolchain@v1.0.8
+      - name: install rust toolchain
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
           targets: ${{ matrix.target }}
 
       - uses: ilammy/setup-nasm@v1
@@ -189,7 +188,7 @@ jobs:
           "
 
           echo $summary >> $Env:GITHUB_STEP_SUMMARY
-          
+
   lint:
     name: lint
     runs-on: ubuntu-latest
@@ -205,10 +204,8 @@ jobs:
       - uses: Swatinem/rust-cache@v2
 
       - name: install rust toolchain (rust-toolchain-reborn)
-        uses: crusty-pie/toolchain@v1.0.8
+        uses: dtolnay/rust-toolchain@stable
         with:
-          profile: minimal
-          toolchain: stable
           components: rustfmt, clippy
 
       - name: formatting check
