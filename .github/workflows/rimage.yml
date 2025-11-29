@@ -60,9 +60,9 @@ jobs:
           - target: i686-pc-windows-msvc
             os: windows-2022
           - target: x86_64-apple-darwin
-            os: macos-13
+            os: macos-15
           - target: aarch64-apple-darwin
-            os: macos-14
+            os: macos-15
           #- target: wasm32-unknown-emscripten
           #  os: macos-14
 
@@ -124,7 +124,7 @@ jobs:
       - name: install dependencies (macos)
         if: startsWith(matrix.os, 'macos')
         run: |
-          brew install ninja meson
+          brew reinstall ninja meson
 
       - name: install dependencies (windows)
         if: startsWith(matrix.os, 'windows')
