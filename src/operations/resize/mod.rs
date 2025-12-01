@@ -1,5 +1,3 @@
-use std::num::NonZeroU32;
-
 use fast_image_resize as fr;
 pub use fast_image_resize::{FilterType, ResizeAlg};
 use zune_core::bit_depth::BitType;
@@ -51,23 +49,19 @@ impl OperationsTrait for Resize {
 
         let new_length = dst_width * dst_height * image.depth().size_of();
 
-        let width = NonZeroU32::new(src_width as u32).unwrap();
-        let height = NonZeroU32::new(src_height as u32).unwrap();
-
-        let dst_width = NonZeroU32::new(dst_width as u32).unwrap();
-        let dst_height = NonZeroU32::new(dst_height as u32).unwrap();
-
         #[cfg(feature = "threads")]
         std::thread::scope(|f| {
             let mut errors = vec![];
 
             for old_channel in image.channels_mut(false) {
                 let result = f.spawn(|| {
+                    use fast_image_resize::ResizeOptions;
+
                     let mut new_channel = Channel::new_with_bit_type(new_length, depth);
 
-                    let src_image = fr::Image::from_slice_u8(
-                        width,
-                        height,
+                    let src_image = fr::images::Image::from_slice_u8(
+                        src_width as u32,
+                        src_height as u32,
                         unsafe { old_channel.alias_mut() },
                         match depth {
                             BitType::U8 => fr::PixelType::U8,
@@ -75,21 +69,29 @@ impl OperationsTrait for Resize {
                             BitType::F32 => fr::PixelType::F32,
 
                             d => {
-                                return Err(ImageErrors::ImageOperationNotImplemented("resize", d))
+                                return Err(ImageErrors::ImageOperationNotImplemented("resize", d));
                             }
                         },
                     )
                     .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
-                    let mut dst_image =
-                        fr::Image::new(dst_width, dst_height, src_image.pixel_type());
+                    let mut dst_image = fr::images::Image::new(
+                        dst_width as u32,
+                        dst_height as u32,
+                        src_image.pixel_type(),
+                    );
 
-                    let mut dst_view = dst_image.view_mut();
-
-                    let mut resizer = fr::Resizer::new(self.algorithm);
+                    let mut resizer = fr::Resizer::new();
 
                     resizer
-                        .resize(&src_image.view(), &mut dst_view)
+                        .resize(
+                            &src_image,
+                            &mut dst_image,
+                            Some(&ResizeOptions {
+                                algorithm: self.algorithm,
+                                ..ResizeOptions::default()
+                            }),
+                        )
                         .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
                     unsafe {
@@ -112,9 +114,9 @@ impl OperationsTrait for Resize {
         for old_channel in image.channels_mut(false) {
             let mut new_channel = Channel::new_with_bit_type(new_length, depth);
 
-            let src_image = fr::Image::from_slice_u8(
-                width,
-                height,
+            let src_image = fr::images::Image::from_slice_u8(
+                src_width as u32,
+                src_height as u32,
                 unsafe { old_channel.alias_mut() },
                 match depth {
                     BitType::U8 => fr::PixelType::U8,
@@ -126,14 +128,20 @@ impl OperationsTrait for Resize {
             )
             .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
-            let mut dst_image = fr::Image::new(dst_width, dst_height, src_image.pixel_type());
+            let mut dst_image =
+                fr::images::Image::new(dst_width as u32, dst_height as u32, src_image.pixel_type());
 
-            let mut dst_view = dst_image.view_mut();
-
-            let mut resizer = fr::Resizer::new(self.algorithm);
+            let mut resizer = fr::Resizer::new();
 
             resizer
-                .resize(&src_image.view(), &mut dst_view)
+                .resize(
+                    &src_image,
+                    &mut dst_image,
+                    Some(&fr::ResizeOptions {
+                        algorithm: self.algorithm,
+                        ..fr::ResizeOptions::default()
+                    }),
+                )
                 .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
             unsafe {
@@ -143,7 +151,7 @@ impl OperationsTrait for Resize {
             *old_channel = new_channel;
         }
 
-        image.set_dimensions(dst_width.get() as usize, dst_height.get() as usize);
+        image.set_dimensions(dst_width, dst_height);
 
         Ok(())
     }

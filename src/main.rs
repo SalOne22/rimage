@@ -10,7 +10,7 @@ use cli::{
     pipeline::{decode, operations},
     utils::paths::{collect_files, get_paths},
 };
-use console::{style, Term};
+use console::{Term, style};
 use indicatif::{
     DecimalBytes, MultiProgress, ParallelProgressIterator, ProgressBar, ProgressDrawTarget,
     ProgressStyle,
@@ -506,11 +506,9 @@ fn main() {
                 .unwrap();
             }
 
-            if output_metadata {
-                if let Some(metadata) = metadata.as_ref() {
-                    let json = serde_json::to_string_pretty(metadata).unwrap();
-                    fs::write(metadata_path, json).unwrap();
-                }
+            if output_metadata && let Some(metadata) = metadata.as_ref() {
+                let json = serde_json::to_string_pretty(metadata).unwrap();
+                fs::write(metadata_path, json).unwrap();
             }
         }
         None => unreachable!(),
