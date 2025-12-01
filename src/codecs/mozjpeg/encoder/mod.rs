@@ -125,6 +125,30 @@ impl EncoderTrait for MozJpegEncoder {
             let mut comp = mozjpeg::Compress::new(format);
 
             comp.set_size(width, height);
+
+            // When using custom quantization tables with very high quality settings (>= 85),
+            // DCT coefficients can overflow. Instead of reducing quality, we apply smoothing
+            // to normalize the data and prevent coefficient overflow.
+            let has_custom_qtables = luma_qtable.is_some() || chroma_qtable.is_some();
+            let safe_smoothing = if has_custom_qtables && self.options.quality >= 85.0 {
+                // Apply moderate smoothing to prevent DCT coefficient overflow
+                // This helps normalize extreme pixel values without reducing quality
+                let applied_smoothing = if self.options.smoothing > 0 {
+                    self.options.smoothing.max(10)
+                } else {
+                    10
+                };
+                log::warn!(
+                    "High quality ({}) with custom quantization tables detected. \
+                     Applying smoothing ({}) to prevent DCT coefficient overflow.",
+                    self.options.quality,
+                    applied_smoothing
+                );
+                applied_smoothing
+            } else {
+                self.options.smoothing
+            };
+
             comp.set_quality(self.options.quality);
 
             if self.options.progressive {
@@ -132,7 +156,7 @@ impl EncoderTrait for MozJpegEncoder {
             }
 
             comp.set_optimize_coding(self.options.optimize_coding);
-            comp.set_smoothing_factor(self.options.smoothing);
+            comp.set_smoothing_factor(safe_smoothing);
             comp.set_color_space(match format {
                 mozjpeg::ColorSpace::JCS_GRAYSCALE => {
                     log::warn!("Input colorspace is GRAYSCALE, using GRAYSCALE as output");
@@ -158,6 +182,8 @@ impl EncoderTrait for MozJpegEncoder {
                 comp.set_chroma_sampling_pixel_sizes((sb, sb), (sb, sb))
             }
 
+            // Apply custom quantization tables
+            // Smoothing (applied above) will handle DCT coefficient normalization
             if let Some(qtable) = luma_qtable {
                 comp.set_luma_qtable(qtable)
             }
