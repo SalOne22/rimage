@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - self-build
     paths-ignore:
       - ".github/**"
       - ".gitignore"
