@@ -133,10 +133,10 @@ impl EncoderTrait for MozJpegEncoder {
             let safe_smoothing = if has_custom_qtables && self.options.quality >= 85.0 {
                 // Apply moderate smoothing to prevent DCT coefficient overflow
                 // This helps normalize extreme pixel values without reducing quality
-                let applied_smoothing = if self.options.smoothing > 0 {
-                    self.options.smoothing.max(10)
+                let applied_smoothing = if self.options.smoothing >= 10 {
+                    self.options.smoothing
                 } else {
-                    10
+                    10 // Minimum smoothing required to prevent DCT overflow
                 };
                 log::warn!(
                     "High quality ({}) with custom quantization tables detected. \
