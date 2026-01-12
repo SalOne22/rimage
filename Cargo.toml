@@ -60,6 +60,7 @@ build-binary = [
     "dep:console",
     "dep:regex",
     "dep:little_exif",
+    "icc"
 ]
 
 # Enables utilization of threads
