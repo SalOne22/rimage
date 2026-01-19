@@ -2,7 +2,20 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
-# v0.12.1
+# [v0.12.2](https://github.com/SalOne22/rimage/compare/v0.12.1...v0.12.2) (2026-01-20)
+
+
+### Bug Fixes
+
+* disable wasm32 build due to unresolved issues ([41c3b1e](https://github.com/SalOne22/rimage/commit/41c3b1eeee0fbf7a8ccc2bab61ebf6ebe64ce641))
+* suffix's docs conflict with code ([c1c0a44](https://github.com/SalOne22/rimage/commit/c1c0a44a3de18e3755a70540d79d20ddbf2fde44))
+* fix DCT overflow manually set smooth arg to fix that ([75f2cf7](https://github.com/SalOne22/rimage/commit/75f2cf7))
+* add icc to the build-binary feature to fix compilation errors ([c28be02](https://github.com/SalOne22/rimage/commit/c28be02))
+* suppress `little_exif` images without EXIF ([58495bc](https://github.com/SalOne22/rimage/commit/58495bc))
+* re-fix deprecated rename ravif::ColorSpace to ColorModel ([a1e482f](https://github.com/SalOne22/rimage/commit/a1e482f))
+
+
+# [v0.12.1](https://github.com/SalOne22/rimage/releases/tag/v0.12.1)
 
 ### Bug Fixes
 
