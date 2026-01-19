@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{arg, value_parser, ArgAction, Command};
+use clap::{ArgAction, Command, arg, value_parser};
 use indoc::indoc;
 
 use super::{preprocessors::Preprocessors, utils::threads};

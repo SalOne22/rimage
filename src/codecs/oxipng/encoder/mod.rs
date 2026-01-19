@@ -77,7 +77,7 @@ impl EncoderTrait for OxiPngEncoder {
                 cs => {
                     return Err(ImageErrors::EncodeErrors(
                         ImgEncodeErrors::UnsupportedColorspace(cs, self.supported_colorspaces()),
-                    ))
+                    ));
                 }
             },
             match image.depth() {
@@ -86,7 +86,7 @@ impl EncoderTrait for OxiPngEncoder {
                 d => {
                     return Err(ImageErrors::EncodeErrors(ImgEncodeErrors::Generic(
                         format!("{d:?} is not supported"),
-                    )))
+                    )));
                 }
             },
             data,

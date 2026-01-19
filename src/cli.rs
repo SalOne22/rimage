@@ -1,4 +1,4 @@
-use clap::{command, Command};
+use clap::{Command, command};
 use indoc::indoc;
 
 use self::codecs::Codecs;

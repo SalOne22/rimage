@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use clap::{builder::PossibleValue, ValueEnum};
+use clap::{ValueEnum, builder::PossibleValue};
 use fast_image_resize as fr;
 
 #[derive(Debug, Clone, Copy, PartialEq)]

@@ -1,6 +1,6 @@
 #![allow(unused_imports)]
 
-use clap::{arg, value_parser, Arg, ArgAction, ArgGroup, Command};
+use clap::{Arg, ArgAction, ArgGroup, Command, arg, value_parser};
 use indoc::indoc;
 
 #[cfg(feature = "resize")]

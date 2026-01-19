@@ -76,7 +76,7 @@ impl EncoderTrait for WebPEncoder {
                                 cs,
                                 self.supported_colorspaces(),
                             ),
-                        ))
+                        ));
                     }
                 };
 
@@ -101,7 +101,7 @@ impl EncoderTrait for WebPEncoder {
                 cs => {
                     return Err(ImageErrors::EncodeErrors(
                         ImgEncodeErrors::UnsupportedColorspace(cs, self.supported_colorspaces()),
-                    ))
+                    ));
                 }
             };
 

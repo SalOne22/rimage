@@ -13,8 +13,8 @@ use rimage::codecs::webp::WebPEncoder;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
 use zune_image::{
     codecs::{
-        farbfeld::FarbFeldEncoder, jpeg::JpegEncoder, jpeg_xl::JxlEncoder, png::PngEncoder,
-        ppm::PPMEncoder, qoi::QoiEncoder, ImageFormat,
+        ImageFormat, farbfeld::FarbFeldEncoder, jpeg::JpegEncoder, jpeg_xl::JxlEncoder,
+        png::PngEncoder, ppm::PPMEncoder, qoi::QoiEncoder,
     },
     errors::ImageErrors,
     image::Image,
