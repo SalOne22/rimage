@@ -1,4 +1,5 @@
 use lcms2::*;
+use std::sync::Mutex;
 use zune_core::{bit_depth::BitType, colorspace::ColorSpace};
 use zune_image::{
     errors::{ImageErrors, ImageOperationsErrors},
@@ -9,7 +10,7 @@ use zune_image::{
 
 /// Apply icc profile
 pub struct ApplyICC {
-    profile: Profile<ThreadContext>,
+    profile: Mutex<Profile<GlobalContext>>,
 }
 
 impl ApplyICC {
@@ -18,8 +19,10 @@ impl ApplyICC {
     /// # Arguments
     /// - profile: ICC profile
     #[must_use]
-    pub fn new(profile: Profile<ThreadContext>) -> Self {
-        Self { profile }
+    pub fn new(profile: Profile<GlobalContext>) -> Self {
+        Self {
+            profile: Mutex::new(profile),
+        }
     }
 }
 
@@ -30,9 +33,9 @@ impl OperationsTrait for ApplyICC {
 
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
         let src_profile = match image.metadata().icc_chunk() {
-            Some(icc) => Profile::new_icc_context(ThreadContext::new(), icc)
+            Some(icc) => Profile::new_icc(icc)
                 .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?,
-            None => Profile::new_srgb_context(ThreadContext::new()),
+            None => Profile::new_srgb(),
         };
 
         let colorspace = image.colorspace();
@@ -61,11 +64,15 @@ impl OperationsTrait for ApplyICC {
             _ => unreachable!("This should be handled in supported_colorspaces"),
         };
 
-        let t = Transform::new_flags_context(
-            ThreadContext::new(),
+        let profile = self
+            .profile
+            .lock()
+            .map_err(|_| ImageOperationsErrors::GenericString("Mutex poisoned".to_string()))?;
+
+        let t = Transform::new_flags(
             &src_profile,
             format,
-            &self.profile,
+            &profile,
             format,
             Intent::Perceptual,
             Flags::NO_CACHE,
@@ -73,13 +80,13 @@ impl OperationsTrait for ApplyICC {
         .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
         for frame in image.frames_mut() {
-            let mut buffer = frame.flatten::<u8>(colorspace);
+            let mut buffer = frame.flatten::<u8>();
             t.transform_in_place(&mut buffer);
             let _ = std::mem::replace(frame, Frame::from_u8(&buffer, colorspace, 0, 0));
         }
 
         image.metadata_mut().set_icc_chunk(
-            self.profile
+            profile
                 .icc()
                 .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?,
         );
@@ -121,7 +128,7 @@ impl OperationsTrait for ApplySRGB {
             return Ok(());
         }
 
-        ApplyICC::new(Profile::new_srgb_context(ThreadContext::new())).execute_impl(image)?;
+        ApplyICC::new(Profile::new_srgb()).execute_impl(image)?;
 
         Ok(())
     }
