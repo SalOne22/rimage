@@ -23,8 +23,7 @@ use serde::{Deserialize, Serialize};
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
 use zune_image::{
     core_filters::{colorspace::ColorspaceConv, depth::Depth},
-    image::Image,
-    pipelines::Pipeline,
+    traits::OperationsTrait,
 };
 use zune_imageprocs::auto_orient::AutoOrient;
 
@@ -44,8 +43,8 @@ macro_rules! handle_error {
     };
 }
 
-const SUPPORTS_EXIF: &[&str] = &["mozjpeg", "oxipng", "png", "jpeg", "jpegxl", "tiff", "webp"];
-const SUPPORTS_ICC: &[&str] = &["mozjpeg", "oxipng"];
+const SUPPORTS_EXIF: &[&str; 7] = &["mozjpeg", "oxipng", "png", "jpeg", "jpegxl", "tiff", "webp"];
+const SUPPORTS_ICC: &[&str; 2] = &["mozjpeg", "oxipng"];
 
 struct Result {
     output: PathBuf,
@@ -262,13 +261,13 @@ fn main() {
                     pb.set_message(format!("{}", input.display()));
                     pb.enable_steady_tick(Duration::from_millis(100));
 
-                    let mut pipeline = Pipeline::<Image>::new();
+                    let mut ops: Vec<Box<dyn OperationsTrait>> = Vec::new();
 
                     let input_size = handle_error!(input, input.metadata()).len();
                     let input_format = get_file_extension(&input);
                     let input_modified = get_file_modified_time(&input);
 
-                    let img = handle_error!(input, decode(&input));
+                    let mut img = handle_error!(input, decode(&input));
                     let exif_metadata: Option<ExifMetadata> = {
                         // Temporarily suppress little_exif error logs for images without EXIF
                         let prev_level = log::max_level();
@@ -316,34 +315,32 @@ fn main() {
                         output.set_extension(&output_format);
                     }
 
-                    pipeline.chain_operations(Box::new(Depth::new(BitDepth::Eight)));
-                    pipeline.chain_operations(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
+                    ops.push(Box::new(Depth::new(BitDepth::Eight)));
+                    ops.push(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
 
                     if strip_metadata || !SUPPORTS_EXIF.contains(&subcommand) {
-                        pipeline.chain_operations(Box::new(AutoOrient));
+                        ops.push(Box::new(AutoOrient));
                     }
 
                     if strip_metadata || !SUPPORTS_ICC.contains(&subcommand) {
-                        pipeline.chain_operations(Box::new(ApplySRGB));
+                        ops.push(Box::new(ApplySRGB));
                     }
 
                     operations(matches, &img)
                         .into_iter()
                         .for_each(|(_, operations)| match operations.name() {
                             "quantize" => {
-                                pipeline.chain_operations(Box::new(ColorspaceConv::new(
-                                    ColorSpace::RGBA,
-                                )));
-                                pipeline.chain_operations(operations);
+                                ops.push(Box::new(ColorspaceConv::new(ColorSpace::RGBA)));
+                                ops.push(operations);
                             }
                             _ => {
-                                pipeline.chain_operations(operations);
+                                ops.push(operations);
                             }
                         });
 
-                    pipeline.chain_decoder(img);
-
-                    handle_error!(input, pipeline.advance_to_end());
+                    for op in ops {
+                        handle_error!(input, op.execute_impl(&mut img));
+                    }
 
                     pb.set_style(sty_aux_encode.clone());
 
@@ -364,10 +361,7 @@ fn main() {
                     handle_error!(output, fs::create_dir_all(output.parent().unwrap()));
                     let output_file = handle_error!(output, File::create(&output));
 
-                    handle_error!(
-                        output,
-                        available_encoder.encode(&pipeline.images()[0], output_file)
-                    );
+                    handle_error!(output, available_encoder.encode(&img, output_file));
 
                     if let Some(actual_metadata) = exif_metadata {
                         match actual_metadata.write_to_file(&output) {
@@ -511,6 +505,6 @@ fn main() {
                 fs::write(metadata_path, json).unwrap();
             }
         }
-        None => unreachable!(),
+        std::prelude::v1::None => unreachable!(),
     }
 }

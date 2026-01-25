@@ -43,14 +43,14 @@ impl EncoderTrait for OxiPngEncoder {
         let (width, height) = image.dimensions();
 
         // inlined `to_u8` method because its private
-        let colorspace = image.colorspace();
+        let _colorspace = image.colorspace();
         let data = if image.depth() == BitDepth::Eight {
             image.flatten_frames::<u8>()
         } else if image.depth() == BitDepth::Sixteen {
             image
                 .frames_ref()
                 .iter()
-                .map(|z| z.u16_to_native_endian(colorspace))
+                .map(|z| z.u16_to_native_endian())
                 .collect()
         } else {
             unreachable!()
@@ -120,12 +120,13 @@ impl EncoderTrait for OxiPngEncoder {
     }
 
     fn supported_colorspaces(&self) -> &'static [ColorSpace] {
-        &[
+        static SUPPORTED_COLORSPACES: [ColorSpace; 4] = [
             ColorSpace::Luma,
             ColorSpace::LumaA,
             ColorSpace::RGB,
             ColorSpace::RGBA,
-        ]
+        ];
+        &SUPPORTED_COLORSPACES[..]
     }
 
     fn format(&self) -> ImageFormat {
@@ -133,7 +134,8 @@ impl EncoderTrait for OxiPngEncoder {
     }
 
     fn supported_bit_depth(&self) -> &'static [BitDepth] {
-        &[BitDepth::Eight, BitDepth::Sixteen]
+        static SUPPORTED_BIT_DEPTHS: [BitDepth; 2] = [BitDepth::Eight, BitDepth::Sixteen];
+        &SUPPORTED_BIT_DEPTHS[..]
     }
 
     fn default_depth(&self, depth: BitDepth) -> BitDepth {
