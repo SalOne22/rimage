@@ -46,12 +46,7 @@ impl OperationsTrait for Quantize {
             .iter()
             .map(|frame| {
                 let mut img = liq
-                    .new_image(
-                        frame.flatten().as_rgba(),
-                        src_width,
-                        src_height,
-                        0.0,
-                    )
+                    .new_image(frame.flatten().as_rgba(), src_width, src_height, 0.0)
                     .map_err(|e| ImageOperationsErrors::GenericString(e.to_string()))?;
 
                 histogram
@@ -109,11 +104,11 @@ impl OperationsTrait for Quantize {
     }
 
     fn supported_types(&self) -> &'static [BitType] {
-        &[BitType::U8]
+        &[BitType::U8][..]
     }
 
     fn supported_colorspaces(&self) -> &'static [ColorSpace] {
-        &[ColorSpace::RGBA]
+        &[ColorSpace::RGBA][..]
     }
 }
 
