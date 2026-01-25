@@ -47,7 +47,7 @@ impl OperationsTrait for Quantize {
             .map(|frame| {
                 let mut img = liq
                     .new_image(
-                        frame.flatten(image.colorspace()).as_rgba(),
+                        frame.flatten().as_rgba(),
                         src_width,
                         src_height,
                         0.0,
