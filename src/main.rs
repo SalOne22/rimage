@@ -23,7 +23,6 @@ use serde::{Deserialize, Serialize};
 use zune_core::{bit_depth::BitDepth, colorspace::ColorSpace};
 use zune_image::{
     core_filters::{colorspace::ColorspaceConv, depth::Depth},
-    image::Image,
     traits::OperationsTrait,
 };
 use zune_imageprocs::auto_orient::AutoOrient;
@@ -506,6 +505,6 @@ fn main() {
                 fs::write(metadata_path, json).unwrap();
             }
         }
-        none => unreachable!(),
+        std::prelude::v1::None => unreachable!(),
     }
 }
