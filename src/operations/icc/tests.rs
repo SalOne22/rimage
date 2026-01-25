@@ -9,8 +9,7 @@ fn apply_icc_profile() {
     let src_profile = Profile::new_srgb().icc().unwrap();
     image.metadata_mut().set_icc_chunk(src_profile);
 
-    let target_profile =
-        Profile::new_file_context(ThreadContext::new(), "tests/files/icc/tinysrgb.icc").unwrap();
+    let target_profile = Profile::new_file("tests/files/icc/tinysrgb.icc").unwrap();
 
     let icc = target_profile.icc().unwrap();
 
@@ -19,7 +18,8 @@ fn apply_icc_profile() {
     apply_icc.execute_impl(&mut image).unwrap();
 
     // Assert ICC profile is set correctly
-    assert_eq!(*image.metadata().icc_chunk().unwrap(), icc);
+    let stored = image.metadata().icc_chunk().unwrap();
+    assert_eq!(stored.as_slice(), icc.as_slice());
 }
 
 #[test]
