@@ -10,6 +10,7 @@ use std::sync::{Arc, Mutex, OnceLock};
 
 use resvg::usvg;
 use resvg::usvg::fontdb;
+use skrifa::MetadataProvider;
 
 /// Font families used when the requested family cannot be found.
 const DEFAULT_FAMILIES: &[&str] = &["Times New Roman"];
@@ -134,14 +135,18 @@ fn log_missing_glyph(c: char, family: &str) {
     }
 }
 
-/// Checks whether the face supports the character, mirroring the semantics of
-/// the character check used inside `usvg` which is not exposed publicly.
+/// Checks whether the face supports the character.
+///
+/// Maps through the character map and rejects glyphs resolved to `.notdef`,
+/// mirroring the character check used inside `usvg` which is not exposed
+/// publicly.
 fn has_char(fontdb: &fontdb::Database, id: fontdb::ID, c: char) -> bool {
     fontdb
         .with_face_data(id, |font_data, face_index| {
-            ttf_parser::Face::parse(font_data, face_index)
+            skrifa::FontRef::from_index(font_data, face_index)
                 .ok()?
-                .glyph_index(c)
+                .charmap()
+                .map(c)
         })
         .is_some_and(|glyph| glyph.is_some())
 }

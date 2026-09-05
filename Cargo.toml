@@ -93,7 +93,7 @@ avif = ["dep:ravif", "dep:libavif", "dep:rgb"]
 # Enables tiff codec
 tiff    = ["dep:tiff"]
 # Enables SVG input support (rendered via resvg)
-svg = ["dep:resvg", "dep:ttf-parser"]
+svg = ["dep:resvg", "dep:skrifa"]
 icc     = ["dep:lcms2"]
 console = ["dep:console"]
 
@@ -119,12 +119,14 @@ lcms2 = { version = "6.2", optional = true }
 tiff = { version = "0.11.3", default-features = false, features = [
     "lzw",
 ], optional = true }
-resvg = { version = "0.47.0", default-features = false, features = [
+resvg = { version = "0.48.1", default-features = false, features = [
     "text",
     "system-fonts",
     "raster-images",
 ], optional = true }
-ttf-parser = { version = "0.25.1", optional = true }
+skrifa = { version = "0.44", default-features = false, features = [
+    "std",
+], optional = true }
 
 # cli
 anyhow = { version = "1.0", optional = true }
