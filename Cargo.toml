@@ -2,7 +2,7 @@
 name          = "rimage"
 version       = "0.13.0"
 edition       = "2024"
-rust-version  = "1.96.0"
+rust-version  = "1.88.0"
 description   = "Optimize images natively with best-in-class codecs"
 license       = "MIT OR Apache-2.0"
 readme        = "README.md"
