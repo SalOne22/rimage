@@ -7,7 +7,7 @@ use super::{preprocessors::Preprocessors, utils::threads};
 
 impl CommonArgs for Command {
     fn common_args(self) -> Self {
-        self
+        let cmd = self
         .next_help_heading("General").args([
             arg!(files: <FILES> ... "Input file(s) to process.")
                 .long_help(indoc! {r#"Input file(s) to process.
@@ -58,8 +58,37 @@ impl CommonArgs for Command {
 
                 This will output the metadata of the processed image(s) in JSON format."#})
                 .value_parser(value_parser!(PathBuf)),
-        ])
-        .preprocessors()
+        ]);
+
+        #[cfg(feature = "svg")]
+        let cmd = cmd.next_help_heading("SVG").args([
+            arg!(--"svg-scale" <SCALE> "Uniform scale factor applied when rendering SVG input(s).")
+                .long_help(indoc! {r#"Uniform scale factor applied when rendering SVG input(s).
+
+                The SVG is rasterized directly at the scaled size, so upscaling keeps the vector quality of the source instead of resampling a smaller image.
+
+                For example, --svg-scale 2 renders a 100x100 SVG at 200x200.
+
+                Conflicts with --svg-width and --svg-height."#})
+                .value_parser(value_parser!(f32))
+                .conflicts_with_all(["svg-width", "svg-height"]),
+            arg!(--"svg-width" <PIXELS> "Target width in pixels when rendering SVG input(s).")
+                .long_help(indoc! {r#"Target width in pixels when rendering SVG input(s).
+
+                The SVG is rasterized directly at the target size, so upscaling keeps the vector quality of the source.
+
+                When provided without --svg-height, the height is derived while keeping the aspect ratio of the SVG."#})
+                .value_parser(value_parser!(u32).range(1..)),
+            arg!(--"svg-height" <PIXELS> "Target height in pixels when rendering SVG input(s).")
+                .long_help(indoc! {r#"Target height in pixels when rendering SVG input(s).
+
+                The SVG is rasterized directly at the target size, so upscaling keeps the vector quality of the source.
+
+                When provided without --svg-width, the width is derived while keeping the aspect ratio of the SVG."#})
+                .value_parser(value_parser!(u32).range(1..)),
+        ]);
+
+        cmd.preprocessors()
     }
 }
 

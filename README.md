@@ -275,6 +275,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
 | psd          | zune-psd      | ❌                      | Input only                                           |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
+| svg          | resvg         | ❌                      | Input only                                           |
 | tiff         | tiff          | ❌                      | Input only                                           |
 | webp         | webp          | webp                    | Static only                                          |
 

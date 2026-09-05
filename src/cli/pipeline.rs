@@ -8,6 +8,8 @@ use rimage::codecs::avif::AvifEncoder;
 use rimage::codecs::mozjpeg::MozJpegEncoder;
 #[cfg(feature = "oxipng")]
 use rimage::codecs::oxipng::OxiPngEncoder;
+#[cfg(feature = "svg")]
+use rimage::codecs::svg::{SvgDecoder, SvgOptions};
 #[cfg(feature = "webp")]
 use rimage::codecs::webp::WebPEncoder;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
@@ -23,11 +25,28 @@ use zune_image::{
 };
 use zune_imageprocs::premul_alpha::PremultiplyAlpha;
 
-pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
+#[allow(unused_variables)]
+#[allow(unused_mut)]
+pub fn decode<P: AsRef<Path>>(f: P, matches: &ArgMatches) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
-            #[cfg(any(feature = "avif", feature = "webp"))]
+            #[cfg(any(feature = "avif", feature = "webp", feature = "svg"))]
             let mut file = File::open(f.as_ref())?;
+
+            #[cfg(feature = "svg")]
+            {
+                if f.as_ref()
+                    .extension()
+                    .is_some_and(|f| f.eq_ignore_ascii_case("svg") | f.eq_ignore_ascii_case("svgz"))
+                {
+                    let options = svg_options(matches, f.as_ref());
+                    let decoder = SvgDecoder::try_new_with_options(file, options)?;
+
+                    return Image::from_decoder(decoder);
+                }
+
+                file.seek(SeekFrom::Start(0))?;
+            }
 
             #[cfg(feature = "avif")]
             {
@@ -85,6 +104,16 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
             Err(e)
         }
     })
+}
+
+#[cfg(feature = "svg")]
+fn svg_options(matches: &ArgMatches, path: &Path) -> SvgOptions {
+    SvgOptions {
+        resources_dir: path.parent().map(Path::to_path_buf),
+        scale: matches.get_one::<f32>("svg-scale").copied().unwrap_or(1.0),
+        width: matches.get_one::<u32>("svg-width").copied(),
+        height: matches.get_one::<u32>("svg-height").copied(),
+    }
 }
 
 #[allow(unused_variables)]

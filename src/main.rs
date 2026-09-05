@@ -822,7 +822,7 @@ fn main() -> std::process::ExitCode {
                         let input_format = get_file_extension(&input);
                         let input_modified = get_file_modified_time(&input);
 
-                        let mut img = handle_error!(input, decode(&input));
+                        let mut img = handle_error!(input, decode(&input, matches));
                         let exif_metadata: Option<ExifMetadata> = ExifMetadata::new_from_path(&input)
                             .ok()
                             .filter(|_| {

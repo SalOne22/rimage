@@ -2,6 +2,15 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
+# Unreleased
+
+### Features
+
+- add SVG input support rendered through `resvg` (static SVG and gzipped SVGZ), usable with every output format
+- add `--svg-scale`, `--svg-width` and `--svg-height` options that rasterize the SVG directly at the target size, so upscaling keeps the vector quality of the source
+- load system fonts for SVG text and substitute missing fonts with a warning: CJK text falls back to Microsoft YaHei UI, everything else falls back to the default font families
+- declare `rust-version = "1.88"` to track the effective minimum supported Rust version
+
 # [0.13.0](https://github.com/SalOne22/rimage/compare/v0.12.4...v0.13.0) (2026-08-14)
 
 ### Breaking Changes

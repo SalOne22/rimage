@@ -28,6 +28,7 @@ List of supported codecs
 | ppm           | O     | O      |                 |
 | psd           | O     | X      |                 |
 | qoi           | O     | O      |                 |
+| svg           | O     | X      | Rendered via resvg |
 | tiff          | O     | X      |                 |
 | webp          | O     | O      | Static only     |
 
