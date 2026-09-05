@@ -12,6 +12,14 @@ use zune_image::traits::DecoderTrait;
 
 use super::fonts;
 
+/// Maximum number of pixels an SVG render target may cover (2^28, ~268 MP).
+///
+/// At 4 bytes per pixel this bounds the render pixmap and the straight-alpha
+/// copy at ~1 GiB each, plus ~1 GiB of interleaved channels in the resulting
+/// [`Image`], which keeps worst-case transient memory bounded regardless of
+/// the SVG's declared size or the provided render options.
+pub const MAX_TARGET_PIXELS: u64 = 1 << 28;
+
 /// Options controlling how an SVG image is rendered into pixels.
 #[derive(Clone, Debug)]
 pub struct SvgOptions {
@@ -24,12 +32,18 @@ pub struct SvgOptions {
     ///
     /// Ignored when [`SvgOptions::width`] or [`SvgOptions::height`] is set.
     /// Must be positive and finite. Defaults to `1.0`.
+    ///
+    /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
     pub scale: f32,
     /// Target width in pixels. When set without [`SvgOptions::height`], the
     /// height is derived while keeping the aspect ratio of the SVG.
+    ///
+    /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
     pub width: Option<u32>,
     /// Target height in pixels. When set without [`SvgOptions::width`], the
     /// width is derived while keeping the aspect ratio of the SVG.
+    ///
+    /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
     pub height: Option<u32>,
 }
 
@@ -115,6 +129,17 @@ fn resolve_target_size(
 
     // Rounds and clamps to at least 1x1.
     let target = scaled.to_int_size();
+
+    // The area is computed in u64 because width and height can each approach
+    // u32::MAX, whose product overflows usize.
+    let area = u64::from(target.width()) * u64::from(target.height());
+    if area > MAX_TARGET_PIXELS {
+        return Err(ImageErrors::ImageDecodeErrors(format!(
+            "SVG target size {}x{} ({area} pixels) exceeds the limit of {MAX_TARGET_PIXELS} pixels, reduce the SVG scale or the explicit dimensions",
+            target.width(),
+            target.height()
+        )));
+    }
 
     Ok((target.width() as usize, target.height() as usize))
 }

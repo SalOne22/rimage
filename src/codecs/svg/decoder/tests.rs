@@ -130,3 +130,40 @@ fn decode_with_invalid_scale_errors() {
 
     assert!(decoder.is_err());
 }
+
+#[test]
+fn decode_with_huge_intrinsic_size_errors() {
+    let file = File::open("tests/files/svg/huge-canvas.svg").unwrap();
+
+    // Parsing succeeds, the oversized render target is rejected instead of
+    // attempting a multi-gigabyte allocation.
+    let decoder = SvgDecoder::try_new(file);
+
+    assert!(decoder.is_err());
+}
+
+#[test]
+fn decode_with_oversized_scale_errors() {
+    let file = File::open("tests/files/svg/rect.svg").unwrap();
+    let options = SvgOptions {
+        scale: 1e9,
+        ..Default::default()
+    };
+
+    let decoder = SvgDecoder::try_new_with_options(file, options);
+
+    assert!(decoder.is_err());
+}
+
+#[test]
+fn decode_with_oversized_width_errors() {
+    let file = File::open("tests/files/svg/rect.svg").unwrap();
+    let options = SvgOptions {
+        width: Some(u32::MAX),
+        ..Default::default()
+    };
+
+    let decoder = SvgDecoder::try_new_with_options(file, options);
+
+    assert!(decoder.is_err());
+}

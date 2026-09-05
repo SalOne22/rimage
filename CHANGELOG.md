@@ -14,6 +14,7 @@ All notable changes to the Rimage library will be documented in this file.
 ### Bug Fixes
 
 - show warning-level logs by default without `RUST_LOG`; drop the spurious premultiply warning that fired on every run without `--premultiply` and demote the routine missing-ICC-profile notice to debug level
+- reject SVG render targets above 268 MP (2^28 pixels) with a decode error instead of attempting unbounded multi-gigabyte allocations that could terminate the process through out-of-memory
 
 # [0.13.0](https://github.com/SalOne22/rimage/compare/v0.12.4...v0.13.0) (2026-08-14)
 
