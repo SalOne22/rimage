@@ -1731,6 +1731,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tiff",
+ "ttf-parser",
  "webp",
  "winresource",
  "zune-core",
