@@ -14,23 +14,23 @@ pub fn cli() -> Command {
         .arg_required_else_help(true)
         .after_help(indoc! {r#"
 List of supported codecs
-| Image Format  | Input | Output | Note            |
-| ------------- | ----- | ------ | --------------- |
-| avif          | O     | O      | Static only     |
-| bmp           | O     | X      |                 |
-| farbfeld      | O     | O      |                 |
-| hdr           | O     | O      |                 |
-| jpeg          | O     | O      |                 |
-| jpeg_xl(jxl)  | O     | O      |                 |
-| mozjpeg(moz)  | O     | O      |                 |
-| oxipng(oxi)   | O     | O      | Static only     |
-| png           | O     | O      | Static only     |
-| ppm           | O     | O      |                 |
-| psd           | O     | X      |                 |
-| qoi           | O     | O      |                 |
-| svg           | O     | X      | Rendered via resvg |
-| tiff          | O     | X      |                 |
-| webp          | O     | O      | Static only     |
+| Image Format  | Input | Output | Note              |
+| ------------- | ----- | ------ | ----------------- |
+| avif          | O     | O      | Static only       |
+| bmp           | O     | X      |                   |
+| farbfeld      | O     | O      |                   |
+| hdr           | O     | O      |                   |
+| jpeg          | O     | O      |                   |
+| jpeg_xl(jxl)  | O     | O      |                   |
+| mozjpeg(moz)  | O     | O      |                   |
+| oxipng(oxi)   | O     | O      | Static only       |
+| png           | O     | O      | Static only       |
+| ppm           | O     | O      |                   |
+| psd           | O     | X      |                   |
+| qoi           | O     | O      |                   |
+| svg           | O     | X      | Resize losslessly |
+| tiff          | O     | X      |                   |
+| webp          | O     | O      | Static only       |
 
 List of supported preprocessing options
 - Resize

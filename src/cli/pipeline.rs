@@ -206,6 +206,13 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
             .into_iter()
             .zip(matches.indices_of("premultiply").unwrap())
             .for_each(|(value, idx)| {
+                // Position-sensitive flags inject a trailing default `false`
+                // occurrence when the flag is absent from the command line,
+                // which must stay silent.
+                if !*value {
+                    return;
+                }
+
                 if let Some(op) = map.get(&(idx + 2)) {
                     log::trace!("setup alpha premultiply for {}", op.name());
 

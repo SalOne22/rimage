@@ -592,6 +592,7 @@ fn pretty_path(path: &Path) -> PathBuf {
 
 fn main() -> std::process::ExitCode {
     let logger = pretty_env_logger::formatted_builder()
+        .filter_level(log::LevelFilter::Warn)
         .parse_default_env()
         .filter_module("little_exif", log::LevelFilter::Off)
         .build();

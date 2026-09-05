@@ -11,6 +11,10 @@ All notable changes to the Rimage library will be documented in this file.
 - load system fonts for SVG text and substitute missing fonts with a warning: CJK text falls back to Microsoft YaHei UI, everything else falls back to the default font families
 - declare `rust-version = "1.88"` to track the effective minimum supported Rust version
 
+### Bug Fixes
+
+- show warning-level logs by default without `RUST_LOG`; drop the spurious premultiply warning that fired on every run without `--premultiply` and demote the routine missing-ICC-profile notice to debug level
+
 # [0.13.0](https://github.com/SalOne22/rimage/compare/v0.12.4...v0.13.0) (2026-08-14)
 
 ### Breaking Changes

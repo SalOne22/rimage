@@ -110,15 +110,15 @@ run before encoding. Operations execute in CLI argument order.
 `--resize` accepts one of the following value forms. Unless a fixed `WxH` is
 given, the aspect ratio is preserved:
 
-| Form  | Meaning                                                     | Example   | Result on 800x400 |
-| ----- | ----------------------------------------------------------- | --------- | ----------------- |
-| `WxH` | Fixed width and height, aspect ratio is not preserved       | `100x300` | `100x300`         |
-| `Ww`  | Anchor on the width, height follows the aspect ratio        | `100w`    | `100x50`          |
-| `hH`  | Anchor on the height, width follows the aspect ratio        | `200h`    | `400x200`         |
-| `Ll`  | Longest side becomes `L`, the other side follows            | `1000l`   | `1000x500`        |
-| `Ss`  | Shortest side becomes `S`, the other side follows           | `500s`    | `1000x500`        |
-| `@M`  | Scale by the multiplier `M`                                 | `@1.5`    | `1200x600`        |
-| `P%`  | Scale to `P` percent of the source                          | `50%`     | `400x200`         |
+| Form  | Meaning                                               | Example   | Result on 800x400 |
+| ----- | ----------------------------------------------------- | --------- | ----------------- |
+| `WxH` | Fixed width and height, aspect ratio is not preserved | `100x300` | `100x300`         |
+| `Ww`  | Anchor on the width, height follows the aspect ratio  | `100w`    | `100x50`          |
+| `hH`  | Anchor on the height, width follows the aspect ratio  | `200h`    | `400x200`         |
+| `Ll`  | Longest side becomes `L`, the other side follows      | `1000l`   | `1000x500`        |
+| `Ss`  | Shortest side becomes `S`, the other side follows     | `500s`    | `1000x500`        |
+| `@M`  | Scale by the multiplier `M`                           | `@1.5`    | `1200x600`        |
+| `P%`  | Scale to `P` percent of the source                    | `50%`     | `400x200`         |
 
 ```sh
 # Fixed dimensions: the image is resized to exactly 100x200

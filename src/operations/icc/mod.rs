@@ -154,7 +154,9 @@ impl OperationsTrait for ApplySRGB {
 
     fn execute_impl(&self, image: &mut Image) -> Result<(), ImageErrors> {
         if image.metadata().icc_chunk().is_none() {
-            log::warn!("No icc profile in the image, skipping");
+            // Routine path for images without an embedded profile, so this is
+            // debug-level to stay quiet under the default warn-level logging.
+            log::debug!("No icc profile in the image, skipping");
             return Ok(());
         }
 
