@@ -26,10 +26,19 @@ fn decode_simple_rect() {
 }
 
 #[test]
-fn decode_scales_by_factor() {
+fn probe_size_returns_intrinsic_size() {
+    let file = File::open("tests/files/svg/rect.svg").unwrap();
+
+    let size = SvgDecoder::probe_size(file, None).unwrap();
+
+    assert_eq!(size, (100.0, 50.0));
+}
+
+#[test]
+fn decode_with_target_size_renders_at_vector_quality() {
     let file = File::open("tests/files/svg/rect.svg").unwrap();
     let options = SvgOptions {
-        scale: 2.0,
+        target_size: Some((200, 100)),
         ..Default::default()
     };
 
@@ -38,31 +47,17 @@ fn decode_scales_by_factor() {
 
     assert_eq!(img.dimensions(), (200, 100));
 
-    // The scaled render keeps full opacity, a raster upscale would too, but
-    // the vector render has no resampling blur on the edges.
+    // The target-size render keeps full opacity and crisp vector edges, just
+    // like the old --svg-scale path did.
     let red = img.channels_ref(false)[0].reinterpret_as::<u8>().unwrap();
     assert_eq!(red[0], 255);
 }
 
 #[test]
-fn decode_with_target_width_keeps_aspect_ratio() {
+fn decode_with_target_aspect_ratio() {
     let file = File::open("tests/files/svg/rect.svg").unwrap();
     let options = SvgOptions {
-        width: Some(200),
-        ..Default::default()
-    };
-
-    let decoder = SvgDecoder::try_new_with_options(file, options).unwrap();
-    let img = Image::from_decoder(decoder).unwrap();
-
-    assert_eq!(img.dimensions(), (200, 100));
-}
-
-#[test]
-fn decode_with_target_height_keeps_aspect_ratio() {
-    let file = File::open("tests/files/svg/rect.svg").unwrap();
-    let options = SvgOptions {
-        height: Some(25),
+        target_size: Some((50, 25)),
         ..Default::default()
     };
 
@@ -73,11 +68,10 @@ fn decode_with_target_height_keeps_aspect_ratio() {
 }
 
 #[test]
-fn decode_with_exact_width_and_height() {
+fn decode_with_exact_target_size() {
     let file = File::open("tests/files/svg/rect.svg").unwrap();
     let options = SvgOptions {
-        width: Some(120),
-        height: Some(40),
+        target_size: Some((120, 40)),
         ..Default::default()
     };
 
@@ -121,10 +115,10 @@ fn decode_invalid_svg_errors() {
 }
 
 #[test]
-fn decode_with_invalid_scale_errors() {
+fn decode_with_zero_target_size_errors() {
     let file = File::open("tests/files/svg/rect.svg").unwrap();
     let options = SvgOptions {
-        scale: 0.0,
+        target_size: Some((0, 100)),
         ..Default::default()
     };
 
@@ -145,23 +139,10 @@ fn decode_with_huge_intrinsic_size_errors() {
 }
 
 #[test]
-fn decode_with_oversized_scale_errors() {
+fn decode_with_oversized_target_size_errors() {
     let file = File::open("tests/files/svg/rect.svg").unwrap();
     let options = SvgOptions {
-        scale: 1e9,
-        ..Default::default()
-    };
-
-    let decoder = SvgDecoder::try_new_with_options(file, options);
-
-    assert!(decoder.is_err());
-}
-
-#[test]
-fn decode_with_oversized_width_errors() {
-    let file = File::open("tests/files/svg/rect.svg").unwrap();
-    let options = SvgOptions {
-        width: Some(u32::MAX),
+        target_size: Some((u32::MAX, u32::MAX)),
         ..Default::default()
     };
 

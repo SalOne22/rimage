@@ -182,6 +182,15 @@ rimage mozjpeg --resize 2000l --resize 50% --reduce-only ./image.jpg  # 800x400 
 rimage mozjpeg --resize 1000l --filter nearest ./image.jpg
 ```
 
+SVG inputs are resized through the same `--resize` parameter. Instead of
+rasterizing the SVG at its intrinsic size and then resampling with
+`fast_image_resize`, the SVG is rendered vectorly with `resvg` directly at the
+final target size. Upscaling therefore keeps the vector quality of the source,
+and chained `--resize` values compose for SVG exactly as they do for raster
+images. `--filter` selects the raster resampling filter used by
+`fast_image_resize`; it is still accepted for SVG inputs (when `--resize` is
+present) but has no effect on vector SVG rendering.
+
 #### Quantization (color palette reduction)
 
 `--quantization` reduces the number of distinct colors in the image. It is **not** a
@@ -222,32 +231,22 @@ so an SVG can be fed to any output format. By default the SVG renders at its
 intrinsic size — taken from its `width`/`height`, falling back to the
 `viewBox`.
 
-Because the source is vector data, sizing is **lossless at any scale**: the
-SVG is rasterized directly at the requested size instead of resampling an
-already-rendered bitmap, so edges, gradients and text stay exactly as sharp
-when you enlarge it. Do not use `--resize` to upscale an SVG — it would
-resample the rendered bitmap — use the options below to control the
-rasterization size instead.
-
-| Option                | Meaning                                                            | Example on a 100x50 SVG |
-| --------------------- | ------------------------------------------------------------------ | ----------------------- |
-| `--svg-scale <SCALE>` | Multiply both sides by `SCALE`                                     | `--svg-scale 2` → 200x100 |
-| `--svg-width <PIX>`   | Render at exactly this width; height follows the aspect ratio      | `--svg-width 400` → 400x200 |
-| `--svg-height <PIX>`  | Render at exactly this height; width follows the aspect ratio      | `--svg-height 200` → 400x100 |
-
-`--svg-scale` conflicts with `--svg-width`/`--svg-height`; `--svg-width` and
-`--svg-height` may be combined for a non-proportional fit.
+Use `--resize` to control the rasterization size. The SVG is rasterized
+directly at the requested size, so sizing is **lossless at any scale**: edges,
+gradients and text stay exactly as sharp when you enlarge it. Chained
+`--resize` values compose for SVG exactly as they do for raster images, and
+the direction flags (`--reduce-only`, `--enlarge-only`) work for SVG too.
 
 ```sh
 # Render a 100x50 SVG at 2x and encode it as PNG
-rimage png --svg-scale 2 ./logo.svg
+rimage png --resize @2 ./logo.svg
 
 # Render at a fixed width for a 2x-density asset, height follows
-rimage mozjpeg --svg-width 800 ./logo.svg
+rimage mozjpeg --resize 800w ./logo.svg
 ```
 
-The options only affect `.svg`/`.svgz` inputs: raster images in the same batch
-ignore them and keep their own size.
+`--resize` affects `.svg`/`.svgz` inputs and raster images alike. `--filter`
+is a raster resampling filter and has no effect on vector SVG rendering.
 
 ### Advanced options
 

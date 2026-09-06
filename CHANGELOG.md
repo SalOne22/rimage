@@ -8,7 +8,7 @@ All notable changes to the Rimage library will be documented in this file.
 
 - replace the `libavif` AVIF decoder with a `dav1d`-based one (`dav1d` + `avif-parse` + `yuvutils-rs`); decoding now links a system-installed `dav1d` (>= 1.3.0) through pkg-config instead of building libaom from source with cmake. Still-image AVIF only: grid collages and animated sequences are rejected with a decode error, 10/12-bit sources are converted to 8-bit output, and ICC profiles are not applied
 - add SVG input support rendered through `resvg` (static SVG and gzipped SVGZ), usable with every output format
-- add `--svg-scale`, `--svg-width` and `--svg-height` options that rasterize the SVG directly at the target size, so upscaling keeps the vector quality of the source
+- resize SVG inputs through the existing `--resize` option by rendering the SVG vectorly with `resvg` directly at the final target size, so upscaling keeps the vector quality of the source; the SVG-specific `--svg-scale`, `--svg-width` and `--svg-height` options were removed
 - load system fonts for SVG text and substitute missing fonts with a warning: the serif default and the CJK fallback are resolved once at load time from platform-appropriate seeds (Times New Roman/Liberation Serif/DejaVu Serif, YaHei/PingFang/Noto CJK), the `serif` generic alias is pointed at a family that actually exists, and a text span is never dropped for the lack of a font — as a last resort it renders with whatever face the system has
 - declare `rust-version = "1.88"` to track the effective minimum supported Rust version
 

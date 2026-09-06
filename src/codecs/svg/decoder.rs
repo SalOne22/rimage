@@ -28,32 +28,18 @@ pub struct SvgOptions {
     ///
     /// Should be set to the directory containing the SVG file.
     pub resources_dir: Option<PathBuf>,
-    /// Uniform scale factor applied to the SVG intrinsic size.
-    ///
-    /// Ignored when [`SvgOptions::width`] or [`SvgOptions::height`] is set.
-    /// Must be positive and finite. Defaults to `1.0`.
+    /// Explicit render target in pixels. When `None`, the SVG is rendered
+    /// at its intrinsic size.
     ///
     /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
-    pub scale: f32,
-    /// Target width in pixels. When set without [`SvgOptions::height`], the
-    /// height is derived while keeping the aspect ratio of the SVG.
-    ///
-    /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
-    pub width: Option<u32>,
-    /// Target height in pixels. When set without [`SvgOptions::width`], the
-    /// width is derived while keeping the aspect ratio of the SVG.
-    ///
-    /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
-    pub height: Option<u32>,
+    pub target_size: Option<(u32, u32)>,
 }
 
 impl Default for SvgOptions {
     fn default() -> Self {
         Self {
             resources_dir: None,
-            scale: 1.0,
-            width: None,
-            height: None,
+            target_size: None,
         }
     }
 }
@@ -68,32 +54,58 @@ pub struct SvgDecoder {
     target: (usize, usize),
 }
 
+/// Parses an SVG document into a `resvg` tree.
+///
+/// Reads the whole source, configures `resvg` with the SVG's resource
+/// directory and the process-wide system font database, and parses the
+/// document. `Tree::from_data` detects and decompresses gzip (SVGZ)
+/// automatically.
+fn parse_tree<R: Read>(
+    mut source: R,
+    resources_dir: Option<PathBuf>,
+) -> Result<usvg::Tree, ImageErrors> {
+    let mut data = Vec::new();
+    source
+        .read_to_end(&mut data)
+        .map_err(|e| ImageErrors::ImageDecodeErrors(format!("Unable to read SVG data - {e}")))?;
+
+    let mut usvg_options = usvg::Options {
+        resources_dir,
+        font_resolver: fonts::font_resolver(),
+        ..usvg::Options::default()
+    };
+    usvg_options.fontdb = fonts::system_fontdb();
+
+    usvg::Tree::from_data(&data, &usvg_options)
+        .map_err(|e| ImageErrors::ImageDecodeErrors(format!("Unable to parse SVG - {e}")))
+}
+
 impl SvgDecoder {
     /// Create a new SVG decoder with default render options.
     pub fn try_new<R: Read>(source: R) -> Result<Self, ImageErrors> {
         Self::try_new_with_options(source, SvgOptions::default())
     }
 
+    /// Returns the intrinsic SVG size in pixels without rendering the image.
+    ///
+    /// Unlike [`SvgDecoder::try_new_with_options`], this does not validate
+    /// [`MAX_TARGET_PIXELS`]; callers can use it to compute a resize target
+    /// before seeking back and constructing the real decoder.
+    pub fn probe_size<R: Read>(
+        source: R,
+        resources_dir: Option<PathBuf>,
+    ) -> Result<(f32, f32), ImageErrors> {
+        let tree = parse_tree(source, resources_dir)?;
+        let size = tree.size();
+        Ok((size.width(), size.height()))
+    }
+
     /// Create a new SVG decoder with custom render options.
     pub fn try_new_with_options<R: Read>(
-        mut source: R,
+        source: R,
         options: SvgOptions,
     ) -> Result<Self, ImageErrors> {
-        let mut data = Vec::new();
-        source.read_to_end(&mut data).map_err(|e| {
-            ImageErrors::ImageDecodeErrors(format!("Unable to read SVG data - {e}"))
-        })?;
-
-        let mut usvg_options = usvg::Options {
-            resources_dir: options.resources_dir.clone(),
-            font_resolver: fonts::font_resolver(),
-            ..usvg::Options::default()
-        };
-        usvg_options.fontdb = fonts::system_fontdb();
-
-        // `Tree::from_data` detects and decompresses gzip (SVGZ) automatically.
-        let tree = usvg::Tree::from_data(&data, &usvg_options)
-            .map_err(|e| ImageErrors::ImageDecodeErrors(format!("Unable to parse SVG - {e}")))?;
+        let tree = parse_tree(source, options.resources_dir.clone())?;
 
         let size = tree.size();
         let target = resolve_target_size(&options, size)?;
@@ -112,36 +124,35 @@ fn resolve_target_size(
     options: &SvgOptions,
     size: usvg::Size,
 ) -> Result<(usize, usize), ImageErrors> {
-    if !options.scale.is_finite() || options.scale <= 0.0 {
-        return Err(ImageErrors::ImageDecodeErrors(format!(
-            "Invalid SVG scale factor {}",
-            options.scale
-        )));
-    }
+    let target = match options.target_size {
+        Some((width, height)) => {
+            if width == 0 || height == 0 {
+                return Err(ImageErrors::ImageDecodeErrors(format!(
+                    "Invalid SVG target size {width}x{height}"
+                )));
+            }
+            (width as u32, height as u32)
+        }
+        None => {
+            let intrinsic = size.to_int_size();
+            (intrinsic.width(), intrinsic.height())
+        }
+    };
 
-    let scaled = match (options.width, options.height) {
-        (Some(width), Some(height)) => usvg::Size::from_wh(width as f32, height as f32),
-        (Some(width), None) => size.scale_to_width(width as f32),
-        (None, Some(height)) => size.scale_to_height(height as f32),
-        (None, None) => size.scale_by(options.scale),
-    }
-    .ok_or_else(|| ImageErrors::ImageDecodeErrors("Invalid SVG target size".to_string()))?;
-
-    // Rounds and clamps to at least 1x1.
-    let target = scaled.to_int_size();
+    // Clamp both dimensions to at least 1x1.
+    let width = target.0.max(1) as usize;
+    let height = target.1.max(1) as usize;
 
     // The area is computed in u64 because width and height can each approach
     // u32::MAX, whose product overflows usize.
-    let area = u64::from(target.width()) * u64::from(target.height());
+    let area = (width as u64) * (height as u64);
     if area > MAX_TARGET_PIXELS {
         return Err(ImageErrors::ImageDecodeErrors(format!(
-            "SVG target size {}x{} ({area} pixels) exceeds the limit of {MAX_TARGET_PIXELS} pixels, reduce the SVG scale or the explicit dimensions",
-            target.width(),
-            target.height()
+            "SVG target size {width}x{height} ({area} pixels) exceeds the limit of {MAX_TARGET_PIXELS} pixels, reduce the --resize target or the intrinsic size",
         )));
     }
 
-    Ok((target.width() as usize, target.height() as usize))
+    Ok((width, height))
 }
 
 impl DecoderTrait for SvgDecoder {
