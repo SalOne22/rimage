@@ -7,9 +7,21 @@
 # main-branch image (Ubuntu 24.04 base) by digest so the toolchain cannot
 # change silently. Refresh with:
 #   docker buildx imagetools inspect ghcr.io/cross-rs/aarch64-unknown-linux-musl:main
+#
+# AVIF decoding links dav1d through pkg-config and the stock image carries no
+# dav1d, so pre-build compiles a static dav1d against the musl toolchain.
+# nasm is not needed here: the aarch64 asm is assembled by the C compiler.
 [target.aarch64-unknown-linux-musl]
 image = "ghcr.io/cross-rs/aarch64-unknown-linux-musl@sha256:10769140e3ce9c01cb2b1d4751ce3afb31fb2edea5afcd409ccde589729d7910"
 pre-build = [
     "apt-get update",
-    "apt-get install --assume-yes ninja-build meson nasm",
+    "apt-get install --assume-yes ninja-build meson pkg-config git ca-certificates",
+    "git clone --depth 1 --branch 1.5.1 https://code.videolan.org/videolan/dav1d.git /tmp/dav1d",
+    "printf '%s\\n' '[binaries]' \"c = 'aarch64-linux-musl-gcc'\" \"ar = 'aarch64-linux-musl-ar'\" \"pkg-config = 'pkg-config'\" '[host_machine]' \"system = 'linux'\" \"cpu_family = 'aarch64'\" \"cpu = 'aarch64'\" \"endian = 'little'\" > /tmp/dav1d-cross.ini",
+    "meson setup /tmp/dav1d/build -Ddefault_library=static -Dtools=false -Dbuild_tests=false --prefix=/usr/local --cross-file /tmp/dav1d-cross.ini /tmp/dav1d",
+    "ninja -C /tmp/dav1d/build install",
+    "rm -rf /tmp/dav1d /tmp/dav1d-cross.ini",
 ]
+[env]
+PKG_CONFIG_ALLOW_CROSS = "1"
+PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"

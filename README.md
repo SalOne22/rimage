@@ -298,7 +298,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 
 | Image Codecs | Decoder       | Encoder                 | NOTE                                                 |
 | ------------ | ------------- | ----------------------- | ---------------------------------------------------- |
-| avif         | libavif       | ravif                   | Common features only, Static only                    |
+| avif         | dav1d         | ravif                   | Common features only, Static only                    |
 | bmp          | zune-bmp      | ❌                      | Input only                                           |
 | farbfeld     | zune-farbfeld | zune-farbfeld           |                                                      |
 | hdr          | zune-hdr      | zune-hdr                |                                                      |
@@ -365,28 +365,35 @@ rimage png "D:\example.jpg" -s "suffix"  -d "D:\desktop\" # backslash at the end
    - During installation, select "Desktop development with C++" workload.
    - OR, just use `choco install visualstudio2026-workload-vctools` to install it.
 
-4. Install Perl:
-   - Download and install from [Strawberry Perl](https://strawberryperl.com/).
-   - OR, just use `choco install strawberryperl` to install it.
-
-5. Install cmake (OPTIONAL if you use the MSVC bundled version):
+4. Install cmake (OPTIONAL if you use the MSVC bundled version):
     - Download and install from [CMake](https://cmake.org/download/).
     - OR, just use `choco install cmake` to install it.
     - OR, you can use the bundled cmake in MSVC, but please note that only **4.2.3** + could be used.
 
-6. Install nasm and yasm:
-   - Download and install from [nasm](https://www.nasm.us/) and [yasm](https://github.com/yasm/yasm/releases).
-   - OR, just use `choco install nasm` and `choco install yasm` to install them.
-   - **WARNING**: `libaom` requires older version of the nasm binary or yasm instead for a successful build, see [libavif-rs#122](https://github.com/njaard/libavif-rs/issues/122) for details.
+5. Install nasm (for the mozjpeg encoder's SIMD code):
+   - Download and install from [nasm](https://www.nasm.us/).
+   - OR, just use `choco install nasm` to install it.
 
-7. **WARNING** Avoid conflicts from perl:
-    - Remove `C:\Strawberry\c\bin` (Your Perl installation directory) from `$PATH$` to avoid conflicts with newer `cmake` installed in step 5 (The bundled `cmake.exe` in perl is OUTDATED and would make build scripts get error).
+6. Install dav1d through [vcpkg](https://vcpkg.io/) (the AVIF decoder links a
+   static dav1d found through pkg-config):
 
-8. Make sure `$PATH`
-    - Make sure the cmake installed in step 5 is in your system `$PATH` and can be called from command line. You can check this by running `cmake --version` in your terminal, it should show the version of cmake you installed in step 5.
-    - Make sure Perl is in your system `$PATH` and can be called from command line. You can check this by running `perl --version` in your terminal, it should show the version of Perl you installed in step 4.
+    ```pwsh
+    vcpkg install dav1d:x64-windows-static pkgconf:x64-windows
 
-9. Build / Test / Format the project:
+    # point the build at pkgconf and the dav1d package
+    $env:PKG_CONFIG = "$env:VCPKG_ROOT\installed\x64-windows\tools\pkgconf\pkgconf.exe"
+    $env:PKG_CONFIG_PATH = "$env:VCPKG_ROOT\installed\x64-windows-static\lib\pkgconfig"
+    ```
+
+    Use `x86-windows-static` instead of `x64-windows-static` when building for
+    the i686 target. To persist the two environment variables, add them with
+    `setx` or through the system settings.
+
+7. Make sure cmake is in your system `$PATH` and can be called from command
+   line. You can check this by running `cmake --version` in your terminal, it
+   should show the version of cmake you installed in step 4.
+
+8. Build / Test / Format the project:
 
     ```pwsh
     # build the library and the CLI binary
