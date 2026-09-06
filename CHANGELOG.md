@@ -6,6 +6,7 @@ All notable changes to the Rimage library will be documented in this file.
 
 ### Features
 
+- replace the `libavif` AVIF decoder with a `dav1d`-based one (`dav1d` + `avif-parse` + `yuvutils-rs`); decoding now links a system-installed `dav1d` (>= 1.3.0) through pkg-config instead of building libaom from source with cmake. Still-image AVIF only: grid collages and animated sequences are rejected with a decode error, 10/12-bit sources are converted to 8-bit output, and ICC profiles are not applied
 - add SVG input support rendered through `resvg` (static SVG and gzipped SVGZ), usable with every output format
 - add `--svg-scale`, `--svg-width` and `--svg-height` options that rasterize the SVG directly at the target size, so upscaling keeps the vector quality of the source
 - load system fonts for SVG text and substitute missing fonts with a warning: CJK text falls back to Microsoft YaHei UI, everything else falls back to the default font families

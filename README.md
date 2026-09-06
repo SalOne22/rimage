@@ -215,6 +215,40 @@ rimage mozjpeg --resize 64x64 --filter nearest --quantization 80 ./image.jpg
 Note that `--filter` applies to all `--resize` invocations, and `--dithering`
 applies to all `--quantization` invocations.
 
+### SVG input
+
+SVG files (and gzipped `.svgz`) are rendered through `resvg` before encoding,
+so an SVG can be fed to any output format. By default the SVG renders at its
+intrinsic size — taken from its `width`/`height`, falling back to the
+`viewBox`.
+
+Because the source is vector data, sizing is **lossless at any scale**: the
+SVG is rasterized directly at the requested size instead of resampling an
+already-rendered bitmap, so edges, gradients and text stay exactly as sharp
+when you enlarge it. Do not use `--resize` to upscale an SVG — it would
+resample the rendered bitmap — use the options below to control the
+rasterization size instead.
+
+| Option                | Meaning                                                            | Example on a 100x50 SVG |
+| --------------------- | ------------------------------------------------------------------ | ----------------------- |
+| `--svg-scale <SCALE>` | Multiply both sides by `SCALE`                                     | `--svg-scale 2` → 200x100 |
+| `--svg-width <PIX>`   | Render at exactly this width; height follows the aspect ratio      | `--svg-width 400` → 400x200 |
+| `--svg-height <PIX>`  | Render at exactly this height; width follows the aspect ratio      | `--svg-height 200` → 400x100 |
+
+`--svg-scale` conflicts with `--svg-width`/`--svg-height`; `--svg-width` and
+`--svg-height` may be combined for a non-proportional fit.
+
+```sh
+# Render a 100x50 SVG at 2x and encode it as PNG
+rimage png --svg-scale 2 ./logo.svg
+
+# Render at a fixed width for a 2x-density asset, height follows
+rimage mozjpeg --svg-width 800 ./logo.svg
+```
+
+The options only affect `.svg`/`.svgz` inputs: raster images in the same batch
+ignore them and keep their own size.
+
 ### Advanced options
 
 If you want customize optimization you can provide additional options to encoders. For mozjpeg this options are valid:

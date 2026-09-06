@@ -62,29 +62,31 @@ impl CommonArgs for Command {
 
         #[cfg(feature = "svg")]
         let cmd = cmd.next_help_heading("SVG").args([
-            arg!(--"svg-scale" <SCALE> "Uniform scale factor applied when rendering SVG input(s).")
+            arg!(--"svg-scale" <SCALE> "Uniform scale factor for SVG input(s); rendering is lossless at any size.")
                 .long_help(indoc! {r#"Uniform scale factor applied when rendering SVG input(s).
 
-                The SVG is rasterized directly at the scaled size, so upscaling keeps the vector quality of the source instead of resampling a smaller image.
+SVG is rendered straight from the vector data at the requested size, so enlarging is lossless: edges, gradients and text stay exactly as sharp as at the original size. This differs from --resize on a raster image, which resamples an already-rendered bitmap and softens it when upscaling.
 
-                For example, --svg-scale 2 renders a 100x100 SVG at 200x200.
+Without any of --svg-scale, --svg-width or --svg-height, the SVG renders at its intrinsic size (from its width/height or viewBox).
 
-                Conflicts with --svg-width and --svg-height."#})
+For example, --svg-scale 2 renders a 100x50 SVG at 200x100.
+
+Conflicts with --svg-width and --svg-height. Only applies to .svg and .svgz files; raster images in the same batch are not affected."#})
                 .value_parser(value_parser!(f32))
                 .conflicts_with_all(["svg-width", "svg-height"]),
-            arg!(--"svg-width" <PIXELS> "Target width in pixels when rendering SVG input(s).")
+            arg!(--"svg-width" <PIXELS> "Target width in pixels for SVG input(s); rendering is lossless at any size.")
                 .long_help(indoc! {r#"Target width in pixels when rendering SVG input(s).
 
-                The SVG is rasterized directly at the target size, so upscaling keeps the vector quality of the source.
+SVG is rendered straight from the vector data at the requested size, so enlarging is lossless: edges, gradients and text stay exactly as sharp as at the original size. This differs from --resize on a raster image, which resamples an already-rendered bitmap and softens it when upscaling.
 
-                When provided without --svg-height, the height is derived while keeping the aspect ratio of the SVG."#})
+When provided without --svg-height, the height is derived while keeping the aspect ratio of the SVG. Conflicts with --svg-scale. Only applies to .svg and .svgz files."#})
                 .value_parser(value_parser!(u32).range(1..)),
-            arg!(--"svg-height" <PIXELS> "Target height in pixels when rendering SVG input(s).")
+            arg!(--"svg-height" <PIXELS> "Target height in pixels for SVG input(s); rendering is lossless at any size.")
                 .long_help(indoc! {r#"Target height in pixels when rendering SVG input(s).
 
-                The SVG is rasterized directly at the target size, so upscaling keeps the vector quality of the source.
+SVG is rendered straight from the vector data at the requested size, so enlarging is lossless: edges, gradients and text stay exactly as sharp as at the original size. This differs from --resize on a raster image, which resamples an already-rendered bitmap and softens it when upscaling.
 
-                When provided without --svg-width, the width is derived while keeping the aspect ratio of the SVG."#})
+When provided without --svg-width, the width is derived while keeping the aspect ratio of the SVG. Conflicts with --svg-scale. Only applies to .svg and .svgz files."#})
                 .value_parser(value_parser!(u32).range(1..)),
         ]);
 
