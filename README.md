@@ -182,6 +182,15 @@ rimage mozjpeg --resize 2000l --resize 50% --reduce-only ./image.jpg  # 800x400 
 rimage mozjpeg --resize 1000l --filter nearest ./image.jpg
 ```
 
+SVG inputs are resized through the same `--resize` parameter. Instead of
+rasterizing the SVG at its intrinsic size and then resampling with
+`fast_image_resize`, the SVG is rendered vectorly with `resvg` directly at the
+final target size. Upscaling therefore keeps the vector quality of the source,
+and chained `--resize` values compose for SVG exactly as they do for raster
+images. `--filter` selects the raster resampling filter used by
+`fast_image_resize`; it is still accepted for SVG inputs (when `--resize` is
+present) but has no effect on vector SVG rendering.
+
 #### Quantization (color palette reduction)
 
 `--quantization` reduces the number of distinct colors in the image. It is **not** a
