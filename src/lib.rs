@@ -19,9 +19,14 @@ Rimage is a powerful Rust image optimization library extending `zune_image` crat
 |--------------|---------|---------|
 | jpeg         | -       | mozjpeg |
 | png          | -       | oxipng  |
-| avif         | libavif | ravif   |
+| avif         | dav1d   | ravif   |
 | webp         | webp    | webp    |
 | svg          | resvg   | -       |
+
+> AVIF decoding requires a system-installed `dav1d` (>= 1.3.0) found through
+> pkg-config and only handles still images: grid collages and animated
+> sequences are rejected, 10/12-bit sources are converted to 8-bit output, and
+> ICC profiles are not applied.
 
 ## Usage
 

@@ -72,7 +72,7 @@ pub fn decode<P: AsRef<Path>>(f: P, matches: &ArgMatches) -> Result<Image, Image
                 file.read_to_end(&mut file_content)?;
                 file.seek(SeekFrom::Start(0))?;
 
-                if libavif::is_avif(&file_content) {
+                if rimage::codecs::avif::is_avif(&file_content) {
                     use rimage::codecs::avif::AvifDecoder;
 
                     let decoder = AvifDecoder::try_new(file)?;

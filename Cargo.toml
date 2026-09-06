@@ -2,7 +2,7 @@
 name          = "rimage"
 version       = "0.13.0"
 edition       = "2024"
-rust-version  = "1.88.0"
+rust-version  = "1.90.0"
 description   = "Optimize images natively with best-in-class codecs"
 license       = "MIT OR Apache-2.0"
 readme        = "README.md"
@@ -72,6 +72,7 @@ threads = [
     "oxipng?/parallel",
     "fast_image_resize?/rayon",
     "ravif?/threading",
+    "yuvutils-rs?/rayon",
     "zune-image/threads",
 ]
 # Enables metadata support
@@ -89,7 +90,13 @@ oxipng = ["dep:oxipng"]
 # Enables webp codec
 webp = ["dep:webp"]
 # Enables avif codec
-avif = ["dep:ravif", "dep:libavif", "dep:rgb"]
+avif = [
+    "dep:ravif",
+    "dep:rgb",
+    "dep:dav1d",
+    "dep:avif-parse",
+    "dep:yuvutils-rs",
+]
 # Enables tiff codec
 tiff    = ["dep:tiff"]
 # Enables SVG input support (rendered via resvg)
@@ -114,9 +121,9 @@ oxipng = { version = "10.1.1", default-features = false, features = [
 ], optional = true }
 webp = { version = "0.3", default-features = false, optional = true }
 ravif = { version = "0.13.0", optional = true }
-libavif = { version = "0.14.0", default-features = false, features = [
-    "codec-aom",
-], optional = true }
+dav1d = { version = "0.11", optional = true }
+avif-parse = { version = "2.1", optional = true }
+yuvutils-rs = { version = "0.8", optional = true }
 lcms2 = { version = "6.2", optional = true }
 tiff = { version = "0.11.3", default-features = false, features = [
     "lzw",
