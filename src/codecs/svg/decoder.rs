@@ -86,6 +86,44 @@ impl SvgDecoder {
         Self::try_new_with_options(source, SvgOptions::default())
     }
 
+    /// Parses the SVG once and resolves the render target through a caller
+    /// supplied callback.
+    ///
+    /// The callback receives the intrinsic SVG size as integer pixels and returns
+    /// the desired render target, or `Ok(None)` to render at the intrinsic size.
+    /// This avoids parsing the input twice when callers need to compute a resize
+    /// target from the intrinsic dimensions.
+    pub fn try_new_with_resize<R, F>(
+        source: R,
+        resources_dir: Option<PathBuf>,
+        target_for_size: F,
+    ) -> Result<Self, ImageErrors>
+    where
+        R: Read,
+        F: FnOnce((usize, usize)) -> Result<Option<(u32, u32)>, ImageErrors>,
+    {
+        let tree = parse_tree(source, resources_dir.clone())?;
+        let size = tree.size();
+        let intrinsic = (
+            (size.width().round() as usize).max(1),
+            (size.height().round() as usize).max(1),
+        );
+        let target_size = target_for_size(intrinsic)?;
+        let target = resolve_target_size(
+            &SvgOptions {
+                resources_dir,
+                target_size,
+            },
+            size,
+        )?;
+
+        Ok(Self {
+            tree,
+            intrinsic: (size.width(), size.height()),
+            target,
+        })
+    }
+
     /// Returns the intrinsic SVG size in pixels without rendering the image.
     ///
     /// Unlike [`SvgDecoder::try_new_with_options`], this does not validate

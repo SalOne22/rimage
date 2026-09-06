@@ -35,6 +35,20 @@ fn probe_size_returns_intrinsic_size() {
 }
 
 #[test]
+fn decode_through_resize_callback() {
+    let file = File::open("tests/files/svg/rect.svg").unwrap();
+
+    let decoder = SvgDecoder::try_new_with_resize(file, None, |size| {
+        assert_eq!(size, (100, 50));
+        Ok(Some((200, 100)))
+    })
+    .unwrap();
+    let img = Image::from_decoder(decoder).unwrap();
+
+    assert_eq!(img.dimensions(), (200, 100));
+}
+
+#[test]
 fn decode_with_target_size_renders_at_vector_quality() {
     let file = File::open("tests/files/svg/rect.svg").unwrap();
     let options = SvgOptions {

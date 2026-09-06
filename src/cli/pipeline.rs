@@ -1,10 +1,5 @@
 use std::io::{Seek, SeekFrom};
-use std::{
-    collections::BTreeMap,
-    fs::File,
-    io::Read,
-    path::{Path, PathBuf},
-};
+use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 
 #[cfg(feature = "resize")]
 use crate::cli::preprocessors::ResizeValue;
@@ -16,7 +11,9 @@ use rimage::codecs::mozjpeg::MozJpegEncoder;
 #[cfg(feature = "oxipng")]
 use rimage::codecs::oxipng::OxiPngEncoder;
 #[cfg(feature = "svg")]
-use rimage::codecs::svg::{SvgDecoder, SvgOptions};
+use rimage::codecs::svg::SvgDecoder;
+#[cfg(all(feature = "svg", not(feature = "resize")))]
+use rimage::codecs::svg::SvgOptions;
 #[cfg(feature = "webp")]
 use rimage::codecs::webp::WebPEncoder;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
@@ -46,9 +43,21 @@ pub fn decode<P: AsRef<Path>>(f: P, matches: &ArgMatches) -> Result<Image, Image
                     .extension()
                     .is_some_and(|f| f.eq_ignore_ascii_case("svg") | f.eq_ignore_ascii_case("svgz"))
                 {
-                    let options = svg_options(matches, f.as_ref(), &mut file)?;
-                    file.seek(SeekFrom::Start(0))?;
-                    let decoder = SvgDecoder::try_new_with_options(file, options)?;
+                    let resources_dir = f.as_ref().parent().map(Path::to_path_buf);
+
+                    #[cfg(feature = "resize")]
+                    let decoder = SvgDecoder::try_new_with_resize(file, resources_dir, |size| {
+                        svg_target_size(matches, size)
+                    })?;
+
+                    #[cfg(not(feature = "resize"))]
+                    let decoder = SvgDecoder::try_new_with_options(
+                        file,
+                        SvgOptions {
+                            resources_dir,
+                            target_size: None,
+                        },
+                    )?;
 
                     return Image::from_decoder(decoder);
                 }
@@ -114,42 +123,16 @@ pub fn decode<P: AsRef<Path>>(f: P, matches: &ArgMatches) -> Result<Image, Image
     })
 }
 
-#[cfg(feature = "svg")]
-fn svg_options(
-    matches: &ArgMatches,
-    path: &Path,
-    file: &mut File,
-) -> Result<SvgOptions, ImageErrors> {
-    let resources_dir = path.parent().map(Path::to_path_buf);
-
-    #[cfg(feature = "resize")]
-    let target_size = svg_target_size(matches, file, resources_dir.clone())?;
-    #[cfg(not(feature = "resize"))]
-    let target_size = None;
-
-    Ok(SvgOptions {
-        resources_dir,
-        target_size,
-    })
-}
-
 #[cfg(all(feature = "svg", feature = "resize"))]
 fn svg_target_size(
     matches: &ArgMatches,
-    file: &mut File,
-    resources_dir: Option<PathBuf>,
+    size: (usize, usize),
 ) -> Result<Option<(u32, u32)>, ImageErrors> {
     use crate::cli::preprocessors::ResizeValue;
 
     let Some(values) = matches.get_many::<ResizeValue>("resize") else {
         return Ok(None);
     };
-
-    let (intrinsic_width, intrinsic_height) = SvgDecoder::probe_size(file, resources_dir)?;
-    let size = (
-        (intrinsic_width.round() as usize).max(1),
-        (intrinsic_height.round() as usize).max(1),
-    );
 
     let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
     let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
@@ -162,12 +145,27 @@ fn svg_target_size(
         upscale,
     );
 
-    let final_size = plan.last().map(|(_, size)| *size).unwrap_or(size);
     if plan.is_empty() {
-        Ok(None)
-    } else {
-        Ok(Some((final_size.0 as u32, final_size.1 as u32)))
+        return Ok(None);
     }
+
+    let final_size = plan.last().map(|(_, size)| *size).unwrap_or(size);
+    let width = u32::try_from(final_size.0).map_err(|_| {
+        ImageErrors::ImageDecodeErrors(format!(
+            "SVG target width {} exceeds the maximum supported dimension of {}",
+            final_size.0,
+            u32::MAX
+        ))
+    })?;
+    let height = u32::try_from(final_size.1).map_err(|_| {
+        ImageErrors::ImageDecodeErrors(format!(
+            "SVG target height {} exceeds the maximum supported dimension of {}",
+            final_size.1,
+            u32::MAX
+        ))
+    })?;
+
+    Ok(Some((width, height)))
 }
 
 /// Plans a chain of resize operations, returning only the steps that are not
@@ -876,56 +874,65 @@ mod tests {
 
     #[cfg(feature = "svg")]
     mod svg_target_size_tests {
-        use std::fs::File;
+        use zune_image::errors::ImageErrors;
 
         use super::super::svg_target_size;
         use super::matches_from;
 
-        fn target_size(args: &[&str]) -> Option<(u32, u32)> {
+        fn target_size(args: &[&str]) -> Result<Option<(u32, u32)>, ImageErrors> {
             let mut file_args = vec!["rimage", "farbfeld"];
             file_args.extend_from_slice(args);
             file_args.push("tests/files/svg/rect.svg");
 
             let matches = matches_from(&file_args);
-            let mut file = File::open("tests/files/svg/rect.svg").unwrap();
-
-            svg_target_size(&matches, &mut file, None).unwrap()
+            svg_target_size(&matches, (100, 50))
         }
 
         #[test]
         fn multiplier_uses_vector_render_target() {
-            assert_eq!(target_size(&["--resize", "@2"]), Some((200, 100)));
+            assert_eq!(target_size(&["--resize", "@2"]).unwrap(), Some((200, 100)));
         }
 
         #[test]
         fn chained_resize_composes_for_svg() {
             assert_eq!(
-                target_size(&["--resize", "@2", "--resize", "50%"]),
+                target_size(&["--resize", "@2", "--resize", "50%"]).unwrap(),
                 Some((100, 50))
             );
         }
 
         #[test]
         fn intrinsic_size_returns_no_target() {
-            assert_eq!(target_size(&["--resize", "100x50"]), None);
+            assert_eq!(target_size(&["--resize", "100x50"]).unwrap(), None);
         }
 
         #[test]
         fn no_upscale_skips_growth_for_svg() {
-            assert_eq!(target_size(&["--resize", "200l", "--no-upscale"]), None);
+            assert_eq!(
+                target_size(&["--resize", "200l", "--no-upscale"]).unwrap(),
+                None
+            );
         }
 
         #[test]
         fn longest_side_upscales_svg_vectorly() {
-            assert_eq!(target_size(&["--resize", "200l"]), Some((200, 100)));
+            assert_eq!(
+                target_size(&["--resize", "200l"]).unwrap(),
+                Some((200, 100))
+            );
         }
 
         #[test]
         fn filter_is_accepted_but_ignored_for_svg_vector_resize() {
             assert_eq!(
-                target_size(&["--resize", "@2", "--filter", "nearest"]),
+                target_size(&["--resize", "@2", "--filter", "nearest"]).unwrap(),
                 Some((200, 100))
             );
+        }
+
+        #[test]
+        fn oversized_dimensions_are_rejected() {
+            assert!(target_size(&["--resize", "4294967396x4294967396"]).is_err());
         }
     }
 }
