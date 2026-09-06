@@ -105,7 +105,9 @@ fn decode_text_renders_without_error() {
     let decoder = SvgDecoder::try_new(file).unwrap();
     let img = Image::from_decoder(decoder).unwrap();
 
-    assert_eq!(img.dimensions(), (100, 100));
+    // the canvas comes from the SVG's width/height (200x100), the text
+    // mixes simplified and traditional Han with kana and latin
+    assert_eq!(img.dimensions(), (200, 100));
 }
 
 #[test]
