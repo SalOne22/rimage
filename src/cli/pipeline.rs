@@ -874,4 +874,58 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "svg")]
+    mod svg_target_size_tests {
+        use std::fs::File;
+
+        use super::super::svg_target_size;
+        use super::matches_from;
+
+        fn target_size(args: &[&str]) -> Option<(u32, u32)> {
+            let mut file_args = vec!["rimage", "farbfeld"];
+            file_args.extend_from_slice(args);
+            file_args.push("tests/files/svg/rect.svg");
+
+            let matches = matches_from(&file_args);
+            let mut file = File::open("tests/files/svg/rect.svg").unwrap();
+
+            svg_target_size(&matches, &mut file, None).unwrap()
+        }
+
+        #[test]
+        fn multiplier_uses_vector_render_target() {
+            assert_eq!(target_size(&["--resize", "@2"]), Some((200, 100)));
+        }
+
+        #[test]
+        fn chained_resize_composes_for_svg() {
+            assert_eq!(
+                target_size(&["--resize", "@2", "--resize", "50%"]),
+                Some((100, 50))
+            );
+        }
+
+        #[test]
+        fn intrinsic_size_returns_no_target() {
+            assert_eq!(target_size(&["--resize", "100x50"]), None);
+        }
+
+        #[test]
+        fn no_upscale_skips_growth_for_svg() {
+            assert_eq!(target_size(&["--resize", "200l", "--no-upscale"]), None);
+        }
+
+        #[test]
+        fn longest_side_upscales_svg_vectorly() {
+            assert_eq!(target_size(&["--resize", "200l"]), Some((200, 100)));
+        }
+
+        #[test]
+        fn filter_is_accepted_but_ignored_for_svg_vector_resize() {
+            assert_eq!(
+                target_size(&["--resize", "@2", "--filter", "nearest"]),
+                Some((200, 100))
+            );
+        }
+    }
 }
