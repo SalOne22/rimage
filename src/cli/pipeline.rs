@@ -928,6 +928,9 @@ mod tests {
             );
         }
 
+        // `usize` cannot exceed `u32::MAX` on 32-bit targets, so the
+        // overflow path this test guards only exists on 64-bit platforms.
+        #[cfg(target_pointer_width = "64")]
         #[test]
         fn oversized_dimensions_are_rejected() {
             assert!(target_size(&["--resize", "4294967396x4294967396"]).is_err());
