@@ -6,10 +6,6 @@ const VERSION_PRE: u16 = 0;
 fn main() {
     // only run if target os is windows
     if std::env::var("CARGO_CFG_TARGET_OS").unwrap() != "windows" {
-        println!(
-            "cargo:warning={:#?}",
-            "This build script is only for windows target, skipping..."
-        );
         return;
     }
 

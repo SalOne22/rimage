@@ -19,9 +19,9 @@ git clone --depth 1 --branch "$version" \
 
 # dav1d 1.5.x spells these options enable_tools/enable_tests; the shorter
 # tools/build_tests names are rejected as unknown project options
-args=(-Ddefault_library=static -Denable_tools=false -Denable_tests=false --prefix="$prefix")
+args=(-Ddefault_library=static -Denable_tools=false -Denable_tests=false -Dlibdir=lib --prefix="$prefix")
 if [[ $# -gt 1 ]]; then
-    args+=(--cross-file "$2")
+    args+=(--cross-file "$(realpath "$2")")
 fi
 
 # options must not sit between meson setup's two positional arguments:

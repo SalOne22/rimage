@@ -57,12 +57,15 @@ jobs:
           - target: x86_64-pc-windows-msvc
             os: windows-2025
             cross: false
+            rustflags: -C target-feature=+crt-static
           - target: i686-pc-windows-msvc
             os: windows-2025
             cross: false
+            rustflags: -C target-feature=+crt-static
           - target: x86_64-apple-darwin
             os: macos-15-intel
             cross: false
+            rustflags: -A linker_messages
           - target: aarch64-apple-darwin
             os: macos-15
             cross: false
@@ -70,6 +73,7 @@ jobs:
     env:
       CARGO_BUILD_TARGET: ${{ matrix.target }}
       CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_RUNNER: qemu-aarch64 -L /usr/aarch64-linux-gnu
+      RUSTFLAGS: -D warnings ${{ matrix.rustflags }}
 
     steps:
       - name: checkout
@@ -188,6 +192,8 @@ jobs:
 
       - name: build release binary
         shell: bash
+        env:
+          RUSTFLAGS: -D warnings ${{ matrix.rustflags }}
         run: |
           set -euo pipefail
           if [[ "${{ matrix.cross }}" == "true" ]]; then
@@ -198,6 +204,8 @@ jobs:
 
       - name: run tests
         shell: bash
+        env:
+          RUSTFLAGS: -D warnings ${{ matrix.rustflags }}
         run: |
           set -euo pipefail
           if [[ "${{ matrix.cross }}" == "true" ]]; then
