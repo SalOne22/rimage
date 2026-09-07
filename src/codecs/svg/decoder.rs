@@ -21,7 +21,7 @@ use super::fonts;
 pub const MAX_TARGET_PIXELS: u64 = 1 << 28;
 
 /// Options controlling how an SVG image is rendered into pixels.
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, Default)]
 pub struct SvgOptions {
     /// Directory used to resolve relative paths inside the SVG, such as the
     /// `href` of an `<image>` element.
@@ -33,15 +33,6 @@ pub struct SvgOptions {
     ///
     /// The resolved render target may not exceed [`MAX_TARGET_PIXELS`] pixels.
     pub target_size: Option<(u32, u32)>,
-}
-
-impl Default for SvgOptions {
-    fn default() -> Self {
-        Self {
-            resources_dir: None,
-            target_size: None,
-        }
-    }
 }
 
 /// A decoder that renders SVG images into raster pixels using `resvg`.
@@ -169,7 +160,7 @@ fn resolve_target_size(
                     "Invalid SVG target size {width}x{height}"
                 )));
             }
-            (width as u32, height as u32)
+            (width, height)
         }
         None => {
             let intrinsic = size.to_int_size();

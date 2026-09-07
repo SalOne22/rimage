@@ -229,36 +229,34 @@ pub fn operations(
         use fast_image_resize::ResizeAlg;
         use rimage::operations::resize::Resize;
 
-        if !skip_resize {
-            if let Some(values) = matches.get_many::<ResizeValue>("resize") {
-                let filter = matches.get_one::<ResizeFilter>("filter");
+        if !skip_resize && let Some(values) = matches.get_many::<ResizeValue>("resize") {
+            let filter = matches.get_one::<ResizeFilter>("filter");
 
-                let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
-                let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
+            let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
+            let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
 
-                log::debug!("downscale: {downscale}, upscale: {upscale}");
+            log::debug!("downscale: {downscale}, upscale: {upscale}");
 
-                let plan = resize_plan(
-                    values,
-                    matches.indices_of("resize").unwrap(),
-                    img.dimensions(),
-                    downscale,
-                    upscale,
+            let plan = resize_plan(
+                values,
+                matches.indices_of("resize").unwrap(),
+                img.dimensions(),
+                downscale,
+                upscale,
+            );
+
+            for (idx, (w, h)) in plan {
+                map.insert(
+                    idx,
+                    Box::new(Resize::new(
+                        w,
+                        h,
+                        filter
+                            .copied()
+                            .map(Into::<ResizeAlg>::into)
+                            .unwrap_or_default(),
+                    )),
                 );
-
-                for (idx, (w, h)) in plan {
-                    map.insert(
-                        idx,
-                        Box::new(Resize::new(
-                            w,
-                            h,
-                            filter
-                                .copied()
-                                .map(Into::<ResizeAlg>::into)
-                                .unwrap_or_default(),
-                        )),
-                    );
-                }
             }
         }
     }
