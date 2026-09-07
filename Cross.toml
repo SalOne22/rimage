@@ -11,17 +11,24 @@
 # AVIF decoding links dav1d through pkg-config and the stock image carries no
 # dav1d, so pre-build compiles a static dav1d against the musl toolchain.
 # nasm is not needed here: the aarch64 asm is assembled by the C compiler.
+#
+# cross 0.2.5 joins the pre-build entries into `RUN eval "..."`, so no entry
+# may contain double quotes (they would terminate the eval string); printf %b
+# with \047 emits the apostrophes the cross-file values need. `set -e` makes
+# any pre-build failure abort the docker build instead of silently shipping an
+# image without dav1d. cross 0.2.5 has no [env] support and exports
+# PKG_CONFIG_ALLOW_CROSS=1 itself; dav1d installs into /usr/local, which the
+# default pkg-config search path already covers.
 [target.aarch64-unknown-linux-musl]
 image = "ghcr.io/cross-rs/aarch64-unknown-linux-musl@sha256:10769140e3ce9c01cb2b1d4751ce3afb31fb2edea5afcd409ccde589729d7910"
 pre-build = [
+    "set -e",
     "apt-get update",
     "apt-get install --assume-yes ninja-build meson pkg-config git ca-certificates",
     "git clone --depth 1 --branch 1.5.1 https://code.videolan.org/videolan/dav1d.git /tmp/dav1d",
-    "printf '%s\\n' '[binaries]' \"c = 'aarch64-linux-musl-gcc'\" \"ar = 'aarch64-linux-musl-ar'\" \"pkg-config = 'pkg-config'\" '[host_machine]' \"system = 'linux'\" \"cpu_family = 'aarch64'\" \"cpu = 'aarch64'\" \"endian = 'little'\" > /tmp/dav1d-cross.ini",
-    "meson setup /tmp/dav1d/build -Ddefault_library=static -Dtools=false -Dbuild_tests=false --prefix=/usr/local --cross-file /tmp/dav1d-cross.ini /tmp/dav1d",
+    "printf '%b\\n' '[binaries]' 'c = \\047aarch64-linux-musl-gcc\\047' 'ar = \\047aarch64-linux-musl-ar\\047' 'pkg-config = \\047pkg-config\\047' '[host_machine]' 'system = \\047linux\\047' 'cpu_family = \\047aarch64\\047' 'cpu = \\047aarch64\\047' 'endian = \\047little\\047' > /tmp/dav1d-cross.ini",
+    "cd /tmp/dav1d",
+    "meson setup /tmp/dav1d/build -Ddefault_library=static -Denable_tools=false -Denable_tests=false --prefix=/usr/local --cross-file /tmp/dav1d-cross.ini",
     "ninja -C /tmp/dav1d/build install",
     "rm -rf /tmp/dav1d /tmp/dav1d-cross.ini",
 ]
-[env]
-PKG_CONFIG_ALLOW_CROSS = "1"
-PKG_CONFIG_PATH = "/usr/local/lib/pkgconfig"

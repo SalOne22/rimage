@@ -134,11 +134,13 @@ jobs:
         run: |
           choco install -y ninja nasm
           # static dav1d matches the +crt-static rustflag of the MSVC target;
-          # dav1d-sys locates it through pkgconf from the same vcpkg install
+          # dav1d-sys locates it through pkgconf from the same vcpkg install.
+          # the runner images expose vcpkg only via VCPKG_INSTALLATION_ROOT,
+          # there is no VCPKG_ROOT
           $triplet = if ('${{ matrix.target }}' -eq 'i686-pc-windows-msvc') { 'x86-windows-static' } else { 'x64-windows-static' }
-          & "$env:VCPKG_ROOT\vcpkg.exe" install "dav1d:$triplet" "pkgconf:x64-windows"
-          "PKG_CONFIG=$env:VCPKG_ROOT\installed\x64-windows\tools\pkgconf\pkgconf.exe" >> $env:GITHUB_ENV
-          "PKG_CONFIG_PATH=$env:VCPKG_ROOT\installed\$triplet\lib\pkgconfig" >> $env:GITHUB_ENV
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg.exe" install "dav1d:$triplet" "pkgconf:x64-windows"
+          "PKG_CONFIG=$env:VCPKG_INSTALLATION_ROOT\installed\x64-windows\tools\pkgconf\pkgconf.exe" >> $env:GITHUB_ENV
+          "PKG_CONFIG_PATH=$env:VCPKG_INSTALLATION_ROOT\installed\$triplet\lib\pkgconfig" >> $env:GITHUB_ENV
 
       - name: install Rust toolchain
         uses: actions-rust-lang/setup-rust-toolchain@v1
