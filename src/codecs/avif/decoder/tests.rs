@@ -14,6 +14,11 @@ fn decode() {
     assert_eq!(img.colorspace(), ColorSpace::RGBA);
 }
 
+#[test]
+fn bt2020_constant_luminance_is_rejected() {
+    assert!(color_transform(MatrixCoefficients::BT2020ConstantLuminance).is_err());
+}
+
 /// Packs samples into little-endian 16-bit rows; `stride` is in bytes.
 fn u16_plane(samples: &[u16], stride: usize, rows: usize) -> Vec<u8> {
     let mut plane = vec![0u8; stride * rows];

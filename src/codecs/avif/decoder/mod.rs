@@ -212,8 +212,10 @@ fn color_transform(coefficients: MatrixCoefficients) -> Result<ColorTransform, I
             kb: 0.087,
             standard: YuvStandardMatrix::Smpte240,
         }),
-        MatrixCoefficients::BT2020NonConstantLuminance
-        | MatrixCoefficients::BT2020ConstantLuminance => Ok(ColorTransform::Ycbcr {
+        MatrixCoefficients::BT2020ConstantLuminance => Err(decode_error(
+            "unsupported matrix coefficients (BT.2020 constant luminance)",
+        )),
+        MatrixCoefficients::BT2020NonConstantLuminance => Ok(ColorTransform::Ycbcr {
             kr: 0.2627,
             kb: 0.0593,
             standard: YuvStandardMatrix::Bt2020,
