@@ -12,13 +12,22 @@ use zune_image::traits::DecoderTrait;
 
 use super::fonts;
 
-/// Maximum number of pixels an SVG render target may cover (2^28, ~268 MP).
+/// Total bytes that may be live simultaneously while an SVG is decoded.
 ///
-/// At 4 bytes per pixel this bounds the render pixmap and the straight-alpha
-/// copy at ~1 GiB each, plus ~1 GiB of interleaved channels in the resulting
-/// [`Image`], which keeps worst-case transient memory bounded regardless of
-/// the SVG's declared size or the provided render options.
-pub const MAX_TARGET_PIXELS: u64 = 1 << 28;
+/// Decoding keeps three pixel-sized buffers alive at peak:
+/// the premultiplied `tiny_skia::Pixmap`, the straight-alpha interleaved
+/// copy built by [`SvgDecoder::decode`], and the deinterleaved channel
+/// buffers inside the resulting [`Image`]. The pixel limit is derived from
+/// this budget so a valid SVG cannot force an out-of-memory abort.
+const MAX_SVG_DECODE_BYTES: u64 = 512 * 1024 * 1024;
+
+const SVG_BYTES_PER_PIXEL: u64 = 4;
+
+const SVG_SIMULTANEOUS_PIXEL_BUFFERS: u64 = 3;
+
+/// Maximum number of pixels an SVG render target may cover.
+pub const MAX_TARGET_PIXELS: u64 =
+    MAX_SVG_DECODE_BYTES / (SVG_BYTES_PER_PIXEL * SVG_SIMULTANEOUS_PIXEL_BUFFERS);
 
 /// Options controlling how an SVG image is rendered into pixels.
 #[derive(Clone, Debug, Default)]
@@ -177,7 +186,7 @@ fn resolve_target_size(
     let area = (width as u64) * (height as u64);
     if area > MAX_TARGET_PIXELS {
         return Err(ImageErrors::ImageDecodeErrors(format!(
-            "SVG target size {width}x{height} ({area} pixels) exceeds the limit of {MAX_TARGET_PIXELS} pixels, reduce the --resize target or the intrinsic size",
+            "SVG target size {width}x{height} ({area} pixels) exceeds the limit of {MAX_TARGET_PIXELS} pixels ({MAX_SVG_DECODE_BYTES} byte decode budget), reduce the --resize target or the intrinsic size",
         )));
     }
 

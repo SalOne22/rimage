@@ -3,7 +3,13 @@ use std::fs::File;
 use zune_core::colorspace::ColorSpace;
 use zune_image::image::Image;
 
-use super::{SvgDecoder, SvgOptions};
+use super::{MAX_TARGET_PIXELS, SvgDecoder, SvgOptions};
+
+#[test]
+fn max_target_pixels_fits_the_decode_byte_budget() {
+    let max_bytes = MAX_TARGET_PIXELS * 4 * 3;
+    assert!(max_bytes <= 512 * 1024 * 1024);
+}
 
 #[test]
 fn decode_simple_rect() {

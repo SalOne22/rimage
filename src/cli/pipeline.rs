@@ -137,9 +137,13 @@ fn svg_target_size(
     let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
     let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
 
+    let first_other = first_other_index(matches);
     let plan = resize_plan(
-        values,
-        matches.indices_of("resize").unwrap(),
+        values
+            .into_iter()
+            .zip(matches.indices_of("resize").unwrap())
+            .map(|(value, idx)| (idx, value))
+            .take_while(|(idx, _)| *idx < first_other),
         size,
         downscale,
         upscale,
@@ -168,6 +172,35 @@ fn svg_target_size(
     Ok(Some((width, height)))
 }
 
+/// Returns the index of the first non-resize preprocessing element.
+///
+/// SVG vector resizing can only be folded into the decode render target for
+/// the resize steps that come before every quantization operation and before
+/// every true `--premultiply` flag. Steps at or after this index must run as
+/// ordinary raster resize operations so command-line order is preserved.
+#[cfg(feature = "resize")]
+fn first_other_index(matches: &ArgMatches) -> usize {
+    let first_premultiply = matches.get_many::<bool>("premultiply").and_then(|values| {
+        values
+            .into_iter()
+            .zip(matches.indices_of("premultiply")?)
+            .find_map(|(value, idx)| if *value { Some(idx) } else { None })
+    });
+
+    #[cfg(feature = "quantization")]
+    let first_quantization = matches
+        .indices_of("quantization")
+        .and_then(|mut indices| indices.next());
+    #[cfg(not(feature = "quantization"))]
+    let first_quantization: Option<usize> = None;
+
+    [first_premultiply, first_quantization]
+        .into_iter()
+        .flatten()
+        .min()
+        .unwrap_or(usize::MAX)
+}
+
 /// Plans a chain of resize operations, returning only the steps that are not
 /// skipped by the direction flags or by already matching the current size.
 ///
@@ -176,17 +209,14 @@ fn svg_target_size(
 /// planned size as the vector render target).
 #[cfg(feature = "resize")]
 fn resize_plan<'a>(
-    values: impl Iterator<Item = &'a ResizeValue>,
-    indices: impl Iterator<Item = usize>,
+    values: impl Iterator<Item = (usize, &'a ResizeValue)>,
     mut size: (usize, usize),
     downscale: bool,
     upscale: bool,
 ) -> Vec<(usize, (usize, usize))> {
     let mut plan = Vec::new();
 
-    values.zip(indices).for_each(|(value, idx)| {
-        // Each value maps the size the previous resize left behind,
-        // so a chain composes instead of every value mapping the source dimensions.
+    values.for_each(|(idx, value)| {
         let (w, h) = value.map_dimensions(size.0, size.1);
         log::trace!("setup resize {value} on index {idx}");
 
@@ -229,7 +259,7 @@ pub fn operations(
         use fast_image_resize::ResizeAlg;
         use rimage::operations::resize::Resize;
 
-        if !skip_resize && let Some(values) = matches.get_many::<ResizeValue>("resize") {
+        if let Some(values) = matches.get_many::<ResizeValue>("resize") {
             let filter = matches.get_one::<ResizeFilter>("filter");
 
             let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
@@ -237,9 +267,13 @@ pub fn operations(
 
             log::debug!("downscale: {downscale}, upscale: {upscale}");
 
+            let first_other = first_other_index(matches);
             let plan = resize_plan(
-                values,
-                matches.indices_of("resize").unwrap(),
+                values
+                    .into_iter()
+                    .zip(matches.indices_of("resize").unwrap())
+                    .map(|(value, idx)| (idx, value))
+                    .filter(|(idx, _)| !skip_resize || *idx >= first_other),
                 img.dimensions(),
                 downscale,
                 upscale,
@@ -870,6 +904,33 @@ mod tests {
         );
     }
 
+    #[test]
+    fn skip_resize_skips_only_leading_svg_steps() {
+        let matches = matches_from(&[
+            "rimage",
+            "farbfeld",
+            "--resize",
+            "@2",
+            "--quantization",
+            "80",
+            "--resize",
+            "50%",
+            "image.ff",
+        ]);
+
+        let img = test_image(200, 100);
+        let ops = operations(&matches, &img, true);
+
+        let resize_indices: Vec<usize> = ops
+            .iter()
+            .filter(|(_, op)| op.name() == "fast resize")
+            .map(|(idx, _)| *idx)
+            .collect();
+
+        let expected: Vec<usize> = matches.indices_of("resize").unwrap().skip(1).collect();
+        assert_eq!(resize_indices, expected);
+    }
+
     #[cfg(feature = "svg")]
     mod svg_target_size_tests {
         use zune_image::errors::ImageErrors;
@@ -908,6 +969,22 @@ mod tests {
         fn no_upscale_skips_growth_for_svg() {
             assert_eq!(
                 target_size(&["--resize", "200l", "--no-upscale"]).unwrap(),
+                None
+            );
+        }
+
+        #[test]
+        fn resize_after_quantization_is_not_preapplied() {
+            assert_eq!(
+                target_size(&["--quantization", "80", "--resize", "64x64"]).unwrap(),
+                None
+            );
+        }
+
+        #[test]
+        fn premultiply_before_resize_is_not_preapplied() {
+            assert_eq!(
+                target_size(&["--premultiply", "--resize", "64x64"]).unwrap(),
                 None
             );
         }
