@@ -7,6 +7,7 @@ All notable changes to the Rimage library will be documented in this file.
 ### Breaking Changes
 
 - add SVG input support rendered through `resvg` (static SVG and gzipped SVGZ), usable with every output format
+- replace the `libavif` AVIF decoder with a `dav1d`-based one (`dav1d` + `avif-parse` + `yuvutils-rs`); decoding now links a system-installed `dav1d` (>= 1.3.0) through pkg-config instead of building libaom from source with cmake.
 
 ### Features
 
