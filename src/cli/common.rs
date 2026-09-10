@@ -7,7 +7,7 @@ use super::{preprocessors::Preprocessors, utils::threads};
 
 impl CommonArgs for Command {
     fn common_args(self) -> Self {
-        self
+        let cmd = self
         .next_help_heading("General").args([
             arg!(files: <FILES> ... "Input file(s) to process.")
                 .long_help(indoc! {r#"Input file(s) to process.
@@ -58,8 +58,9 @@ impl CommonArgs for Command {
 
                 This will output the metadata of the processed image(s) in JSON format."#})
                 .value_parser(value_parser!(PathBuf)),
-        ])
-        .preprocessors()
+        ]);
+
+        cmd.preprocessors()
     }
 }
 

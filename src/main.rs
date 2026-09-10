@@ -592,6 +592,7 @@ fn pretty_path(path: &Path) -> PathBuf {
 
 fn main() -> std::process::ExitCode {
     let logger = pretty_env_logger::formatted_builder()
+        .filter_level(log::LevelFilter::Warn)
         .parse_default_env()
         .filter_module("little_exif", log::LevelFilter::Off)
         .build();
@@ -822,7 +823,13 @@ fn main() -> std::process::ExitCode {
                         let input_format = get_file_extension(&input);
                         let input_modified = get_file_modified_time(&input);
 
-                        let mut img = handle_error!(input, decode(&input));
+                        let input_is_svg = input
+                            .extension()
+                            .is_some_and(|ext| {
+                                ext.eq_ignore_ascii_case("svg") || ext.eq_ignore_ascii_case("svgz")
+                            });
+
+                        let mut img = handle_error!(input, decode(&input, matches));
                         let exif_metadata: Option<ExifMetadata> = ExifMetadata::new_from_path(&input)
                             .ok()
                             .filter(|_| {
@@ -855,7 +862,7 @@ fn main() -> std::process::ExitCode {
                             ops.push(Box::new(AutoOrient));
                         }
 
-                        operations(matches, &img)
+                        operations(matches, &img, input_is_svg)
                             .into_iter()
                             .for_each(|(_, operations)| match operations.name() {
                                 "quantize" => {

@@ -2,6 +2,7 @@
 name          = "rimage"
 version       = "0.13.0"
 edition       = "2024"
+rust-version  = "1.88.0"
 description   = "Optimize images natively with best-in-class codecs"
 license       = "MIT OR Apache-2.0"
 readme        = "README.md"
@@ -41,6 +42,7 @@ default = [
     "webp",
     "avif",
     "tiff",
+    "svg",
     "threads",
     "metadata",
 ]
@@ -90,14 +92,18 @@ webp = ["dep:webp"]
 avif = ["dep:ravif", "dep:libavif", "dep:rgb"]
 # Enables tiff codec
 tiff    = ["dep:tiff"]
+# Enables SVG input support (rendered via resvg)
+svg = ["dep:resvg", "dep:skrifa"]
 icc     = ["dep:lcms2"]
 console = ["dep:console"]
 
 [dependencies]
 log = "0.4"
-zune-core = { version = "0.5.1", features = ["std"] }
+# zune-core 0.5.3 would cause build error.
+# REF: https://github.com/etemesi254/zune-image/issues/439
+zune-core = { version = "=0.5.1", features = ["std"] }
 zune-image = { version = "0.5.0", features = ["simd"] }
-fast_image_resize = { version = "6.0", optional = true }
+fast_image_resize = { version = "6.1", optional = true }
 imagequant = { version = "4.4", default-features = false, optional = true }
 rgb = { version = "0.8", optional = true }
 mozjpeg = { version = "0.10.13", default-features = false, features = [
@@ -111,9 +117,17 @@ ravif = { version = "0.13.0", optional = true }
 libavif = { version = "0.14.0", default-features = false, features = [
     "codec-aom",
 ], optional = true }
-lcms2 = { version = "6.1", optional = true }
+lcms2 = { version = "6.2", optional = true }
 tiff = { version = "0.11.3", default-features = false, features = [
     "lzw",
+], optional = true }
+resvg = { version = "0.48.1", default-features = false, features = [
+    "text",
+    "system-fonts",
+    "raster-images",
+], optional = true }
+skrifa = { version = "0.46.2", default-features = false, features = [
+    "std",
 ], optional = true }
 
 # cli

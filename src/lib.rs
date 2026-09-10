@@ -21,6 +21,7 @@ Rimage is a powerful Rust image optimization library extending `zune_image` crat
 | png          | -       | oxipng  |
 | avif         | libavif | ravif   |
 | webp         | webp    | webp    |
+| svg          | resvg   | -       |
 
 ## Usage
 

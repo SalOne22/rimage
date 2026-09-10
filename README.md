@@ -110,15 +110,15 @@ run before encoding. Operations execute in CLI argument order.
 `--resize` accepts one of the following value forms. Unless a fixed `WxH` is
 given, the aspect ratio is preserved:
 
-| Form  | Meaning                                                     | Example   | Result on 800x400 |
-| ----- | ----------------------------------------------------------- | --------- | ----------------- |
-| `WxH` | Fixed width and height, aspect ratio is not preserved       | `100x300` | `100x300`         |
-| `Ww`  | Anchor on the width, height follows the aspect ratio        | `100w`    | `100x50`          |
-| `hH`  | Anchor on the height, width follows the aspect ratio        | `200h`    | `400x200`         |
-| `Ll`  | Longest side becomes `L`, the other side follows            | `1000l`   | `1000x500`        |
-| `Ss`  | Shortest side becomes `S`, the other side follows           | `500s`    | `1000x500`        |
-| `@M`  | Scale by the multiplier `M`                                 | `@1.5`    | `1200x600`        |
-| `P%`  | Scale to `P` percent of the source                          | `50%`     | `400x200`         |
+| Form  | Meaning                                               | Example   | Result on 800x400 |
+| ----- | ----------------------------------------------------- | --------- | ----------------- |
+| `WxH` | Fixed width and height, aspect ratio is not preserved | `100x300` | `100x300`         |
+| `Ww`  | Anchor on the width, height follows the aspect ratio  | `100w`    | `100x50`          |
+| `hH`  | Anchor on the height, width follows the aspect ratio  | `200h`    | `400x200`         |
+| `Ll`  | Longest side becomes `L`, the other side follows      | `1000l`   | `1000x500`        |
+| `Ss`  | Shortest side becomes `S`, the other side follows     | `500s`    | `1000x500`        |
+| `@M`  | Scale by the multiplier `M`                           | `@1.5`    | `1200x600`        |
+| `P%`  | Scale to `P` percent of the source                    | `50%`     | `400x200`         |
 
 ```sh
 # Fixed dimensions: the image is resized to exactly 100x200
@@ -182,6 +182,15 @@ rimage mozjpeg --resize 2000l --resize 50% --reduce-only ./image.jpg  # 800x400 
 rimage mozjpeg --resize 1000l --filter nearest ./image.jpg
 ```
 
+SVG inputs are resized through the same `--resize` parameter. Instead of
+rasterizing the SVG at its intrinsic size and then resampling with
+`fast_image_resize`, the SVG is rendered vectorly with `resvg` directly at the
+final target size. Upscaling therefore keeps the vector quality of the source,
+and chained `--resize` values compose for SVG exactly as they do for raster
+images. `--filter` selects the raster resampling filter used by
+`fast_image_resize`; it is still accepted for SVG inputs (when `--resize` is
+present) but has no effect on vector SVG rendering.
+
 #### Quantization (color palette reduction)
 
 `--quantization` reduces the number of distinct colors in the image. It is **not** a
@@ -214,6 +223,30 @@ rimage mozjpeg --resize 64x64 --filter nearest --quantization 80 ./image.jpg
 
 Note that `--filter` applies to all `--resize` invocations, and `--dithering`
 applies to all `--quantization` invocations.
+
+### SVG input
+
+SVG files (and gzipped `.svgz`) are rendered through `resvg` before encoding,
+so an SVG can be fed to any output format. By default the SVG renders at its
+intrinsic size — taken from its `width`/`height`, falling back to the
+`viewBox`.
+
+Use `--resize` to control the rasterization size. The SVG is rasterized
+directly at the requested size, so sizing is **lossless at any scale**: edges,
+gradients and text stay exactly as sharp when you enlarge it. Chained
+`--resize` values compose for SVG exactly as they do for raster images, and
+the direction flags (`--reduce-only`, `--enlarge-only`) work for SVG too.
+
+```sh
+# Render a 100x50 SVG at 2x and encode it as PNG
+rimage png --resize @2 ./logo.svg
+
+# Render at a fixed width for a 2x-density asset, height follows
+rimage mozjpeg --resize 800w ./logo.svg
+```
+
+`--resize` affects `.svg`/`.svgz` inputs and raster images alike. `--filter`
+is a raster resampling filter and has no effect on vector SVG rendering.
 
 ### Advanced options
 
@@ -275,6 +308,7 @@ For library usage check [Docs.rs](https://docs.rs/rimage/latest/rimage/)
 | ppm          | zune-ppm      | zune-ppm                |                                                      |
 | psd          | zune-psd      | ❌                      | Input only                                           |
 | qoi          | zune-qoi      | zune-qoi                |                                                      |
+| svg          | resvg         | ❌                      | Input only                                           |
 | tiff         | tiff          | ❌                      | Input only                                           |
 | webp         | webp          | webp                    | Static only                                          |
 

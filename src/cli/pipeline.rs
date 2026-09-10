@@ -1,6 +1,8 @@
 use std::io::{Seek, SeekFrom};
 use std::{collections::BTreeMap, fs::File, io::Read, path::Path};
 
+#[cfg(feature = "resize")]
+use crate::cli::preprocessors::ResizeValue;
 use clap::ArgMatches;
 #[cfg(feature = "avif")]
 use rimage::codecs::avif::AvifEncoder;
@@ -8,6 +10,10 @@ use rimage::codecs::avif::AvifEncoder;
 use rimage::codecs::mozjpeg::MozJpegEncoder;
 #[cfg(feature = "oxipng")]
 use rimage::codecs::oxipng::OxiPngEncoder;
+#[cfg(feature = "svg")]
+use rimage::codecs::svg::SvgDecoder;
+#[cfg(all(feature = "svg", not(feature = "resize")))]
+use rimage::codecs::svg::SvgOptions;
 #[cfg(feature = "webp")]
 use rimage::codecs::webp::WebPEncoder;
 use zune_core::{bytestream::ZByteWriterTrait, options::EncoderOptions};
@@ -23,11 +29,41 @@ use zune_image::{
 };
 use zune_imageprocs::premul_alpha::PremultiplyAlpha;
 
-pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
+#[allow(unused_variables)]
+#[allow(unused_mut)]
+pub fn decode<P: AsRef<Path>>(f: P, matches: &ArgMatches) -> Result<Image, ImageErrors> {
     Image::open(f.as_ref()).or_else(|e| {
         if matches!(e, ImageErrors::ImageDecoderNotImplemented(_)) {
-            #[cfg(any(feature = "avif", feature = "webp"))]
+            #[cfg(any(feature = "avif", feature = "webp", feature = "svg"))]
             let mut file = File::open(f.as_ref())?;
+
+            #[cfg(feature = "svg")]
+            {
+                if f.as_ref()
+                    .extension()
+                    .is_some_and(|f| f.eq_ignore_ascii_case("svg") | f.eq_ignore_ascii_case("svgz"))
+                {
+                    let resources_dir = f.as_ref().parent().map(Path::to_path_buf);
+
+                    #[cfg(feature = "resize")]
+                    let decoder = SvgDecoder::try_new_with_resize(file, resources_dir, |size| {
+                        svg_target_size(matches, size)
+                    })?;
+
+                    #[cfg(not(feature = "resize"))]
+                    let decoder = SvgDecoder::try_new_with_options(
+                        file,
+                        SvgOptions {
+                            resources_dir,
+                            target_size: None,
+                        },
+                    )?;
+
+                    return Image::from_decoder(decoder);
+                }
+
+                file.seek(SeekFrom::Start(0))?;
+            }
 
             #[cfg(feature = "avif")]
             {
@@ -87,14 +123,139 @@ pub fn decode<P: AsRef<Path>>(f: P) -> Result<Image, ImageErrors> {
     })
 }
 
+#[cfg(all(feature = "svg", feature = "resize"))]
+fn svg_target_size(
+    matches: &ArgMatches,
+    size: (usize, usize),
+) -> Result<Option<(u32, u32)>, ImageErrors> {
+    use crate::cli::preprocessors::ResizeValue;
+
+    let Some(values) = matches.get_many::<ResizeValue>("resize") else {
+        return Ok(None);
+    };
+
+    let downscale = matches.get_flag("downscale") && !matches.get_flag("no-downscale");
+    let upscale = matches.get_flag("upscale") && !matches.get_flag("no-upscale");
+
+    let first_other = first_other_index(matches);
+    let plan = resize_plan(
+        values
+            .into_iter()
+            .zip(matches.indices_of("resize").unwrap())
+            .map(|(value, idx)| (idx, value))
+            .take_while(|(idx, _)| *idx < first_other),
+        size,
+        downscale,
+        upscale,
+    );
+
+    if plan.is_empty() {
+        return Ok(None);
+    }
+
+    let final_size = plan.last().map(|(_, size)| *size).unwrap_or(size);
+    let width = u32::try_from(final_size.0).map_err(|_| {
+        ImageErrors::ImageDecodeErrors(format!(
+            "SVG target width {} exceeds the maximum supported dimension of {}",
+            final_size.0,
+            u32::MAX
+        ))
+    })?;
+    let height = u32::try_from(final_size.1).map_err(|_| {
+        ImageErrors::ImageDecodeErrors(format!(
+            "SVG target height {} exceeds the maximum supported dimension of {}",
+            final_size.1,
+            u32::MAX
+        ))
+    })?;
+
+    Ok(Some((width, height)))
+}
+
+/// Returns the index of the first non-resize preprocessing element.
+///
+/// SVG vector resizing can only be folded into the decode render target for
+/// the resize steps that come before every quantization operation and before
+/// every true `--premultiply` flag. Steps at or after this index must run as
+/// ordinary raster resize operations so command-line order is preserved.
+#[cfg(feature = "resize")]
+fn first_other_index(matches: &ArgMatches) -> usize {
+    let first_premultiply = matches.get_many::<bool>("premultiply").and_then(|values| {
+        values
+            .into_iter()
+            .zip(matches.indices_of("premultiply")?)
+            .find_map(|(value, idx)| if *value { Some(idx) } else { None })
+    });
+
+    #[cfg(feature = "quantization")]
+    let first_quantization = matches
+        .indices_of("quantization")
+        .and_then(|mut indices| indices.next());
+    #[cfg(not(feature = "quantization"))]
+    let first_quantization: Option<usize> = None;
+
+    [first_premultiply, first_quantization]
+        .into_iter()
+        .flatten()
+        .min()
+        .unwrap_or(usize::MAX)
+}
+
+/// Plans a chain of resize operations, returning only the steps that are not
+/// skipped by the direction flags or by already matching the current size.
+///
+/// The same logic is used for raster images (which get a physical [`Resize`]
+/// operation for every planned step) and for SVG inputs (which use the final
+/// planned size as the vector render target).
+#[cfg(feature = "resize")]
+fn resize_plan<'a>(
+    values: impl Iterator<Item = (usize, &'a ResizeValue)>,
+    mut size: (usize, usize),
+    downscale: bool,
+    upscale: bool,
+) -> Vec<(usize, (usize, usize))> {
+    let mut plan = Vec::new();
+
+    values.for_each(|(idx, value)| {
+        let (w, h) = value.map_dimensions(size.0, size.1);
+        log::trace!("setup resize {value} on index {idx}");
+
+        // Skip if the image is already the desired size
+        // or if both downscale and upscale are disabled
+        if (!downscale && !upscale) || (w == size.0 && h == size.1) {
+            log::trace!("skip resize to {w}x{h} on index {idx}");
+            return;
+        }
+
+        if !downscale && (w <= size.0 || h <= size.1) {
+            log::trace!("downscaling disabled, skip resize to {w}x{h} on index {idx}");
+            return;
+        }
+
+        if !upscale && (w >= size.0 || h >= size.1) {
+            log::trace!("upscaling disabled, skip resize to {w}x{h} on index {idx}");
+            return;
+        }
+
+        plan.push((idx, (w, h)));
+        size = (w, h);
+    });
+
+    plan
+}
+
 #[allow(unused_variables)]
 #[allow(unused_mut)]
-pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn OperationsTrait>> {
+pub fn operations(
+    matches: &ArgMatches,
+    img: &Image,
+    skip_resize: bool,
+) -> BTreeMap<usize, Box<dyn OperationsTrait>> {
     let mut map: BTreeMap<usize, Box<dyn OperationsTrait>> = BTreeMap::new();
 
     #[cfg(feature = "resize")]
     {
-        use crate::cli::preprocessors::{ResizeFilter, ResizeValue};
+        use crate::cli::preprocessors::ResizeFilter;
         use fast_image_resize::ResizeAlg;
         use rimage::operations::resize::Resize;
 
@@ -106,48 +267,31 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
 
             log::debug!("downscale: {downscale}, upscale: {upscale}");
 
-            let mut size = img.dimensions();
+            let first_other = first_other_index(matches);
+            let plan = resize_plan(
+                values
+                    .into_iter()
+                    .zip(matches.indices_of("resize").unwrap())
+                    .map(|(value, idx)| (idx, value))
+                    .filter(|(idx, _)| !skip_resize || *idx >= first_other),
+                img.dimensions(),
+                downscale,
+                upscale,
+            );
 
-            values
-                .into_iter()
-                .zip(matches.indices_of("resize").unwrap())
-                .for_each(|(value, idx)| {
-                    // Each value maps the size the previous resize left behind,
-                    // so a chain composes instead of every value mapping the source dimensions.
-                    let (w, h) = value.map_dimensions(size.0, size.1);
-                    log::trace!("setup resize {value} on index {idx}");
-
-                    // Skip if the image is already the desired size
-                    // or if both downscale and upscale are disabled
-                    if (!downscale && !upscale) || (w == size.0 && h == size.1) {
-                        log::trace!("skip resize to {w}x{h} on index {idx}");
-                        return;
-                    }
-
-                    if !downscale && (w <= size.0 || h <= size.1) {
-                        log::trace!("downscaling disabled, skip resize to {w}x{h} on index {idx}");
-                        return;
-                    }
-
-                    if !upscale && (w >= size.0 || h >= size.1) {
-                        log::trace!("upscaling disabled, skip resize to {w}x{h} on index {idx}");
-                        return;
-                    }
-
-                    map.insert(
-                        idx,
-                        Box::new(Resize::new(
-                            w,
-                            h,
-                            filter
-                                .copied()
-                                .map(Into::<ResizeAlg>::into)
-                                .unwrap_or_default(),
-                        )),
-                    );
-
-                    size = (w, h);
-                })
+            for (idx, (w, h)) in plan {
+                map.insert(
+                    idx,
+                    Box::new(Resize::new(
+                        w,
+                        h,
+                        filter
+                            .copied()
+                            .map(Into::<ResizeAlg>::into)
+                            .unwrap_or_default(),
+                    )),
+                );
+            }
         }
     }
 
@@ -177,6 +321,13 @@ pub fn operations(matches: &ArgMatches, img: &Image) -> BTreeMap<usize, Box<dyn 
             .into_iter()
             .zip(matches.indices_of("premultiply").unwrap())
             .for_each(|(value, idx)| {
+                // Position-sensitive flags inject a trailing default `false`
+                // occurrence when the flag is absent from the command line,
+                // which must stay silent.
+                if !*value {
+                    return;
+                }
+
                 if let Some(op) = map.get(&(idx + 2)) {
                     log::trace!("setup alpha premultiply for {}", op.name());
 
@@ -500,7 +651,7 @@ mod tests {
         let matches = matches_from(&args);
         let mut img = test_image(width, height);
 
-        let ops = operations(&matches, &img);
+        let ops = operations(&matches, &img, false);
         let queued = ops.values().filter(|op| op.name() == "fast resize").count();
 
         for op in ops.values() {
@@ -751,5 +902,115 @@ mod tests {
             run(&["--resize", "1000l", "--filter", "nearest"], 2000, 1000),
             (1, (1000, 500))
         );
+    }
+
+    #[test]
+    fn skip_resize_skips_only_leading_svg_steps() {
+        let matches = matches_from(&[
+            "rimage",
+            "farbfeld",
+            "--resize",
+            "@2",
+            "--quantization",
+            "80",
+            "--resize",
+            "50%",
+            "image.ff",
+        ]);
+
+        let img = test_image(200, 100);
+        let ops = operations(&matches, &img, true);
+
+        let resize_indices: Vec<usize> = ops
+            .iter()
+            .filter(|(_, op)| op.name() == "fast resize")
+            .map(|(idx, _)| *idx)
+            .collect();
+
+        let expected: Vec<usize> = matches.indices_of("resize").unwrap().skip(1).collect();
+        assert_eq!(resize_indices, expected);
+    }
+
+    #[cfg(feature = "svg")]
+    mod svg_target_size_tests {
+        use zune_image::errors::ImageErrors;
+
+        use super::super::svg_target_size;
+        use super::matches_from;
+
+        fn target_size(args: &[&str]) -> Result<Option<(u32, u32)>, ImageErrors> {
+            let mut file_args = vec!["rimage", "farbfeld"];
+            file_args.extend_from_slice(args);
+            file_args.push("tests/files/svg/rect.svg");
+
+            let matches = matches_from(&file_args);
+            svg_target_size(&matches, (100, 50))
+        }
+
+        #[test]
+        fn multiplier_uses_vector_render_target() {
+            assert_eq!(target_size(&["--resize", "@2"]).unwrap(), Some((200, 100)));
+        }
+
+        #[test]
+        fn chained_resize_composes_for_svg() {
+            assert_eq!(
+                target_size(&["--resize", "@2", "--resize", "50%"]).unwrap(),
+                Some((100, 50))
+            );
+        }
+
+        #[test]
+        fn intrinsic_size_returns_no_target() {
+            assert_eq!(target_size(&["--resize", "100x50"]).unwrap(), None);
+        }
+
+        #[test]
+        fn no_upscale_skips_growth_for_svg() {
+            assert_eq!(
+                target_size(&["--resize", "200l", "--no-upscale"]).unwrap(),
+                None
+            );
+        }
+
+        #[test]
+        fn resize_after_quantization_is_not_preapplied() {
+            assert_eq!(
+                target_size(&["--quantization", "80", "--resize", "64x64"]).unwrap(),
+                None
+            );
+        }
+
+        #[test]
+        fn premultiply_before_resize_is_not_preapplied() {
+            assert_eq!(
+                target_size(&["--premultiply", "--resize", "64x64"]).unwrap(),
+                None
+            );
+        }
+
+        #[test]
+        fn longest_side_upscales_svg_vectorly() {
+            assert_eq!(
+                target_size(&["--resize", "200l"]).unwrap(),
+                Some((200, 100))
+            );
+        }
+
+        #[test]
+        fn filter_is_accepted_but_ignored_for_svg_vector_resize() {
+            assert_eq!(
+                target_size(&["--resize", "@2", "--filter", "nearest"]).unwrap(),
+                Some((200, 100))
+            );
+        }
+
+        // `usize` cannot exceed `u32::MAX` on 32-bit targets, so the
+        // overflow path this test guards only exists on 64-bit platforms.
+        #[cfg(target_pointer_width = "64")]
+        #[test]
+        fn oversized_dimensions_are_rejected() {
+            assert!(target_size(&["--resize", "4294967396x4294967396"]).is_err());
+        }
     }
 }

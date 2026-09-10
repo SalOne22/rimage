@@ -2,6 +2,23 @@
 
 All notable changes to the Rimage library will be documented in this file.
 
+# Unreleased
+
+### Breaking Changes
+
+- add SVG input support rendered through `resvg` (static SVG and gzipped SVGZ), usable with every output format
+
+### Features
+
+- resize SVG inputs through the existing `--resize` option by rendering the SVG vectorly with `resvg` directly at the final target size, so upscaling keeps the vector quality of the source
+- load system fonts for SVG text and substitute missing fonts with a warning: the serif default and the CJK fallback are resolved once at load time from platform-appropriate seeds (Times New Roman/Liberation Serif/DejaVu Serif, etc., YaHei/PingFang/Noto CJK, etc.), the `serif` generic alias is pointed at a family that actually exists, and a text span is never dropped for the lack of a font — as a last resort it renders with whatever face the system has
+- declare `rust-version = "1.90"` to track the effective minimum supported Rust version
+
+### Bug Fixes
+
+- show warning-level logs by default without `RUST_LOG`; drop the spurious premultiply warning that fired on every run without `--premultiply` and demote the routine missing-ICC-profile notice to debug level
+- reject SVG render targets whose three live pixel buffers would exceed a 512 MiB decode budget (currently 44,739,242 pixels) instead of attempting multi-gigabyte allocations that could terminate the process through out-of-memory
+
 # [0.13.0](https://github.com/SalOne22/rimage/compare/v0.12.4...v0.13.0) (2026-08-14)
 
 ### Breaking Changes
